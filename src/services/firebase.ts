@@ -1,18 +1,41 @@
+/// <reference types="vite/client" />
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
-const metaEnv = (import.meta as any).env || {};
 
-const firebaseConfig = {
-  apiKey: metaEnv.VITE_FIREBASE_API_KEY,
-  authDomain: metaEnv.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: metaEnv.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: metaEnv.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: metaEnv.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: metaEnv.VITE_FIREBASE_APP_ID,
+const cleanEnvVar = (value: any): string => {
+  if (typeof value !== 'string') return '';
+  let trimmed = value.trim();
+  // Strip outer quotes if both matching starting/ending quotes exist
+  if ((trimmed.startsWith('"') && trimmed.endsWith('"')) || (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
+    trimmed = trimmed.substring(1, trimmed.length - 1);
+  }
+  // Strip any remaining leading double or single quotes
+  if (trimmed.startsWith('"') || trimmed.startsWith("'")) {
+    trimmed = trimmed.substring(1);
+  }
+  // Strip any remaining trailing double or single quotes
+  if (trimmed.endsWith('"') || trimmed.endsWith("'")) {
+    trimmed = trimmed.substring(0, trimmed.length - 1);
+  }
+  return trimmed.trim();
 };
 
-const databaseId = metaEnv.VITE_FIREBASE_DATABASE_ID || 'default';
+const firebaseConfig = {
+  apiKey: cleanEnvVar(import.meta.env.VITE_FIREBASE_API_KEY),
+  authDomain: cleanEnvVar(import.meta.env.VITE_FIREBASE_AUTH_DOMAIN),
+  projectId: cleanEnvVar(import.meta.env.VITE_FIREBASE_PROJECT_ID),
+  storageBucket: cleanEnvVar(import.meta.env.VITE_FIREBASE_STORAGE_BUCKET),
+  messagingSenderId: cleanEnvVar(import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID),
+  appId: cleanEnvVar(import.meta.env.VITE_FIREBASE_APP_ID),
+};
+
+console.log('[Firebase Init] config keys loaded:', Object.keys(firebaseConfig).reduce((acc, key) => {
+  acc[key] = firebaseConfig[key as keyof typeof firebaseConfig] ? `Present (length ${firebaseConfig[key as keyof typeof firebaseConfig]?.length})` : 'Missing/Undefined';
+  return acc;
+}, {} as Record<string, string>));
+
+const databaseId = cleanEnvVar(import.meta.env.VITE_FIREBASE_DATABASE_ID) || 'default';
 
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app, databaseId);

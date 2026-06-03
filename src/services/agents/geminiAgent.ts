@@ -1,6 +1,21 @@
 import { GoogleGenAI } from "@google/genai";
 
-const apiKey = process.env.GEMINI_API_KEY;
+const cleanEnvVar = (value: any): string => {
+  if (typeof value !== 'string') return '';
+  let trimmed = value.trim();
+  if ((trimmed.startsWith('"') && trimmed.endsWith('"')) || (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
+    trimmed = trimmed.substring(1, trimmed.length - 1);
+  }
+  if (trimmed.startsWith('"') || trimmed.startsWith("'")) {
+    trimmed = trimmed.substring(1);
+  }
+  if (trimmed.endsWith('"') || trimmed.endsWith("'")) {
+    trimmed = trimmed.substring(0, trimmed.length - 1);
+  }
+  return trimmed.trim();
+};
+
+const apiKey = cleanEnvVar(process.env.GEMINI_API_KEY);
 const ai = apiKey
   ? new GoogleGenAI({ 
       apiKey,
