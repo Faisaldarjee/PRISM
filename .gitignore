@@ -1,8 +1,32 @@
+# Environment files - NEVER commit these
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+*.env
+
+# Firebase config
+firebase-applet-config.json
+firebase-config.json
+serviceAccountKey.json
+*firebase*config*
+
+# Google credentials  
+google-credentials.json
+credentials.json
+*credentials*
+
+# Node
 node_modules/
-build/
 dist/
+build/
 coverage/
-.DS_Store
+
+# Logs
 *.log
-.env*
-!.env.example
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
