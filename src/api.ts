@@ -61,6 +61,10 @@ export async function getMacro(): Promise<MacroData> {
   return fetchJson<MacroData>(`${API_BASE}/api/macro`);
 }
 
+export async function getGlobalMacro(): Promise<any> {
+  return fetchJson<any>(`${API_BASE}/api/macro/global`);
+}
+
 export async function getSip(symbol: string): Promise<SipData> {
   return fetchJson<SipData>(`${API_BASE}/api/sip/${symbol}`);
 }
@@ -101,6 +105,15 @@ export async function importAsset(symbol: string): Promise<{ symbol: string; nam
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({ symbol })
+    }
+  );
+}
+
+export async function deleteAsset(symbol: string): Promise<{ success: boolean; symbol: string }> {
+  return fetchJson<{ success: boolean; symbol: string }>(
+    `${API_BASE}/api/assets/${encodeURIComponent(symbol)}`,
+    {
+      method: 'DELETE'
     }
   );
 }

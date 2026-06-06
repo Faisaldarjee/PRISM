@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { 
   TrendingUp, 
   Layers, 
@@ -28,6 +29,27 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user } = useAuth();
 
+  const [scannerData, setScannerData] = useState<any[]>([]);
+  const [scannerLoading, setScannerLoading] = useState(true);
+
+  useEffect(() => {
+    const loadLiveScanner = async () => {
+      try {
+        const response = await fetch('/api/swing-scanner');
+        if (!response.ok) throw new Error('API unstable or in process');
+        const data = await response.json();
+        setScannerData(data.slice(0, 3));
+      } catch (err) {
+        setScannerData([]);
+      } finally {
+        setScannerLoading(false);
+      }
+    };
+    loadLiveScanner();
+    const interval = setInterval(loadLiveScanner, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 40);
@@ -36,11 +58,16 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const navHeight = 72; // px
+
   const scrollToId = (id: string) => {
     setMobileMenuOpen(false);
     const element = document.getElementById(id);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+      const top = element.getBoundingClientRect().top 
+                  + window.scrollY 
+                  - navHeight;
+      window.scrollTo({ top, behavior: 'smooth' });
     }
   };
 
@@ -237,9 +264,9 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
           <div className="clay-element p-6 text-left transform hover:-translate-y-1 transition-all duration-300">
             <div className="flex justify-between items-start mb-2.5">
               <span className="font-data text-[9px] uppercase font-bold text-[#D4A843] tracking-widest">LAYER_02 // SCANNER</span>
-              <span className="text-[10px] bg-white/10 text-white px-1.5 py-0.5 rounded font-data">500+ SCAN</span>
+              <span className="text-[10px] bg-white/10 text-white px-1.5 py-0.5 rounded font-data">463 SCAN</span>
             </div>
-            <span className="font-display text-[16.5px] font-semibold text-[#F0F4FF] block leading-snug">500+ Stocks</span>
+            <span className="font-display text-[16.5px] font-semibold text-[#F0F4FF] block leading-snug">463 Stocks</span>
             <span className="text-[12px] text-[#8892A4] block mt-1.5 font-body">Nifty 500 scanned dynamically daily to find maximum setup compression indices.</span>
           </div>
 
@@ -265,7 +292,7 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
             onClick={() => scrollToId('how-it-works')}
             className="px-6 py-3.5 bg-transparent hover:bg-white/5 border border-[rgba(255,255,255,0.06)] hover:border-[rgba(255,255,255,0.14)] text-xs font-data rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 w-full sm:w-auto text-[#8892A4] hover:text-[#F0F4FF]"
           >
-            <Play size={10} className="fill-[#8892A4] group-hover:fill-current" /> HOW_IT_WORKS.XLS
+            <Play size={10} className="fill-[#8892A4] group-hover:fill-current" /> See how it works ↓
           </button>
         </div>
 
@@ -314,80 +341,95 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
                 </tr>
               </thead>
               <tbody className="divide-y divide-[rgba(255,255,255,0.02)]">
-                {/* TCS Row */}
-                <tr className="data-row">
-                  <td className="py-4 px-3 font-data text-xs text-[#E8C070]">#1</td>
-                  <td className="py-4 px-3 font-display font-medium text-[14px]">
-                    TCS.NS <span className="text-[10px] text-[#8892A4] font-normal font-sans ml-1">Tata Consultancy</span>
-                  </td>
-                  <td className="py-4 px-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-24 h-1 rounded-sm bg-black/40 overflow-hidden relative">
-                        <div className="h-full bg-[#D4A843]" style={{ width: '95%' }} />
-                      </div>
-                      <span className="font-data text-xs text-[#E8C070] font-black">95%</span>
-                    </div>
-                  </td>
-                  <td className="py-4 px-3 font-data text-xs text-[#8892A4]">32.9 <span className="text-[8px] bg-[#00D084]/15 border border-[#00D084]/30 text-[#00D084] px-1 py-0.2 rounded ml-1 font-bold">OVERSOLD</span></td>
-                  <td className="py-4 px-3 font-data text-xs text-[#8892A4]">28.6 <span className="text-[9px] text-[#E8C070] font-bold">STRETCHED</span></td>
-                  <td className="py-4 px-3 font-data text-xs text-[#E8C070]">★ BB Squeeze</td>
-                  <td className="py-4 px-3">
-                    <span className="px-2 py-0.5 border border-[#00D084]/20 bg-[#00D084]/10 text-[#00D084] font-data text-[9.5px] font-bold rounded">
-                      🟢 BUY SETUP
-                    </span>
-                  </td>
-                  <td className="py-4 px-3 text-right font-data text-xs text-[#F0F4FF] font-medium">₹3,892.40</td>
-                </tr>
-
-                {/* GOLDBEES Row */}
-                <tr className="data-row">
-                  <td className="py-4 px-3 font-data text-xs text-[#E8C070]">#2</td>
-                  <td className="py-4 px-3 font-display font-medium text-[14px]">
-                    GOLDBEES.NS <span className="text-[10px] text-[#8892A4] font-normal font-sans ml-1">Nippon Gold ETF</span>
-                  </td>
-                  <td className="py-4 px-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-24 h-1 rounded-sm bg-black/40 overflow-hidden relative">
-                        <div className="h-full bg-[#D4A843]" style={{ width: '90%' }} />
-                      </div>
-                      <span className="font-data text-xs text-[#E8C070] font-black">90%</span>
-                    </div>
-                  </td>
-                  <td className="py-4 px-3 font-data text-xs text-[#8892A4]">54.3 <span className="text-[8px] border border-[rgba(255,255,255,0.06)] text-[#8892A4] px-1 py-0.2 rounded ml-1">STABLE</span></td>
-                  <td className="py-4 px-3 font-data text-xs text-[#8892A4]">29.3 <span className="text-[9px] text-[#E8C070] font-bold">STRETCHED</span></td>
-                  <td className="py-4 px-3 font-data text-xs text-[#4A5568]">Normal</td>
-                  <td className="py-4 px-3">
-                    <span className="px-2 py-0.5 border border-[#00D084]/20 bg-[#00D084]/10 text-[#00D084] font-data text-[9.5px] font-bold rounded">
-                      🟢 BUY SETUP
-                    </span>
-                  </td>
-                  <td className="py-4 px-3 text-right font-data text-xs text-[#F0F4FF] font-medium">₹64.25</td>
-                </tr>
-
-                {/* INFY Row */}
-                <tr className="data-row">
-                  <td className="py-4 px-3 font-data text-xs text-[#E8C070]">#3</td>
-                  <td className="py-4 px-3 font-display font-medium text-[14px]">
-                    INFY.NS <span className="text-[10px] text-[#8892A4] font-normal font-sans ml-1">Infosys Limited</span>
-                  </td>
-                  <td className="py-4 px-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-24 h-1 rounded-sm bg-black/40 overflow-hidden relative">
-                        <div className="h-full bg-[#D4A843]" style={{ width: '84%' }} />
-                      </div>
-                      <span className="font-data text-xs text-[#E8C070] font-black">84%</span>
-                    </div>
-                  </td>
-                  <td className="py-4 px-3 font-data text-xs text-[#8892A4]">43.9 <span className="text-[8px] border border-[rgba(255,255,255,0.06)] text-[#8892A4] px-1 py-0.2 rounded ml-1">STABLE</span></td>
-                  <td className="py-4 px-3 font-data text-xs text-[#8892A4]">22.0 <span className="text-[8.5px] text-[#4A5568]">Muted</span></td>
-                  <td className="py-4 px-3 font-data text-xs text-[#E8C070]">★ BB Squeeze</td>
-                  <td className="py-4 px-3">
-                    <span className="px-2 py-0.5 border border-[#00D084]/20 bg-[#00D084]/10 text-[#00D084] font-data text-[9.5px] font-bold rounded">
-                      🟢 BUY SETUP
-                    </span>
-                  </td>
-                  <td className="py-4 px-3 text-right font-data text-xs text-[#F0F4FF] font-medium">₹1,475.90</td>
-                </tr>
+                {scannerLoading ? (
+                  Array.from({ length: 3 }).map((_, i) => (
+                    <tr key={`skeleton-${i}`} className="animate-pulse">
+                      <td className="py-4 px-3"><div className="h-4 bg-slate-900 rounded w-6" /></td>
+                      <td className="py-4 px-3">
+                        <div className="flex items-center gap-2">
+                          <div className="h-5 bg-slate-900 rounded w-20" />
+                          <div className="h-4 bg-slate-900 rounded w-24" />
+                        </div>
+                      </td>
+                      <td className="py-4 px-3"><div className="h-2 bg-slate-900 rounded w-28 animate-pulse" /></td>
+                      <td className="py-4 px-3"><div className="h-4 bg-slate-900 rounded-sm w-12" /></td>
+                      <td className="py-4 px-3"><div className="h-4 bg-slate-900 rounded-sm w-12" /></td>
+                      <td className="py-4 px-3"><div className="h-4 bg-slate-900 rounded w-16" /></td>
+                      <td className="py-4 px-3"><div className="h-6 bg-slate-900 rounded-lg w-20" /></td>
+                      <td className="py-4 px-3 text-right"><div className="h-4 bg-slate-900 rounded w-20 ml-auto" /></td>
+                    </tr>
+                  ))
+                ) : scannerData.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="py-12 text-center text-slate-500 font-mono text-xs">
+                      ⚠️ Scanner updating live Nifty500 confluences... Check back shortly.
+                    </td>
+                  </tr>
+                ) : (
+                  scannerData.map((setup, index) => {
+                    const isBuy = setup.signal === 'BUY';
+                    const isSell = setup.signal === 'SELL';
+                    const scoreVal = Math.round(setup.setupScore || setup.score || 80);
+                    return (
+                      <tr key={setup.symbol} className="data-row hover:bg-white/[0.01] transition-colors relative">
+                        <td className="py-4 px-3 font-data text-xs text-[#E8C070] relative">
+                          #{index + 1}
+                          <span className="absolute left-1 top-1/2 -translate-y-1/2 flex h-1.5 w-1.5 bg-emerald-500 rounded-full animate-pulse" title="LIVE DATA" />
+                        </td>
+                        <td className="py-4 px-3 font-display font-medium text-[14px]">
+                          {setup.symbol} <span className="text-[10px] text-[#8892A4] font-normal font-sans ml-1">{setup.sector || 'Nifty 500'}</span>
+                        </td>
+                        <td className="py-4 px-3">
+                          <div className="flex items-center gap-2">
+                            <div className="w-24 h-1 rounded-sm bg-black/40 overflow-hidden relative">
+                              <div className="h-full bg-[#D4A843]" style={{ width: `${scoreVal}%` }} />
+                            </div>
+                            <span className="font-data text-xs text-[#E8C070] font-black">{scoreVal}%</span>
+                          </div>
+                        </td>
+                        <td className="py-4 px-3 font-data text-xs text-[#8892A4]">
+                          {setup.rsi || 45} 
+                          <span className={`text-[8px] border px-1 py-0.2 rounded ml-1 font-bold ${
+                            setup.rsi < 35 
+                              ? 'bg-emerald-950/45 border-emerald-500/30 text-emerald-400' 
+                              : setup.rsi > 65 
+                                ? 'bg-rose-950/45 border-rose-500/30 text-rose-400' 
+                                : 'border-[rgba(255,255,255,0.06)] text-[#8892A4]'
+                          }`}>
+                            {setup.rsi < 35 ? 'OVERSOLD' : setup.rsi > 65 ? 'OVERBOUGHT' : 'STABLE'}
+                          </span>
+                        </td>
+                        <td className="py-4 px-3 font-data text-xs text-[#8892A4]">
+                          {setup.adx || 20}{' '}
+                          <span className={`text-[8px] border px-1 py-0.2 rounded ml-1 font-bold ${
+                            setup.adx > 25 
+                              ? 'bg-[#D4A843]/15 border-[#D4A843]/30 text-[#E8C070]' 
+                              : 'border-[rgba(255,255,255,0.06)] text-slate-500'
+                          }`}>
+                            {setup.adx > 25 ? 'STRONG TREND' : 'CONSOLIDATING'}
+                          </span>
+                        </td>
+                        <td className="py-4 px-3 font-data text-xs text-[#E8C070]">
+                          {setup.isSqueezed ? '★ BB Squeeze' : '★ Normal Vol'}
+                        </td>
+                        <td className="py-4 px-3">
+                          <span className={`px-2 py-0.5 border font-data text-[9.5px] font-bold rounded ${
+                            isBuy 
+                              ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-400' 
+                              : isSell 
+                                ? 'border-rose-500/20 bg-rose-500/10 text-rose-400' 
+                                : 'border-yellow-500/20 bg-yellow-500/10 text-yellow-400'
+                          }`}>
+                            {isBuy ? '🟢 BUY SETUP' : isSell ? '🔴 SELL SETUP' : '🟡 HOLD / PATIENT'}
+                          </span>
+                        </td>
+                        <td className="py-4 px-3 text-right font-data text-xs text-[#F0F4FF] font-medium">
+                          ₹{setup.lastPrice ? setup.lastPrice.toLocaleString('en-IN') : '100.00'}
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
               </tbody>
             </table>
           </div>
@@ -549,8 +591,8 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
       <section id="pricing" className="py-20 px-6 max-w-5xl mx-auto scroll-mt-20">
         <div className="text-center mb-16">
           <span className="font-data text-[10.5px] tracking-[0.2em] text-[#E8C070]">── SYSTEM ACCESS ──</span>
-          <h2 className="font-display font-semibold text-3xl sm:text-4xl mt-2 text-[#F0F4FF]">Refined Plan Tier</h2>
-          <p className="text-[#8892A4] mt-2 text-sm">Full predictive consensus terminal with no hidden layers.</p>
+          <h2 className="font-display font-semibold text-3xl sm:text-4xl mt-2 text-[#F0F4FF]">Honest Pricing Plan</h2>
+          <p className="text-[#8892A4] mt-2 text-sm">Full predictive consensus terminal. Pure transparency.</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
@@ -561,7 +603,7 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
               <h3 className="font-display text-4.5xl font-semibold text-[#F0F4FF] mb-1">
                 ₹0 <span className="text-xs font-data text-[#4A5568] font-normal">/ GUEST_ROLE</span>
               </h3>
-              <p className="text-[12.5px] text-[#8892A4] mb-6">Perfect for training dynamic position sizes and studying technical triggers.</p>
+              <p className="text-[12.5px] text-[#8892A4] mb-6 font-body">All core features available. Set up custom workspaces locally.</p>
               
               <ul className="space-y-3.5 text-[13px] border-t border-[rgba(255,255,255,0.04)] pt-6 mb-8 font-body">
                 <li className="flex items-start gap-2.5">
@@ -574,11 +616,11 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
                 </li>
                 <li className="flex items-start gap-2.5">
                   <Check size={14} className="text-[#00D084] mt-0.5 shrink-0" />
-                  <span>Local Workspace Sandbox</span>
+                  <span>Local Guest Mode Sandbox</span>
                 </li>
-                <li className="flex items-start gap-2.5 text-[#4A5568]">
-                  <X size={14} className="mt-0.5 shrink-0" />
-                  <span>Cloud watchlist persistent synchronization</span>
+                <li className="flex items-start gap-2.5">
+                  <Check size={14} className="text-[#00D084] mt-0.5 shrink-0" />
+                  <span>Cloud sync after safe signup</span>
                 </li>
               </ul>
             </div>
@@ -592,35 +634,35 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
           </div>
 
           {/* PRO Tier Card */}
-          <div className="gold-card p-8 flex flex-col justify-between relative">
+          <div className="gold-card p-8 flex flex-col justify-between relative border border-[#D4A843]/20">
             <div className="absolute -top-3.5 right-6 py-1 px-3 bg-[#D4A843] text-[#05070C] font-data text-[9px] font-black uppercase tracking-wider rounded-full select-none">
-              MOST_ACTIVE
+              FREE BETA
             </div>
 
             <div>
-              <span className="font-data text-[11px] text-[#E8C070] uppercase tracking-wider block mb-2">CLOUD_MODULE_PRO</span>
+              <span className="font-data text-[11px] text-[#E8C070] uppercase tracking-wider block mb-2">PRO_MODULE_STATUS</span>
               <h3 className="font-display text-4.5xl font-semibold text-[#E8C070] mb-1">
-                ₹299 <span className="text-xs font-data text-[#8892A4] font-normal">/ MONTH_CYCLE</span>
+                BETA_FREE <span className="text-xs font-data text-[#8892A4] font-normal">/ COMING_SOON</span>
               </h3>
-              <p className="text-[12.5px] text-[#8892A4] mb-3">Enables database persistence, consensus tracking, and real alerts.</p>
-              <p className="text-[11px] font-semibold text-[#00D084] mb-6">7-Day Premium Trial activated natively. No card required.</p>
+              <p className="text-[12.5px] text-[#8892A4] mb-3 font-body">Pro Cloud Persist capabilities are currently in developmental beta testing.</p>
+              <p className="text-[11px] font-semibold text-[#00D084] mb-6">Currently free during beta. No payment integration setup.</p>
               
               <ul className="space-y-3.5 text-[13px] border-t border-[#D4A843]/15 pt-6 mb-8 font-body">
-                <li className="flex items-start gap-2.5">
+                <li className="flex items-start gap-2.5 text-slate-400">
                   <Check size={14} className="text-[#00D084] mt-0.5 shrink-0" />
-                  <span className="font-medium text-[#F0F4FF]">All Guest metrics included</span>
+                  <span>Advanced Cloud Watchlist sync</span>
                 </li>
-                <li className="flex items-start gap-2.5">
+                <li className="flex items-start gap-2.5 text-slate-400">
                   <Check size={14} className="text-[#00D084] mt-0.5 shrink-0" />
-                  <span>Cloud DB synchronization (Watchlist & SIP logs)</span>
+                  <span>High-speed automated price target exports</span>
                 </li>
-                <li className="flex items-start gap-2.5">
+                <li className="flex items-start gap-2.5 text-slate-400">
                   <Check size={14} className="text-[#00D084] mt-0.5 shrink-0" />
-                  <span className="text-[#E8C070] font-bold">Priority Gemini AI market briefs</span>
+                  <span>Premium Gemini macro brief confluences</span>
                 </li>
-                <li className="flex items-start gap-2.5">
+                <li className="flex items-start gap-2.5 text-slate-400">
                   <Check size={14} className="text-[#00D084] mt-0.5 shrink-0" />
-                  <span>Live price triggers and diagnostic exports</span>
+                  <span>Real-time custom email threshold notifications</span>
                 </li>
               </ul>
             </div>
@@ -629,7 +671,7 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
               onClick={onOpenAuth}
               className="w-full py-3 bg-[#D4A843] hover:bg-[#E8C070] text-[#05070C] text-xs font-data rounded-xl transition-all cursor-pointer font-bold"
             >
-              INITIALIZE_PRO_TRIAL
+              INITIALIZE_FREE_ACCOUNT
             </button>
           </div>
         </div>
@@ -645,9 +687,9 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
           </div>
 
           <div className="flex items-center gap-6 text-[11px] font-data">
-            <a href="#" className="hover:text-[#8892A4] transition-colors">PRIVACY</a>
-            <a href="#" className="hover:text-[#8892A4] transition-colors">TERMS</a>
-            <a href="#" className="hover:text-[#8892A4] transition-colors">SEBI_RISK_INDEX</a>
+            <Link to="/privacy" className="hover:text-[#E8C070] transition-colors">PRIVACY</Link>
+            <Link to="/terms" className="hover:text-[#E8C070] transition-colors">TERMS</Link>
+            <Link to="/disclaimer" className="hover:text-[#E8C070] transition-colors">SEBI_RISK_INDEX</Link>
           </div>
 
           <div className="text-[10px] font-body text-center md:text-right max-w-xs leading-normal">

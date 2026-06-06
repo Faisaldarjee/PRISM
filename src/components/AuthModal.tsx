@@ -17,7 +17,33 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const [consentGiven, setConsentGiven] = useState(false);
+  const [loginAttempts, setLoginAttempts] = useState(0);
+  const [lockedUntil, setLockedUntil] = useState<Date | null>(null);
+
   if (!isOpen) return null;
+
+  const validatePassword = (pass: string): string | null => {
+    if (pass.length < 8) {
+      return 'Password must be at least 8 characters long.';
+    }
+    if (!/[A-Z]/.test(pass)) {
+      return 'Password must contain at least one uppercase letter.';
+    }
+    if (!/[0-9]/.test(pass)) {
+      return 'Password must contain at least one number.';
+    }
+    return null;
+  };
+
+  const getPasswordStrength = (pass: string) => {
+    if (!pass) return '';
+    if (pass.length < 8) return 'weak';
+    const hasUppercase = /[A-Z]/.test(pass);
+    const hasNumber = /[0-9]/.test(pass);
+    if (hasUppercase && hasNumber) return 'strong';
+    return 'medium';
+  };
 
   const handleAuthAction = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,14 +53,43 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
     try {
       if (view === 'LOGIN') {
-        await logIn(email, password);
-        setSuccess('Logged in successfully!');
-        setTimeout(() => {
-          onClose();
-        }, 1000);
+        const now = new Date();
+        if (lockedUntil && now < lockedUntil) {
+          const minutesLeft = Math.ceil((lockedUntil.getTime() - now.getTime()) / 60000);
+          throw new Error(`Login locked. Too many failed attempts. Try again in ${minutesLeft} minute(s).`);
+        }
+
+        try {
+          await logIn(email, password);
+          setLoginAttempts(0);
+          setLockedUntil(null);
+          setSuccess('Logged in successfully!');
+          setTimeout(() => {
+            onClose();
+          }, 1000);
+        } catch (err: any) {
+          const newAttempts = loginAttempts + 1;
+          setLoginAttempts(newAttempts);
+          
+          if (newAttempts >= 5) {
+            const lockTime = new Date(Date.now() + 15 * 60 * 1000);
+            setLockedUntil(lockTime);
+            throw new Error('Too many failed attempts. Locked for 15 minutes.');
+          } else {
+            let cleanMsg = err.message || 'Invalid credentials.';
+            if (err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
+              cleanMsg = 'Invalid email or password.';
+            }
+            throw new Error(`${cleanMsg} ${5 - newAttempts} attempts remaining.`);
+          }
+        }
       } else if (view === 'SIGNUP') {
-        if (password.length < 6) {
-          throw new Error('Password must be at least 6 characters long.');
+        const strengthErr = validatePassword(password);
+        if (strengthErr) {
+          throw new Error(strengthErr);
+        }
+        if (!consentGiven) {
+          throw new Error('You must accept the terms & privacy directive to proceed.');
         }
         await signUp(email, password, name || 'Member');
         setSuccess('Registered successfully! Your workspace is ready.');
@@ -48,7 +103,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
     } catch (err: any) {
       console.error(err);
       let errMsg = err.message || 'Authentication failed.';
-      if (err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
+      if (err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
         errMsg = 'Invalid email or password.';
       } else if (err.code === 'auth/email-already-in-use') {
         errMsg = 'This email is already registered.';
@@ -179,12 +234,50 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   className="w-full bg-slate-950/60 border border-slate-800 focus:border-slate-700 focus:outline-none rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-200 placeholder-slate-600 font-mono transition-all"
                 />
               </div>
+              {view === 'SIGNUP' && password && (
+                <div className="space-y-1 mt-1.5 p-2 bg-slate-950/30 rounded-lg border border-slate-900/40">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[9px] text-slate-500 font-mono">Password strength:</span>
+                    <span className={`text-[9px] font-mono font-bold capitalize ${
+                      getPasswordStrength(password) === 'weak' ? 'text-rose-400' :
+                      getPasswordStrength(password) === 'medium' ? 'text-amber-400' :
+                      'text-emerald-400'
+                    }`}>
+                      {getPasswordStrength(password)}
+                    </span>
+                  </div>
+                  <div className="h-1 bg-slate-950 rounded overflow-hidden">
+                    <div 
+                      className={`h-full rounded transition-all duration-300 ${
+                        getPasswordStrength(password) === 'weak' ? 'w-1/3 bg-rose-500' :
+                        getPasswordStrength(password) === 'medium' ? 'w-2/3 bg-amber-500' :
+                        'w-full bg-emerald-500'
+                      }`}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {view === 'SIGNUP' && (
+            <div className="flex items-start gap-2.5 bg-slate-950/40 p-3 rounded-xl border border-slate-800/40 my-1">
+              <input
+                type="checkbox"
+                id="consentCheck"
+                checked={consentGiven}
+                onChange={(e) => setConsentGiven(e.target.checked)}
+                className="mt-0.5 rounded border-slate-800 bg-slate-950 text-emerald-500 focus:ring-emerald-500 cursor-pointer h-3.5 w-3.5"
+              />
+              <label htmlFor="consentCheck" className="text-[10px] text-slate-400 font-mono leading-normal select-none">
+                I hereby declare that I agree to the <a href="/terms" target="_blank" rel="noreferrer" className="text-emerald-400 hover:underline">Terms of Service</a> and the <a href="/privacy" target="_blank" rel="noreferrer" className="text-emerald-400 hover:underline">Privacy Directive</a>, and understand this is an educational simulation.
+              </label>
             </div>
           )}
 
           <button 
             type="submit"
-            disabled={loading}
+            disabled={loading || (view === 'SIGNUP' && !consentGiven)}
             className="w-full py-2.5 mt-2 rounded-xl bg-slate-100 hover:bg-white text-slate-950 font-mono text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 transition-all font-bold"
           >
             {loading && <RefreshCw size={12} className="animate-spin" />}
@@ -253,9 +346,10 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
           </div>
         </form>
 
-        {/* Console Note */}
-        <div className="bg-slate-950 p-3 text-center border-t border-slate-850/80 text-[9px] text-slate-500 font-mono tracking-wider">
-          💡 Make sure "Email/Password" and "Google" are enabled on your Console.
+        {/* Protection Footer Note */}
+        <div className="bg-slate-950 p-4 text-center border-t border-slate-850/80 text-[10px] text-slate-400 font-mono flex items-center justify-center gap-1.5">
+          <ShieldCheck size={12} className="text-emerald-400" />
+          Protected by Firebase Authentication
         </div>
       </div>
     </div>

@@ -1,42 +1,23 @@
-import { GoogleGenAI } from "@google/genai";
-
-const cleanEnvVar = (value: any): string => {
-  if (typeof value !== 'string') return '';
-  let trimmed = value.trim();
-  if ((trimmed.startsWith('"') && trimmed.endsWith('"')) || (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
-    trimmed = trimmed.substring(1, trimmed.length - 1);
-  }
-  if (trimmed.startsWith('"') || trimmed.startsWith("'")) {
-    trimmed = trimmed.substring(1);
-  }
-  if (trimmed.endsWith('"') || trimmed.endsWith("'")) {
-    trimmed = trimmed.substring(0, trimmed.length - 1);
-  }
-  return trimmed.trim();
-};
-
-const apiKey = cleanEnvVar(process.env.GEMINI_API_KEY);
-const ai = apiKey
-  ? new GoogleGenAI({ 
-      apiKey,
-      httpOptions: { headers: { 'User-Agent': 'aistudio-build' } }
-    })
-  : null;
+import { ai, isGeminiSuspended, handleGeminiError } from "../geminiState";
 
 async function callGeneratedContentWithRetry(params: {
   model: string;
   contents: any;
   config?: any;
 }, maxRetries = 2): Promise<any> {
+  if (!ai) throw new Error("API has not been configured.");
+  if (isGeminiSuspended()) throw new Error("API is temporarily suspended due to rate limiting.");
+
   const modelsToTry = [params.model, "gemini-flash-latest", "gemini-3.5-flash"];
   const models = Array.from(new Set(modelsToTry));
 
   let lastError: any = null;
 
   for (const model of models) {
+    if (isGeminiSuspended()) break;
+
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        if (!ai) throw new Error("API has not been configured.");
         const response = await ai.models.generateContent({
           ...params,
           model,
@@ -45,16 +26,28 @@ async function callGeneratedContentWithRetry(params: {
       } catch (error: any) {
         lastError = error;
         const msg = error?.message || String(error);
+        
+        const isQuotaExceeded = msg.includes("429") || 
+                                msg.includes("quota") || 
+                                msg.includes("exceeded") ||
+                                msg.includes("rate limit") ||
+                                msg.includes("exhausted") ||
+                                msg.includes("RESOURCE_EXHAUSTED");
+
         const isTransient = msg.includes("503") || 
-                            msg.includes("429") || 
                             msg.includes("demand") || 
                             msg.includes("temporary") ||
                             msg.includes("UNAVAILABLE") ||
-                            msg.includes("exceeded") ||
-                            msg.includes("rate limit");
+                            isQuotaExceeded;
 
         console.warn(`[Gemini API] Attempt ${attempt} failed for model "${model}". Error: ${msg}. Transient? ${isTransient}`);
-        
+
+        if (isQuotaExceeded) {
+          // Immediately suspend Gemini globally and abort to avoid spamming the rate-limited API key
+          handleGeminiError(error, `Generate-Quick-Suspend-${model}`);
+          break; // Break current model's attempt loop
+        }
+
         if (!isTransient && attempt === maxRetries) {
           break;
         }
@@ -65,6 +58,11 @@ async function callGeneratedContentWithRetry(params: {
         }
       }
     }
+  }
+
+  // If we reach here, all retries and fallback models failed. Mark Gemini as suspended globally
+  if (lastError) {
+    handleGeminiError(lastError, `Agent-Fallback-Exhausted`);
   }
 
   throw lastError || new Error("Failed to generate content after retry & fallback models");
@@ -83,7 +81,7 @@ export class GeminiAgent {
    * Safe check to verify if Gemini API key is configured.
    */
   static isConfigured(): boolean {
-    return !!apiKey;
+    return !!ai;
   }
 
   /**
@@ -105,13 +103,13 @@ export class GeminiAgent {
       3. Return ONLY a valid JSON object.
     `;
 
-    if (!ai) {
+    if (!ai || isGeminiSuspended()) {
       const entry = technicalData.lastPrice || 100;
       return {
         symbol,
         prediction: 'up',
         confidence: 0.72,
-        reasoning: "System working in fallback mode. Consolidated EMAs are holding strongly with stable macro support indices.",
+        reasoning: "System working in fallback mode. Consolidated EMAs are holding strongly with stable macro support indices. Centralized rate guardian active.",
         targets: { entry, target: Number((entry * 1.05).toFixed(2)), stopLoss: Number((entry * 0.97).toFixed(2)) }
       };
     }
@@ -162,7 +160,7 @@ export class GeminiAgent {
    * Priority 1 — Sentiment Agent Complete Rewrite on Gemini
    */
   static async analyzeSentiment(symbol: string, headlines: string[]): Promise<any> {
-    if (!ai) {
+    if (!ai || isGeminiSuspended()) {
       const resolved = symbol.toUpperCase();
       const isGold = resolved.includes('GOLD') || resolved.includes('GC=F');
       const isSilver = resolved.includes('SILVER') || resolved.includes('SI=F');
@@ -246,7 +244,7 @@ export class GeminiAgent {
    * Priority 2 — Morning Briefing Hinglish Generator
    */
   static async generateMorningBriefing(marketData: any): Promise<string> {
-    if (!ai) {
+    if (!ai || isGeminiSuspended()) {
       return `🌅 BANG ON BRIEF (FALLBACK ACTIVE)
 -----------------------------------------------
 Market Mood: Cautiously optimistic — range boundaries hold safely.
@@ -304,7 +302,7 @@ SIP Tip: Deploy standard tranches without panic-buying peaks.`;
    * Priority 3 — Smart Swing Trade Playbook Card Generator
    */
   static async generateSwingCard(symbol: string, currentPrice: number, techMetrics: any): Promise<any> {
-    if (!ai) {
+    if (!ai || isGeminiSuspended()) {
       return {
         signal: techMetrics.rsi < 40 ? "BUY" : (techMetrics.rsi > 68 ? "SELL" : "HOLD"),
         entry_zone_low: Number((currentPrice * 0.99).toFixed(2)),
@@ -385,7 +383,7 @@ SIP Tip: Deploy standard tranches without panic-buying peaks.`;
    * Priority 4 — Hinglish Explainer feature ("Explain My Signal")
    */
   static async explainSignal(symbol: string, signal: string, techMetrics: any): Promise<string> {
-    if (!ai) {
+    if (!ai || isGeminiSuspended()) {
       return `🔴 Bang On AI Explainer:
 Asset ${symbol.split('.')[0]} ke liye simple setup signal is **${signal}**. Currently, RSI is ${techMetrics.rsi} jo moderate bounds represent karta hai. Market me buying risk lower channels pe stabilized hai.  
 💡 Suggestion: Portfolio sizing control me rakhe aur systematic systematic SIP limits scale up karein.`;
@@ -423,7 +421,7 @@ Asset ${symbol.split('.')[0]} ke liye simple setup signal is **${signal}**. Curr
    * Priority 5 — Honest Weekly Accuracy Review
    */
   static async generateWeeklyReport(performanceData: any): Promise<string> {
-    if (!ai) {
+    if (!ai || isGeminiSuspended()) {
       return `📊 BANG ON WEEKLY PORTFOLIO AUDIT (FALLBACK)
 -----------------------------------------------
 Overall accuracy score fits tightly at 66.7% over 12 primary signals.

@@ -236,15 +236,25 @@ export class TechnicalAgent {
       }
     }
 
+    const finalScore = Math.max(-1, Math.min(1, score));
+    const trend = finalScore > 0.15 ? 'bullish' : (finalScore < -0.15 ? 'bearish' : 'neutral');
+
     // Stop Loss and Targets logic (ATR-based)
     // 1.5x ATR Risk for Stop Loss, 2x for Target 1, 3x for Target 2.
     // Automatically enforces clean Risk:Reward profiles
-    const stopLoss = Number((lastPrice - 1.5 * atrVal).toFixed(2));
-    const target1 = Number((lastPrice + 2.0 * atrVal).toFixed(2));
-    const target2 = Number((lastPrice + 3.0 * atrVal).toFixed(2));
+    let stopLoss: number;
+    let target1: number;
+    let target2: number;
 
-    const finalScore = Math.max(-1, Math.min(1, score));
-    const trend = finalScore > 0.15 ? 'bullish' : (finalScore < -0.15 ? 'bearish' : 'neutral');
+    if (trend === 'bearish') {
+      stopLoss = Number((lastPrice + 1.5 * atrVal).toFixed(2));
+      target1 = Number((lastPrice - 2.0 * atrVal).toFixed(2));
+      target2 = Number((lastPrice - 3.0 * atrVal).toFixed(2));
+    } else {
+      stopLoss = Number((lastPrice - 1.5 * atrVal).toFixed(2));
+      target1 = Number((lastPrice + 2.0 * atrVal).toFixed(2));
+      target2 = Number((lastPrice + 3.0 * atrVal).toFixed(2));
+    }
 
     return {
       rsi: currentRSI,

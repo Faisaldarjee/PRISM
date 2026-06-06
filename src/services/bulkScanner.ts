@@ -5,12 +5,28 @@ import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
 
-// Initialize predictions.db
+// Initialize predictions.db with self-healing to handle corrupt or old formats
 const dbDir = path.join(process.cwd(), 'data');
 if (!fs.existsSync(dbDir)) {
   fs.mkdirSync(dbDir, { recursive: true });
 }
 const dbPath = path.join(dbDir, 'predictions.db');
+
+try {
+  if (fs.existsSync(dbPath)) {
+    const testDb = new Database(dbPath);
+    testDb.pragma('journal_mode = WAL');
+    testDb.close();
+  }
+} catch (e: any) {
+  console.warn("[bulkScanner] SQLite DB format mismatch or corruption detected. Clearing corrupt database and starting fresh...", e.message);
+  try {
+    fs.unlinkSync(dbPath);
+  } catch (unlinkErr: any) {
+    console.error("[bulkScanner] Failed to unlink corrupt DB file:", unlinkErr.message);
+  }
+}
+
 const db = new Database(dbPath);
 
 // Ensure predictions_cache table exists
@@ -130,6 +146,16 @@ export async function scanNifty500ForSwingSetups(): Promise<SwingSetup[]> {
           signal = 'SELL';
         }
 
+        let stopLoss = technicals.stopLoss || Number((lastPrice * 0.95).toFixed(2));
+        let target1 = technicals.target1 || Number((lastPrice * 1.05).toFixed(2));
+        let target2 = technicals.target2 || Number((lastPrice * 1.10).toFixed(2));
+
+        if (signal === 'SELL') {
+          stopLoss = Number((lastPrice * 1.025).toFixed(2));
+          target1 = Number((lastPrice * 0.967).toFixed(2));
+          target2 = Number((lastPrice * 0.95).toFixed(2));
+        }
+
         return {
           symbol,
           score,
@@ -139,9 +165,9 @@ export async function scanNifty500ForSwingSetups(): Promise<SwingSetup[]> {
           bbSqueeze,
           volumeRatio,
           signal,
-          stopLoss: technicals.stopLoss || Number((lastPrice * 0.95).toFixed(2)),
-          target1: technicals.target1 || Number((lastPrice * 1.05).toFixed(2)),
-          target2: technicals.target2 || Number((lastPrice * 1.10).toFixed(2))
+          stopLoss,
+          target1,
+          target2
         };
       } catch (err: any) {
         // Graceful error logging per stock to safeguard continuous scans

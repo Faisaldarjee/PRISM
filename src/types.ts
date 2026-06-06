@@ -32,6 +32,8 @@ export interface Asset {
   type: 'ETF' | 'STOCK' | 'MACRO';
   last_price: number | null;
   last_date: string | null;
+  change_percent?: number | null;
+  is_preset?: number;
 }
 
 export interface AgentResult {
@@ -71,6 +73,44 @@ export interface Prediction {
     dailySignal: string;
     fourHourTrig: string;
     concurrence: string;
+  };
+  detected_patterns?: string[];
+  markers?: any[];
+  hold_time_recommendation?: string;
+  support_levels?: number[];
+  resistance_levels?: number[];
+  trade_plan?: {
+    entry_range: string;
+    stop_loss: number;
+    target_1: number;
+    target_2: number;
+    risk_reward_ratio: number;
+    action: string;
+  };
+  newsIntelligence?: {
+    symbol: string;
+    sentimentScore: number;
+    tradeSentiment: 'BULLISH' | 'BEARISH' | 'NEUTRAL';
+    fiveDayNarrative: string;
+    keyCatalysts: string[];
+    swingStrategy: {
+      recommendedAction: 'BUY' | 'SELL' | 'HOLD' | 'ACCUMULATE';
+      entryZone: string;
+      targetZone: string;
+      stopLoss: string;
+      horizon: string;
+    };
+  };
+  news_intelligence?: any;
+  intelligenceContext?: {
+    globalMacro: string;
+    fiiActivity: string;
+    earningsAlert?: string | null;
+    bulkDealAlert: string;
+    newsSentiment: string;
+    intelligenceAdjustment: string;
+    keyRisks: string[];
+    keySupportFactors: string[];
   };
 }
 

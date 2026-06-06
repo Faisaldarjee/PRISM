@@ -46,13 +46,41 @@ const getStockInfo = (symbol: string) => {
 
 export function Dashboard() {
   const { user, generateAlertForInterestedSymbols } = useAuth();
-  const [predictions, setPredictions] = useState<Prediction[]>([]);
-  const [macro, setMacro] = useState<MacroData | null>(null);
-  const [assets, setAssets] = useState<Asset[]>([]);
+  const [predictions, setPredictions] = useState<Prediction[]>(() => {
+    try {
+      const saved = localStorage.getItem('bangon_preds');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [macro, setMacro] = useState<MacroData | null>(() => {
+    try {
+      const saved = localStorage.getItem('bangon_macro');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [assets, setAssets] = useState<Asset[]>(() => {
+    try {
+      const saved = localStorage.getItem('bangon_assets');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
   const [selectedStockTab, setSelectedStockTab] = useState<'ALL' | 'GIANTS' | 'COMMODITY_METALS'>('ALL');
   
   // States
-  const [swingSetups, setSwingSetups] = useState<any[]>([]);
+  const [swingSetups, setSwingSetups] = useState<any[]>(() => {
+    try {
+      const saved = localStorage.getItem('bangon_swing');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
   const [calcCapital, setCalcCapital] = useState<number>(() => {
     const saved = localStorage.getItem('bangon_capital');
     return saved ? Number(saved) : 50000;
@@ -65,39 +93,127 @@ export function Dashboard() {
   const [calculatorCustomPrice, setCalculatorCustomPrice] = useState<string>('240.0');
   const [calculatorCustomSLPct, setCalculatorCustomSLPct] = useState<string>('3.5');
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => {
+    // If we have some cached local data, skip full-screen spinner to maximize perception speed
+    try {
+      const p = localStorage.getItem('bangon_preds');
+      return !p;
+    } catch {
+      return true;
+    }
+  });
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [congestionNotice, setCongestionNotice] = useState(false);
+
+  const handleAssetClick = (symbol: string, currentPrice: number, stopLossPct = 3.5) => {
+    setSelectedCalcSetup({
+      symbol,
+      tickerName: symbol.split('.')[0],
+      lastPrice: currentPrice,
+      stopLoss: currentPrice * (1 - stopLossPct / 100),
+    });
+    setCalculatorCustomPrice(currentPrice.toFixed(2));
+    setCalculatorCustomSLPct(stopLossPct.toFixed(1));
+    setTimeout(() => {
+      document.getElementById('risk-sizer-panel')?.scrollIntoView({ behavior: 'smooth' });
+    }, 50);
+  };
 
   async function loadData(isSilent = false) {
-    if (!isSilent) setLoading(true);
+    if (refreshing) {
+      console.log('[Dashboard] Refresh already in progress, skipping duplicate.');
+      return;
+    }
+    if (!isSilent && !predictions.length) setLoading(true);
     else setRefreshing(true);
     setError(null);
+    setCongestionNotice(false);
+
+    let caughtRateLimit = false;
+
     try {
       const [predsData, macroData, assetsData, scannerData] = await Promise.all([
-        getAllPredictions(),
-        getMacro(),
-        getAssets(),
+        getAllPredictions().catch(err => {
+          console.warn('Dashboard predictions sync issues:', err.message || err);
+          const msg = (err.message || String(err)).toLowerCase();
+          if (msg.includes('rate') || msg.includes('429') || msg.includes('quota') || msg.includes('exceeded')) {
+            caughtRateLimit = true;
+          }
+          return null;
+        }),
+        getMacro().catch(err => {
+          console.warn('Dashboard macro sync issues:', err.message || err);
+          const msg = (err.message || String(err)).toLowerCase();
+          if (msg.includes('rate') || msg.includes('429') || msg.includes('quota') || msg.includes('exceeded')) {
+            caughtRateLimit = true;
+          }
+          return null;
+        }),
+        getAssets().catch(err => {
+          console.warn('Dashboard assets list sync issues:', err.message || err);
+          const msg = (err.message || String(err)).toLowerCase();
+          if (msg.includes('rate') || msg.includes('429') || msg.includes('quota') || msg.includes('exceeded')) {
+            caughtRateLimit = true;
+          }
+          return null;
+        }),
         getSwingScannerSetups().catch(err => {
-          console.warn('Failed to retrieve setups', err);
-          return [];
+          console.warn('Dashboard swing setups sync issues:', err.message || err);
+          const msg = (err.message || String(err)).toLowerCase();
+          if (msg.includes('rate') || msg.includes('429') || msg.includes('quota') || msg.includes('exceeded')) {
+            caughtRateLimit = true;
+          }
+          return null;
         })
       ]);
-      setPredictions(predsData);
-      setMacro(macroData);
-      setAssets(assetsData);
-      setSwingSetups(scannerData || []);
-      
-      // Select first setup as calculation default
+
+      if (caughtRateLimit) {
+        setCongestionNotice(true);
+      }
+
+      // Check if we retrieved anything and cache it
+      if (predsData && predsData.length > 0) {
+        setPredictions(predsData);
+        try { localStorage.setItem('bangon_preds', JSON.stringify(predsData)); } catch {}
+      }
+      if (macroData) {
+        setMacro(macroData);
+        try { localStorage.setItem('bangon_macro', JSON.stringify(macroData)); } catch {}
+      }
+      if (assetsData && assetsData.length > 0) {
+        setAssets(assetsData);
+        try { localStorage.setItem('bangon_assets', JSON.stringify(assetsData)); } catch {}
+      }
       if (scannerData && scannerData.length > 0) {
-        setSelectedCalcSetup(scannerData[0]);
-        setCalculatorCustomPrice(scannerData[0].lastPrice.toFixed(2));
-        const dynamicSLPct = ((scannerData[0].lastPrice - scannerData[0].stopLoss) / scannerData[0].lastPrice * 100);
-        setCalculatorCustomSLPct(Math.max(1, Number(dynamicSLPct.toFixed(1))).toString());
+        setSwingSetups(scannerData || []);
+        try { localStorage.setItem('bangon_swing', JSON.stringify(scannerData)); } catch {}
+      }
+
+      // Check if now we have absolutely nothing (no local data, and network failed)
+      const hasAnyPredictions = (predsData && predsData.length > 0) || (predictions && predictions.length > 0);
+      const hasAnyMacro = macroData || macro;
+      const hasAnyAssets = (assetsData && assetsData.length > 0) || (assets && assets.length > 0);
+
+      if (!hasAnyPredictions && !hasAnyMacro && !hasAnyAssets) {
+        throw new Error('All primary market intelligence streams offline. Rate limit quota exceeded. Please try again soon.');
+      }
+
+      const activeScannerData = scannerData || swingSetups;
+      // Select first setup as calculation default if none selected or if we refreshed
+      if (activeScannerData && activeScannerData.length > 0 && (!selectedCalcSetup || scannerData)) {
+        setSelectedCalcSetup(activeScannerData[0]);
+        const calcPriceVal = activeScannerData[0].lastPrice ?? 100;
+        const calcSLVal = activeScannerData[0].stopLoss ?? (calcPriceVal * 0.95);
+        setCalculatorCustomPrice(calcPriceVal.toFixed(2));
+        const dynamicSLPct = ((calcPriceVal - calcSLVal) / calcPriceVal * 100);
+        setCalculatorCustomSLPct(Math.max(1, Number((dynamicSLPct || 3.5).toFixed(1))).toString());
       }
       
-      if (generateAlertForInterestedSymbols) {
-        await generateAlertForInterestedSymbols(predsData, assetsData);
+      const targetPreds = predsData || predictions;
+      const targetAssets = assetsData || assets;
+      if (generateAlertForInterestedSymbols && targetPreds.length > 0 && targetAssets.length > 0) {
+        await generateAlertForInterestedSymbols(targetPreds, targetAssets).catch(() => {});
       }
     } catch (e: any) {
       console.error('Error fetching dashboard', e);
@@ -144,7 +260,7 @@ export function Dashboard() {
 
   const getPrice = (symbol: string) => {
     const found = assets.find(a => a.symbol.toUpperCase() === symbol.toUpperCase());
-    return found ? found.last_price : null;
+    return (found && found.last_price !== null && found.last_price !== undefined) ? Number(found.last_price) : null;
   };
 
   if (loading) {
@@ -185,8 +301,85 @@ export function Dashboard() {
     ? (predictions.reduce((acc, p) => acc + p.confidence, 0) / predictions.length * 100).toFixed(0)
     : '88';
 
+  const renderMacroItem = (
+    label: string, 
+    indicator: any, 
+    formatter: (v: number) => string,
+    suffix = ''
+  ) => {
+    if (!indicator) return null;
+    
+    if (typeof indicator === 'number') {
+      return (
+        <div className="space-y-1.5 p-3.5 bg-[#131720] border border-[rgba(255,255,255,0.03)] rounded-xl">
+          <span className="text-[9px] text-[#4A5568] font-data uppercase tracking-wider block">{label}</span>
+          <span className="text-lg font-data font-bold text-white block mt-1">{formatter(indicator)}{suffix}</span>
+        </div>
+      );
+    }
+
+    const { value, status, lastUpdated } = indicator;
+    
+    const getFuzzyTime = (isoString: string | null) => {
+      if (!isoString) return '';
+      try {
+        const diffMs = Date.now() - new Date(isoString).getTime();
+        const diffMins = Math.floor(diffMs / (1000 * 60));
+        if (diffMins < 1) return 'just now';
+        if (diffMins < 60) return `${diffMins}m ago`;
+        const diffHours = Math.floor(diffMins / 60);
+        return `${diffHours}h ago`;
+      } catch {
+        return '';
+      }
+    };
+
+    const timeAgo = getFuzzyTime(lastUpdated);
+
+    return (
+      <div className="space-y-1.5 p-3.5 bg-[#131720] border border-[rgba(255,255,255,0.03)] rounded-xl relative group">
+        <div className="flex justify-between items-start gap-1">
+          <span className="text-[9px] text-[#4A5568] font-data uppercase tracking-wider block truncate">{label}</span>
+          {status === 'CACHED' && (
+            <span className="text-[8px] px-1.5 py-0.5 bg-yellow-500/10 text-yellow-500 rounded font-mono shrink-0">CACHED</span>
+          )}
+          {status === 'LIVE' && (
+            <span className="text-[8px] px-1.5 py-0.5 bg-[#00D084]/10 text-[#00D084] rounded font-mono shrink-0">LIVE</span>
+          )}
+          {status === 'UNAVAILABLE' && (
+            <span className="text-[8px] px-1.5 py-0.5 bg-red-500/10 text-red-500 rounded font-mono shrink-0">⚠️ Data unavailable</span>
+          )}
+        </div>
+
+        <span className="text-lg font-data font-bold text-white block mt-1">
+          {status === 'UNAVAILABLE' || value === null || value === undefined
+            ? '—' 
+            : `${formatter(value)}${suffix}`}
+        </span>
+
+        {status === 'CACHED' && timeAgo && (
+          <span className="text-[9px] text-[#8892A4]/60 font-data block mt-1">
+            Last: {formatter(value)}{suffix} ({timeAgo})
+          </span>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div id="dashboard-vue" className="space-y-8">
+      {congestionNotice && (
+        <div className="p-4 rounded-xl border border-amber-500/20 bg-amber-500/5 text-amber-400 flex items-start gap-3 text-xs font-body backdrop-blur-sm animate-fade-in">
+          <AlertCircle className="shrink-0 text-[#D4A843] w-4 h-4 mt-0.5" />
+          <div className="space-y-1 text-left">
+            <p className="font-semibold uppercase tracking-wider text-[10px] font-data text-[#D4A843]">Market Feed Congested</p>
+            <p className="text-zinc-400 font-body text-xs leading-relaxed">
+              We are currently experiencing transient rate limits on our market intelligence agents. Bang On has gracefully transitioned your desk to local fallback snapshots and stable cached rulesets. Core charts and indices remain fully operational.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Top Banner section */}
       <div className="glass-card p-6 relative overflow-hidden backdrop-blur-md">
         <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#D4A843]/40 to-transparent" />
@@ -287,15 +480,17 @@ export function Dashboard() {
             <div className="space-y-2.5">
               {swingSetups.slice(0, 5).map((setup, idx) => {
                 const isSelected = selectedCalcSetup?.symbol === setup.symbol;
-                const slPct = ((setup.lastPrice - setup.stopLoss) / setup.lastPrice * 100);
+                const activePriceVal = setup.lastPrice ?? 100;
+                const activeSLVal = setup.stopLoss ?? (activePriceVal * 0.95);
+                const slPct = ((activePriceVal - activeSLVal) / activePriceVal * 100);
 
                 return (
                   <div 
                     key={setup.symbol}
                     onClick={() => {
                       setSelectedCalcSetup(setup);
-                      setCalculatorCustomPrice(setup.lastPrice.toFixed(2));
-                      setCalculatorCustomSLPct(Math.max(1, Number(slPct.toFixed(1))).toString());
+                      setCalculatorCustomPrice(activePriceVal.toFixed(2));
+                      setCalculatorCustomSLPct(Math.max(1, Number((slPct || 3.5).toFixed(1))).toString());
                     }}
                     className={`p-3.5 rounded-xl border transition-all duration-150 cursor-pointer flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 ${
                       isSelected 
@@ -349,7 +544,7 @@ export function Dashboard() {
         </div>
 
         {/* Dynamic Risk Sizer Panel: 5 Columns */}
-        <div className="lg:col-span-5 glass-card p-5 flex flex-col justify-between">
+        <div id="risk-sizer-panel" className={`lg:col-span-5 glass-card p-5 flex flex-col justify-between transition-all duration-305 ${selectedCalcSetup ? 'ring-2 ring-[#D4A843]/40 bg-white/[0.015]' : ''}`}>
           <div className="space-y-4">
             <div className="border-b border-[rgba(255,255,255,0.04)] pb-3">
               <span className="text-[10px] font-data text-[#D4A843] tracking-widest uppercase block">ATR POSITION SIZER</span>
@@ -492,10 +687,17 @@ export function Dashboard() {
               : 'border-[rgba(255,255,255,0.08)]';
             const price = getPrice(pred.symbol);
 
+            const isSelected = selectedCalcSetup?.symbol === pred.symbol;
+
             return (
               <div 
                 key={pred.symbol} 
-                className={`glass-card p-6 flex flex-col justify-between relative overflow-hidden h-full ${goldColorStyle}`}
+                onClick={() => handleAssetClick(pred.symbol, price || 100, 3.5)}
+                className={`glass-card p-6 flex flex-col justify-between relative overflow-hidden h-full cursor-pointer transition-all duration-300 ${goldColorStyle} ${
+                  isSelected 
+                    ? 'ring-2 ring-[#D4A843]/60 bg-white/[0.04] shadow-md shadow-[#D4A843]/5' 
+                    : ''
+                }`}
               >
                 <div>
                   <div className="flex justify-between items-start mb-4">
@@ -608,10 +810,17 @@ export function Dashboard() {
               const price = getPrice(pred.symbol);
               const info = getStockInfo(pred.symbol);
               
+              const isSelected = selectedCalcSetup?.symbol === pred.symbol;
+
               return (
                 <div 
                   key={pred.symbol} 
-                  className="glass-card p-5 flex flex-col justify-between hover:-translate-y-1 transition-all duration-300"
+                  onClick={() => handleAssetClick(pred.symbol, price || 100, 3.5)}
+                  className={`glass-card p-5 flex flex-col justify-between hover:-translate-y-1 transition-all duration-300 cursor-pointer ${
+                    isSelected 
+                      ? 'ring-2 ring-[#D4A843]/60 bg-white/[0.04] shadow-md shadow-[#D4A843]/5' 
+                      : ''
+                  }`}
                 >
                   <div>
                     <div className="flex justify-between items-start mb-3">
@@ -677,30 +886,11 @@ export function Dashboard() {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <div className="space-y-1.5 p-3.5 bg-[#131720] border border-[rgba(255,255,255,0.03)] rounded-xl">
-              <span className="text-[9px] text-[#4A5568] font-data uppercase tracking-wider block">DXY DOLLAR INDEX</span>
-              <span className="text-lg font-data font-bold text-white block mt-1">{macro.indicators.DXY?.toFixed(2) || '---'}</span>
-            </div>
-
-            <div className="space-y-1.5 p-3.5 bg-[#131720] border border-[rgba(255,255,255,0.03)] rounded-xl">
-              <span className="text-[9px] text-[#4A5568] font-data uppercase tracking-wider block">US 10Y BOND</span>
-              <span className="text-lg font-data font-bold text-white block mt-1">{macro.indicators.US10Y?.toFixed(2) || '---'}%</span>
-            </div>
-
-            <div className="space-y-1.5 p-3.5 bg-[#131720] border border-[rgba(255,255,255,0.03)] rounded-xl">
-              <span className="text-[9px] text-[#4A5568] font-data uppercase tracking-wider block">USDINR PARITY</span>
-              <span className="text-lg font-data font-bold text-white block mt-1">₹{macro.indicators.USDINR?.toFixed(2) || '---'}</span>
-            </div>
-
-            <div className="space-y-1.5 p-3.5 bg-[#131720] border border-[rgba(255,255,255,0.03)] rounded-xl">
-              <span className="text-[9px] text-[#4A5568] font-data uppercase tracking-wider block">CBOE VIX</span>
-              <span className="text-lg font-data font-bold text-white block mt-1">{macro.indicators.VIX?.toFixed(2) || '---'}</span>
-            </div>
-
-            <div className="space-y-1.5 p-3.5 bg-[#131720] border border-[rgba(255,255,255,0.03)] rounded-xl col-span-2 md:col-span-1">
-              <span className="text-[9px] text-[#4A5568] font-data uppercase tracking-wider block">GOLD SILVER RATIO</span>
-              <span className="text-lg font-data font-bold text-[#E8C070] block mt-1">{macro.indicators.gold_silver_ratio?.toFixed(1) || '---'}</span>
-            </div>
+            {renderMacroItem("DXY DOLLAR INDEX", macro.indicators.DXY, (v) => v.toFixed(2))}
+            {renderMacroItem("US 10Y BOND", macro.indicators.US10Y, (v) => v.toFixed(2), "%")}
+            {renderMacroItem("USDINR PARITY", macro.indicators.USDINR, (v) => "₹" + v.toFixed(2))}
+            {renderMacroItem("CBOE VIX", macro.indicators.VIX, (v) => v.toFixed(2))}
+            {renderMacroItem("GOLD SILVER RATIO", macro.indicators.gold_silver_ratio, (v) => v.toFixed(1))}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 pt-4 border-t border-[rgba(255,255,255,0.04)] text-xs font-data">

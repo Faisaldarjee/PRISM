@@ -4,12 +4,28 @@ import path from 'path';
 import fs from 'fs';
 import axios from 'axios';
 
-// Initialize predictions.db
+// Initialize predictions.db with self-healing to handle corrupt or old formats
 const dbDir = path.join(process.cwd(), 'data');
 if (!fs.existsSync(dbDir)) {
   fs.mkdirSync(dbDir, { recursive: true });
 }
 const dbPath = path.join(dbDir, 'predictions.db');
+
+try {
+  if (fs.existsSync(dbPath)) {
+    const testDb = new Database(dbPath);
+    testDb.pragma('journal_mode = WAL');
+    testDb.close();
+  }
+} catch (e: any) {
+  console.warn("[newsFetcher] SQLite DB format mismatch or corruption detected. Clearing corrupt database and starting fresh...", e.message);
+  try {
+    fs.unlinkSync(dbPath);
+  } catch (unlinkErr: any) {
+    console.error("[newsFetcher] Failed to unlink corrupt DB file:", unlinkErr.message);
+  }
+}
+
 const db = new Database(dbPath);
 
 // Drop the legacy unused news_cache table if it has the old schema

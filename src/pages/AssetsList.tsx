@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { getAssets, importAsset, searchAssets } from '../api';
+import { getAssets, importAsset, searchAssets, deleteAsset } from '../api';
 import { Asset } from '../types';
 import { useAuth } from '../services/AuthProvider';
 import { 
@@ -12,7 +12,8 @@ import {
   AlertCircle,
   Plus,
   CheckCircle2,
-  XCircle
+  XCircle,
+  Trash2
 } from 'lucide-react';
 
 export function AssetsList() {
@@ -35,6 +36,21 @@ export function AssetsList() {
   // Online search triggered by main search input filter
   const [onlineMatches, setOnlineMatches] = useState<any[]>([]);
   const [searchingOnline, setSearchingOnline] = useState(false);
+
+  // Column sorting states
+  const [sortBy, setSortBy] = useState<string>('symbol');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+
+  // Delete Untrack confirmation states
+  const [deleteConfirmSymbol, setDeleteConfirmSymbol] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  // Bulk Importer states
+  const [bulkModalOpen, setBulkModalOpen] = useState(false);
+  const [bulkSymbolsInput, setBulkSymbolsInput] = useState('');
+  const [bulkProcessing, setBulkProcessing] = useState(false);
+  const [bulkProgress, setBulkProgress] = useState<string>('');
+  const [bulkSummary, setBulkSummary] = useState<string | null>(null);
 
   useEffect(() => {
     const q = importTicker.trim();
@@ -155,6 +171,84 @@ export function AssetsList() {
     }
   };
 
+  const handleSort = (field: string) => {
+    if (sortBy === field) {
+      setSortDir(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(field);
+      setSortDir('asc');
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteConfirmSymbol) return;
+    setDeleting(true);
+    try {
+      await deleteAsset(deleteConfirmSymbol);
+      setImportMessage({
+        text: `Successfully removed cache, analysis and indices folder records of "${deleteConfirmSymbol.split('.')[0]}".`,
+        isError: false
+      });
+      setDeleteConfirmSymbol(null);
+      await loadAssets();
+    } catch (err: any) {
+      console.error('Failed to clear asset registry:', err);
+      setImportMessage({
+        text: err.message || 'Removal error occurred. Asset not modified.',
+        isError: true
+      });
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleBulkImportSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const symbols = bulkSymbolsInput
+      .split(',')
+      .map(s => s.trim().toUpperCase())
+      .filter(s => s.length > 0);
+
+    if (symbols.length === 0) return;
+    
+    if (symbols.length > 10) {
+      setBulkSummary('Error: Live imports are capped at a maximum of 10 tickers at once to avoid service rate limits.');
+      return;
+    }
+
+    setBulkProcessing(true);
+    setBulkSummary(null);
+    let successCount = 0;
+    let failCount = 0;
+    const failedList: string[] = [];
+
+    for (let i = 0; i < symbols.length; i++) {
+      const sym = symbols[i];
+      setBulkProgress(`Importing ${i + 1}/${symbols.length}: ${sym}...`);
+      try {
+        const outcome = await importAsset(sym);
+        await addCustomAsset(outcome.symbol);
+        successCount++;
+      } catch (err: any) {
+        console.error(`Bulk import failed for ${sym}:`, err.message);
+        failCount++;
+        failedList.push(sym);
+      }
+    }
+
+    setBulkProgress('');
+    setBulkProcessing(false);
+    
+    let summaryText = `Bulk import complete. Successfully imported ${successCount} symbols.`;
+    if (failCount > 0) {
+      summaryText += ` ${failCount} failed to verify/import (${failedList.join(', ')}).`;
+    }
+    
+    setBulkSummary(summaryText);
+    setBulkSymbolsInput('');
+    await loadAssets();
+  };
+
   useEffect(() => {
     loadAssets();
   }, []);
@@ -172,6 +266,37 @@ export function AssetsList() {
       );
     });
   }, [assets, searchQuery, selectedSegmentFilter]);
+
+  const sortedAssets = useMemo(() => {
+    return [...filteredAssets].sort((a, b) => {
+      let valA: any = '';
+      let valB: any = '';
+
+      if (sortBy === 'symbol') {
+        valA = a.symbol || '';
+        valB = b.symbol || '';
+      } else if (sortBy === 'price') {
+        valA = a.last_price !== null && a.last_price !== undefined ? a.last_price : -999999;
+        valB = b.last_price !== null && b.last_price !== undefined ? b.last_price : -999999;
+      } else if (sortBy === 'change') {
+        valA = a.change_percent !== null && a.change_percent !== undefined ? a.change_percent : -999999;
+        valB = b.change_percent !== null && b.change_percent !== undefined ? b.change_percent : -999999;
+      } else if (sortBy === 'updated') {
+        valA = a.last_date || '';
+        valB = b.last_date || '';
+      }
+
+      if (typeof valA === 'string' && typeof valB === 'string') {
+        return sortDir === 'asc' 
+          ? valA.localeCompare(valB) 
+          : valB.localeCompare(valA);
+      } else {
+        return sortDir === 'asc'
+          ? (valA as number) - (valB as number)
+          : (valB as number) - (valA as number);
+      }
+    });
+  }, [filteredAssets, sortBy, sortDir]);
 
   if (loading) {
     return (
@@ -231,14 +356,14 @@ export function AssetsList() {
             />
           </div>
 
-          {/* Dynamic Stock Importer Selector */}
-          <div className="relative font-sans">
-            <form onSubmit={handleImport} className="flex bg-[#020408]/60 border border-white/[0.05] p-2 rounded-xl items-center gap-2 shadow-md">
+          {/* Importers container (Single / Bulk side-by-side) */}
+          <div className="flex gap-2 relative font-sans w-full">
+            <form onSubmit={handleImport} className="flex-1 flex bg-[#020408]/60 border border-white/[0.05] p-2 rounded-xl items-center gap-2 shadow-md">
               <div className="flex-1 flex items-center gap-1.5 px-2 font-mono">
                 <Plus size={13} className="text-[#E8C070] shrink-0" />
                 <input 
                   type="text" 
-                  placeholder="IMPORT NSE TICKER"
+                  placeholder="IMPORT TICKER"
                   className="placeholder-[#4A5568] text-xs bg-transparent border-none text-white focus:outline-none w-full font-bold uppercase outline-none"
                   value={importTicker}
                   onChange={(e) => setImportTicker(e.target.value)}
@@ -250,15 +375,27 @@ export function AssetsList() {
               <button
                 type="submit"
                 disabled={importing || !importTicker.trim()}
-                className="px-3.5 py-1.5 bg-[#D4A843] hover:bg-[#E8C070] disabled:bg-neutral-800 disabled:text-neutral-500 text-[#05070C] font-semibold rounded-lg text-xs tracking-wider transition-all cursor-pointer font-data"
+                className="px-3 py-1.5 bg-[#D4A843] hover:bg-[#E8C070] disabled:bg-neutral-800 disabled:text-neutral-500 text-[#05070C] font-semibold rounded-lg text-xs tracking-wider transition-all cursor-pointer font-data"
               >
-                {importing ? 'Importing...' : 'IMPORT'}
+                {importing ? '...' : 'ADD'}
               </button>
             </form>
 
+            <button
+              onClick={() => {
+                setBulkSymbolsInput('');
+                setBulkSummary(null);
+                setBulkModalOpen(true);
+              }}
+              className="px-3.5 py-1.5 bg-[#D4A843]/10 hover:bg-[#D4A843]/20 text-[#E8C070] border border-[#D4A843]/20 font-bold rounded-xl text-xs uppercase transition-all whitespace-nowrap shrink-0 cursor-pointer flex items-center justify-center"
+              title="Bulk watchlists import"
+            >
+              Bulk Import
+            </button>
+
             {/* Suggestions drop down popup */}
             {suggestions.length > 0 && (
-              <div className="absolute z-50 left-0 right-0 mt-1.5 bg-[#0D1018] border border-white/[0.08] rounded-xl shadow-2xl overflow-hidden divide-y divide-white/[0.03] max-h-60 overflow-y-auto font-data">
+              <div className="absolute z-50 left-0 right-0 mt-14 bg-[#0D1018] border border-white/[0.08] rounded-xl shadow-2xl overflow-hidden divide-y divide-white/[0.03] max-h-60 overflow-y-auto font-data">
                 <div className="p-2 text-[8px] text-[#4A5568] uppercase tracking-widest bg-black/40">
                   Online Market Suggestions
                 </div>
@@ -298,7 +435,7 @@ export function AssetsList() {
                 <Globe className="text-[#E8C070]" size={13} />
                 <span>Found on Yahoo Finance matching &ldquo;<strong>{searchQuery}</strong>&rdquo;:</span>
               </div>
-              <span className="text-[9px] text-[#4A5568] uppercase">Click &ldquo;Import & Sync&rdquo; to analyze</span>
+              <span className="text-[9px] text-[#4A5568] uppercase font-mono">Click &ldquo;Import&rdquo; to sync & analyze</span>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -332,13 +469,13 @@ export function AssetsList() {
               ? 'bg-[#FF4757]/10 border-[#FF4757]/25 text-rose-300' 
               : 'bg-[#00D084]/10 border-[#00D084]/25 text-emerald-300'
           }`}>
-            {importMessage.isError ? (
-              <XCircle size={15} className="shrink-0 mt-0.5 text-[#FF4757]" />
-            ) : (
-              <CheckCircle2 size={15} className="shrink-0 mt-0.5 text-[#00D084]" />
-            )}
+          {importMessage.isError ? (
+            <XCircle size={15} className="shrink-0 mt-0.5 text-[#FF4757]" />
+          ) : (
+            <CheckCircle2 size={15} className="shrink-0 mt-0.5 text-[#00D084]" />
+          )}
             <div className="flex-1">
-              <span className="font-semibold block mb-0.5 uppercase tracking-wide text-[10px] font-mono">{importMessage.isError ? 'IMPORT_ERROR' : 'REGISTRY_SYNC_COMPLETE'}</span>
+              <span className="font-semibold block mb-0.5 uppercase tracking-wide text-[10px] font-mono">{importMessage.isError ? 'REGISTRY_FAULT_WARNING' : 'REGISTRY_SYNC_COMPLETE'}</span>
               <p className="text-zinc-300 leading-relaxed font-mono text-[10.5px]">{importMessage.text}</p>
             </div>
             <button 
@@ -379,21 +516,42 @@ export function AssetsList() {
       {/* DATAGRID ROW TABLE */}
       <div className="bg-[#05070C] border border-white/[0.04] rounded-2xl shadow-xl overflow-hidden font-data">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs">
+          <table className="w-full text-left border-collapse text-xs select-none">
             <thead>
               <tr className="border-b border-white/[0.03] text-[#4A5568] text-[9.5px] uppercase tracking-wider bg-black/20">
-                <th className="py-3.5 px-4 font-mono">Asset Ticker</th>
+                <th 
+                  onClick={() => handleSort('symbol')}
+                  className="py-3.5 px-4 font-mono cursor-pointer hover:text-white transition-colors"
+                >
+                  Asset Ticker {sortBy === 'symbol' ? (sortDir === 'asc' ? '↑' : '↓') : ''}
+                </th>
                 <th className="py-3.5 px-4">System Asset Name</th>
                 <th className="py-3.5 px-4 font-body">Type segment</th>
-                <th className="py-3.5 px-4 font-mono">Valuation price</th>
-                <th className="py-3.5 px-4 font-mono">Last Synchronized</th>
-                <th className="py-3.5 px-4 text-right">Details</th>
+                <th 
+                  onClick={() => handleSort('price')}
+                  className="py-3.5 px-4 font-mono cursor-pointer hover:text-white transition-colors"
+                >
+                  Valuation price {sortBy === 'price' ? (sortDir === 'asc' ? '↑' : '↓') : ''}
+                </th>
+                <th 
+                  onClick={() => handleSort('change')}
+                  className="py-3.5 px-4 font-mono cursor-pointer hover:text-white transition-colors"
+                >
+                  Change % {sortBy === 'change' ? (sortDir === 'asc' ? '↑' : '↓') : ''}
+                </th>
+                <th 
+                  onClick={() => handleSort('updated')}
+                  className="py-3.5 px-4 font-mono cursor-pointer hover:text-white transition-colors"
+                >
+                  Last Synchronized {sortBy === 'updated' ? (sortDir === 'asc' ? '↑' : '↓') : ''}
+                </th>
+                <th className="py-3.5 px-4 text-right">Details & Controls</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/[0.02]">
-              {filteredAssets.length === 0 ? (
+              {sortedAssets.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 px-5 text-center text-[#8892A4] font-body leading-relaxed">
+                  <td colSpan={7} className="py-12 px-5 text-center text-[#8892A4] font-body leading-relaxed">
                     <div className="max-w-md mx-auto">
                       <AlertCircle className="mx-auto mb-2 text-[#4A5568]" size={22} />
                       <p className="font-bold text-white mb-1 font-display">No local catalog matches matching &ldquo;{searchQuery}&rdquo;</p>
@@ -404,7 +562,7 @@ export function AssetsList() {
                   </td>
                 </tr>
               ) : (
-                filteredAssets.map((asset) => {
+                sortedAssets.map((asset) => {
                   const isEtfType = asset.type === 'ETF';
                   
                   return (
@@ -424,20 +582,41 @@ export function AssetsList() {
                         </span>
                       </td>
                       <td className="py-3.5 px-4 font-mono text-white text-[12px] font-semibold">
-                        {asset.last_price !== null ? `₹${asset.last_price.toFixed(2)}` : '---'}
+                        {(asset.last_price !== null && asset.last_price !== undefined) ? `₹${Number(asset.last_price).toFixed(2)}` : '---'}
+                      </td>
+                      <td className="py-3.5 px-4 font-mono text-[12px] font-semibold">
+                        {asset.change_percent !== null && asset.change_percent !== undefined ? (
+                          <span className={asset.change_percent >= 0 ? "text-emerald-400" : "text-rose-400"}>
+                            {asset.change_percent >= 0 ? "+" : ""}{asset.change_percent.toFixed(2)}%
+                          </span>
+                        ) : (
+                          <span className="text-zinc-500">---</span>
+                        )}
                       </td>
                       <td className="py-3.5 px-4 font-mono text-[#8892A4] text-[11px]">{asset.last_date || 'N/A'}</td>
-                      <td className="py-3.5 px-4 text-right">
-                        {asset.type !== 'MACRO' ? (
-                          <Link 
-                            to={`/asset/${asset.symbol}`}
-                            className="text-[#E8C070] hover:text-white font-bold uppercase tracking-wider hover:underline inline-flex items-center gap-1 text-[10px]"
-                          >
-                            Scan Analysis &rarr;
-                          </Link>
-                        ) : (
-                          <span className="text-[#4A5568] italic text-[10px] uppercase">KPI Indices</span>
-                        )}
+                      <td className="py-3.5 px-4">
+                        <div className="flex items-center justify-end gap-3 w-full">
+                          {asset.type !== 'MACRO' ? (
+                            <Link 
+                              to={`/asset/${asset.symbol}`}
+                              className="text-[#E8C070] hover:text-white font-bold uppercase tracking-wider hover:underline inline-flex items-center gap-1 text-[10px]"
+                            >
+                              Scan Analysis &rarr;
+                            </Link>
+                          ) : (
+                            <span className="text-[#4A5568] italic text-[10px] uppercase">KPI Indices</span>
+                          )}
+
+                          {asset.is_preset !== 1 && (
+                            <button
+                              onClick={() => setDeleteConfirmSymbol(asset.symbol)}
+                              className="text-neutral-500 hover:text-rose-400 transition-colors p-1 rounded hover:bg-white/[0.03] shrink-0 cursor-pointer"
+                              title={`Remove custom asset ${asset.symbol}`}
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -447,6 +626,108 @@ export function AssetsList() {
           </table>
         </div>
       </div>
+
+      {/* DELETE CONFIRMATION OVERLAY MODAL */}
+      {deleteConfirmSymbol && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-[#0C1018] border border-white/[0.08] rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl space-y-5">
+            <div className="flex items-center gap-2.5 text-rose-500">
+              <AlertCircle size={22} className="shrink-0" />
+              <h3 className="text-sm font-semibold text-white font-sans uppercase tracking-wider">Untrack custom asset?</h3>
+            </div>
+            
+            <p className="text-xs text-[#8892A4] leading-relaxed font-mono">
+              Remove <strong className="text-white">{deleteConfirmSymbol.split('.')[0]}</strong> from your watchlist? This will delete its price history too.
+            </p>
+            
+            <div className="flex gap-2.5 justify-end text-[10px] font-bold uppercase tracking-wider">
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={() => setDeleteConfirmSymbol(null)}
+                className="px-3 py-2 bg-white/[0.02] border border-white/[0.05] text-[#8892A4] hover:text-white rounded-xl transition-colors cursor-pointer"
+              >
+                No, Cancel
+              </button>
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={handleDeleteConfirm}
+                className="px-3 py-2 bg-rose-500/10 hover:bg-rose-500/25 text-[#FF4757] border border-rose-500/20 rounded-xl transition-all flex items-center gap-1 cursor-pointer"
+              >
+                {deleting ? 'Removing...' : 'Yes, Remove'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* BULK WATCHLIST IMPORTER OVERLAY MODAL */}
+      {bulkModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-[#0C1018] border border-white/[0.08] rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl relative space-y-4">
+            <button 
+              onClick={() => {
+                if (!bulkProcessing) setBulkModalOpen(false);
+              }}
+              className="absolute top-4 right-4 text-[#8892A4] hover:text-white font-bold text-lg select-none cursor-pointer"
+            >
+              &times;
+            </button>
+            
+            <div className="flex items-center gap-2">
+              <Globe className="text-[#E8C070]" size={16} />
+              <h3 className="text-xs font-semibold text-white uppercase tracking-wider font-mono">Bulk Watchlist Importer</h3>
+            </div>
+            
+            <form onSubmit={handleBulkImportSubmit} className="space-y-4">
+              <p className="text-[10px] text-[#8892A4] leading-relaxed font-mono uppercase text-slate-400">
+                Enter multiple symbols separated by commas:
+              </p>
+              
+              <textarea
+                placeholder="SBIN, COALINDIA, BAJFINANCE, WIPRO"
+                rows={4}
+                className="w-full bg-[#020408]/60 border border-white/[0.05] p-3 rounded-xl placeholder-[#4E5568] text-xs text-white focus:outline-none focus:border-[#D4A843]/45 font-mono outline-none resize-none"
+                value={bulkSymbolsInput}
+                onChange={(e) => setBulkSymbolsInput(e.target.value)}
+                disabled={bulkProcessing}
+              />
+              
+              {bulkProgress && (
+                <div className="text-[10px] text-[#E8C070] font-mono animate-pulse flex items-center gap-1.5 uppercase">
+                  <RefreshCw size={11} className="animate-spin" />
+                  <span>{bulkProgress}</span>
+                </div>
+              )}
+              
+              {bulkSummary && (
+                <div className="p-3 bg-white/[0.02] border border-white/[0.04] rounded-xl text-[10.5px] text-zinc-300 font-mono leading-relaxed">
+                  {bulkSummary}
+                </div>
+              )}
+              
+              <div className="flex gap-2.5 justify-end text-[10px] font-bold uppercase tracking-wider pt-1">
+                <button
+                  type="button"
+                  disabled={bulkProcessing}
+                  onClick={() => setBulkModalOpen(false)}
+                  className="px-3 py-2 bg-white/[0.02] border border-white/[0.05] text-[#8892A4] hover:text-white rounded-xl transition-colors cursor-pointer"
+                >
+                  Close
+                </button>
+                <button
+                  type="submit"
+                  disabled={bulkProcessing || !bulkSymbolsInput.trim()}
+                  className="px-3 py-2 bg-[#D4A843] hover:bg-[#E8C070] text-[#05070C] disabled:bg-neutral-800 disabled:text-neutral-500 rounded-xl transition-all cursor-pointer"
+                >
+                  {bulkProcessing ? 'Importing...' : 'Begin Import'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,12 +1,17 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { BrowserRouter, Routes, Route, NavLink, Link } from 'react-router-dom';
 import { Dashboard } from './pages/Dashboard';
+import { SmartSwing } from './pages/SmartSwing';
 import { AssetsList } from './pages/AssetsList';
+import { IntelligenceHub } from './pages/IntelligenceHub';
 import { AssetDetail } from './pages/AssetDetail';
 import { SipTracker } from './pages/SipTracker';
 import { Accuracy } from './pages/Accuracy';
 import Landing from './pages/Landing';
 import Onboarding from './pages/Onboarding';
+import Privacy from './pages/legal/Privacy';
+import Terms from './pages/legal/Terms';
+import Disclaimer from './pages/legal/Disclaimer';
 import { BangOnLogo } from './components/BangOnLogo';
 import { AuthProvider, useAuth } from './services/AuthProvider';
 import { AuthModal } from './components/AuthModal';
@@ -255,8 +260,24 @@ function AppContent() {
     await updateInterests(updated);
   };
 
-  // 1. Conditional landing screen
-  if (!(user || guestMode)) {
+  // 1. Conditional landing screen & stand-alone legal systems
+  const isLegalPage = window.location.pathname === '/privacy' || 
+                       window.location.pathname === '/terms' || 
+                       window.location.pathname === '/disclaimer';
+
+  if (isLegalPage) {
+    return (
+      <Routes>
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/disclaimer" element={<Disclaimer />} />
+      </Routes>
+    );
+  }
+
+  const isLandingOnlyRoute = window.location.pathname === '/landing' || window.location.pathname === '/home';
+
+  if (isLandingOnlyRoute || (!(user || guestMode))) {
     return (
       <>
         <Landing 
@@ -432,6 +453,20 @@ function AppContent() {
             </NavLink>
 
             <NavLink 
+              to="/smart-swing" 
+              className={({ isActive }) => 
+                `flex items-center gap-2.5 px-3 py-2 rounded-lg border-l-2 font-body text-[12.5px] transition-all duration-150 ${
+                  isActive 
+                    ? 'bg-[rgba(255,255,255,0.05)] border-l-[#D4A843] text-white font-medium' 
+                    : 'border-l-transparent text-[#8892A4] hover:text-white hover:bg-[rgba(255,255,255,0.02)]'
+                }`
+              }
+            >
+              <TrendingUp size={14} />
+              Smart Swing
+            </NavLink>
+
+            <NavLink 
               to="/assets" 
               className={({ isActive }) => 
                 `flex items-center gap-2.5 px-3 py-2 rounded-lg border-l-2 font-body text-[12.5px] transition-all duration-150 ${
@@ -473,6 +508,15 @@ function AppContent() {
               Accuracy Matrix
             </NavLink>
           </nav>
+          
+          <div className="pt-2.5 px-1 border-t border-[rgba(255,255,255,0.04)] mt-2">
+            <Link 
+              to="/landing" 
+              className="flex items-center gap-2 px-2 py-1.5 text-[11px] font-mono text-[#8892A4] hover:text-[#D4A843] transition-colors"
+            >
+              ← Back to landing page
+            </Link>
+          </div>
         </div>
 
         {/* Sidebar Footer Info */}
@@ -559,6 +603,19 @@ function AppContent() {
               </NavLink>
 
               <NavLink 
+                to="/smart-swing" 
+                onClick={() => setMobileMenuOpen(false)}
+                className={({ isActive }) => 
+                  `flex items-center gap-3 px-4 py-3 rounded-xl font-mono uppercase tracking-wider text-xs font-bold ${
+                    isActive ? 'bg-slate-800 text-white' : 'text-slate-400 hover:bg-slate-850'
+                  }`
+                }
+              >
+                <TrendingUp size={15} />
+                Smart Swing
+              </NavLink>
+
+              <NavLink 
                 to="/assets" 
                 onClick={() => setMobileMenuOpen(false)}
                 className={({ isActive }) => 
@@ -596,6 +653,14 @@ function AppContent() {
                 <Award size={15} />
                 Accuracy
               </NavLink>
+              
+              <Link
+                to="/landing"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl font-mono uppercase tracking-wider text-[11px] font-bold text-[#8892A4] hover:text-[#D4A843] transition-colors"
+              >
+                ← Back to landing page
+              </Link>
             </nav>
           </div>
         </div>
@@ -636,6 +701,8 @@ function AppContent() {
         <main className="max-w-7xl mx-auto p-6 lg:p-10 space-y-8">
           <Routes>
             <Route path="/" element={<Dashboard />} />
+            <Route path="/smart-swing" element={<SmartSwing />} />
+            <Route path="/intelligence" element={<IntelligenceHub />} />
             <Route path="/assets" element={<AssetsList />} />
             <Route path="/asset/:symbol" element={<AssetDetail />} />
             <Route path="/sip" element={<SipTracker />} />

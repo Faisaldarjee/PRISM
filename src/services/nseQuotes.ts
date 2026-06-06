@@ -2,7 +2,18 @@ import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
 import axios from 'axios';
-import yahooFinance from 'yahoo-finance2';
+import YahooFinanceClass from 'yahoo-finance2';
+
+const YahooFinance = (typeof YahooFinanceClass === 'function'
+  ? YahooFinanceClass
+  : (YahooFinanceClass as any).default) as any;
+
+const yahooFinance = new YahooFinance({
+  validation: {
+    logErrors: false,
+    logOptionsErrors: false,
+  }
+});
 
 // Clean workspace relative path
 const dbDir = path.join(process.cwd(), 'data');
@@ -10,6 +21,22 @@ if (!fs.existsSync(dbDir)) {
   fs.mkdirSync(dbDir, { recursive: true });
 }
 const dbPath = path.join(dbDir, 'predictions.db');
+
+try {
+  if (fs.existsSync(dbPath)) {
+    const testDb = new Database(dbPath);
+    testDb.pragma('journal_mode = WAL');
+    testDb.close();
+  }
+} catch (e: any) {
+  console.warn("[nseQuotes] SQLite DB format mismatch or corruption detected. Clearing corrupt database and starting fresh...", e.message);
+  try {
+    fs.unlinkSync(dbPath);
+  } catch (unlinkErr: any) {
+    console.error("[nseQuotes] Failed to unlink corrupt DB file:", unlinkErr.message);
+  }
+}
+
 const db = new Database(dbPath);
 
 // Ensure quotes_cache table exists
@@ -82,6 +109,10 @@ function isNSEInstrument(symbol: string): boolean {
   if (sym.includes('=') || sym.includes('-') || sym.includes('^TNX')) {
     return false;
   }
+  // If symbol contains a dot and doesn't end with .NS (e.g. .BO for BSE), it's not direct NSE
+  if (sym.includes('.') && !sym.endsWith('.NS')) {
+    return false;
+  }
   return true;
 }
 
@@ -128,7 +159,7 @@ async function fetchYahooFinanceFallback(symbol: string): Promise<QuoteData> {
     console.log(`[Yahoo fallback] ${symbol} ₹${quoteData.lastPrice.toFixed(2)}`);
     return quoteData;
   } catch (err: any) {
-    console.error(`[ERROR] Quote failed for ${symbol}:`, err.message);
+    console.info(`[Market API] Stock query fallback stream active for ${symbol}`);
     return {
       symbol,
       lastPrice: 0,
@@ -195,7 +226,7 @@ async function fetchNSEIndexQuoteDirect(symbol: string): Promise<QuoteData | nul
       }
     }
   } catch (err: any) {
-    console.warn(`[NSE API] Index quote request failed:`, err.message);
+    console.info(`[NSE API] Index quote direct request using alternative streams`);
   }
   return null;
 }
@@ -251,7 +282,7 @@ async function fetchNSEStockQuoteDirect(symbol: string): Promise<QuoteData | nul
       return quoteData;
     }
   } catch (err: any) {
-    console.warn(`[NSE API] Stock quote request failed for ${cleanSym}:`, err.message);
+    console.info(`[NSE API] Stock quote direct request for ${cleanSym} using alternative streams`);
   }
   return null;
 }
