@@ -114,7 +114,7 @@ export async function callGeneratedContentWithRetry(params: {
   if (!ai) throw new Error("API has not been configured.");
   if (isGeminiSuspended()) throw new Error("API is temporarily suspended due to rate limiting.");
 
-  const modelsToTry = [params.model, "gemini-flash-latest", "gemini-3.5-flash"];
+  const modelsToTry = [params.model, "gemini-flash-latest", "gemini-3.5-flash", "gemini-3.1-flash-lite"];
   const models = Array.from(new Set(modelsToTry));
 
   let lastError: any = null;
