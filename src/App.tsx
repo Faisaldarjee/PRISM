@@ -386,26 +386,30 @@ function AppContent() {
       {/* SIDEBAR NAVIGATION (PERSISTENT DESKTOP) */}
       <aside className="hidden md:flex flex-col w-56 bg-[rgba(255,255,255,0.02)] backdrop-blur-lg border-r border-[rgba(255,255,255,0.05)] p-5 z-40 shrink-0 select-none justify-between h-screen sticky top-0">
         <div className="space-y-6">
-          {/* Logo segment */}
-          <div className="flex items-start pb-4 border-b border-[rgba(255,255,255,0.04)]">
-            <Link to="/" className="flex items-center">
-              <BangOnLogo size={36} showText={true} />
-            </Link>
+          {/* Logo segment with subtle gold gradient glow */}
+          <div className="flex flex-col gap-1 pb-4 border-b border-[rgba(255,255,255,0.04)] relative">
+            <div className="absolute inset-x-0 bottom-0 top-0 bg-radial from-[#D4A843]/15 via-transparent to-transparent blur-md -z-10 pointer-events-none" />
+            <div className="flex items-center justify-between">
+              <Link to="/" className="flex items-center">
+                <BangOnLogo size={36} showText={true} />
+              </Link>
+            </div>
           </div>
 
           {/* User Account / Profile Sync Segment */}
-          <div className="glass-card p-4 space-y-3 transition-colors bg-white/[0.02] border border-white/[0.04] rounded-xl">
+          <div className="glass-card p-4 space-y-3 transition-colors bg-white/[0.02] border border-white/[0.04] rounded-xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-8 h-8 bg-gradient-to-br from-[#D4A843]/10 to-transparent blur-sm pointer-events-none" />
             {user ? (
               <>
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#D4A843] to-[#E8C070] flex items-center justify-center font-data text-xs font-black text-[#05070C] uppercase shadow-md">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#D4A843] to-[#E8C070] flex items-center justify-center font-data text-xs font-black text-[#05070C] uppercase shadow-md animate-float">
                     {userProfile?.displayName ? userProfile.displayName.charAt(0) : user.email?.charAt(0) || 'U'}
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="text-xs font-semibold text-[#F0F4FF] truncate font-body">
                       {userProfile?.displayName || user.email?.split('@')[0]}
                     </h4>
-                    <span className="text-[9px] text-[#8892A4] font-data border border-[#D4A843]/30 px-1 py-0.2 rounded text-[#E8C070]">PRO PLAN</span>
+                    <span className="text-[8.5px] text-[#D4A843] font-data border border-[#D4A843]/20 px-1 py-0.2 rounded bg-[#D4A843]/5 uppercase tracking-wide">PRO PLAN</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-1.5 pt-1">
@@ -432,7 +436,7 @@ function AppContent() {
                 </div>
                 <button 
                   onClick={() => setAuthModalOpen(true)}
-                  className="w-full py-1.5 bg-[#D4A843] hover:bg-[#E8C070] text-[#05070C] text-[10.5px] font-data tracking-wider rounded-lg cursor-pointer transition-all active:scale-[0.98]"
+                  className="w-full py-1.5 bg-[#D4A843] hover:bg-[#E8C070] text-[#05070C] text-[10.5px] font-data tracking-wider rounded-lg cursor-pointer transition-all active:scale-[0.98] shadow-md shadow-[#D4A843]/10"
                 >
                   SECURE_CLOUD_SYNC
                 </button>
@@ -447,12 +451,12 @@ function AppContent() {
               className={({ isActive }) => 
                 `flex items-center gap-2.5 px-3 py-2 rounded-lg border-l-2 font-body text-[12.5px] transition-all duration-150 ${
                   isActive 
-                    ? 'bg-[rgba(255,255,255,0.05)] border-l-[#D4A843] text-white font-medium' 
+                    ? 'nav-active text-white font-medium' 
                     : 'border-l-transparent text-[#8892A4] hover:text-white hover:bg-[rgba(255,255,255,0.02)]'
                 }`
               }
             >
-              <Activity size={14} />
+              <Activity size={14} className="nav-icon" />
               Dashboard
             </NavLink>
 
@@ -461,12 +465,12 @@ function AppContent() {
               className={({ isActive }) => 
                 `flex items-center gap-2.5 px-3 py-2 rounded-lg border-l-2 font-body text-[12.5px] transition-all duration-150 ${
                   isActive 
-                    ? 'bg-[rgba(255,255,255,0.05)] border-l-[#D4A843] text-white font-medium' 
+                    ? 'nav-active text-white font-medium' 
                     : 'border-l-transparent text-[#8892A4] hover:text-white hover:bg-[rgba(255,255,255,0.02)]'
                 }`
               }
             >
-              <TrendingUp size={14} />
+              <TrendingUp size={14} className="nav-icon" />
               Smart Swing
             </NavLink>
 
@@ -475,13 +479,27 @@ function AppContent() {
               className={({ isActive }) => 
                 `flex items-center gap-2.5 px-3 py-2 rounded-lg border-l-2 font-body text-[12.5px] transition-all duration-150 ${
                   isActive 
-                    ? 'bg-[rgba(255,255,255,0.05)] border-l-[#D4A843] text-white font-medium' 
+                    ? 'nav-active text-white font-medium' 
                     : 'border-l-transparent text-[#8892A4] hover:text-white hover:bg-[rgba(255,255,255,0.02)]'
                 }`
               }
             >
-              <Layers size={14} />
+              <Layers size={14} className="nav-icon" />
               Assets index
+            </NavLink>
+
+            <NavLink 
+              to="/intelligence" 
+              className={({ isActive }) => 
+                `flex items-center gap-2.5 px-3 py-2 rounded-lg border-l-2 font-body text-[12.5px] transition-all duration-150 ${
+                  isActive 
+                    ? 'nav-active text-white font-medium' 
+                    : 'border-l-transparent text-[#8892A4] hover:text-white hover:bg-[rgba(255,255,255,0.02)]'
+                }`
+              }
+            >
+              <Sparkles size={14} className="nav-icon font-semibold" />
+              Intelligence Hub
             </NavLink>
 
             <NavLink 
@@ -489,12 +507,12 @@ function AppContent() {
               className={({ isActive }) => 
                 `flex items-center gap-2.5 px-3 py-2 rounded-lg border-l-2 font-body text-[12.5px] transition-all duration-150 ${
                   isActive 
-                    ? 'bg-[rgba(255,255,255,0.05)] border-l-[#D4A843] text-white font-medium' 
+                    ? 'nav-active text-white font-medium' 
                     : 'border-l-transparent text-[#8892A4] hover:text-white hover:bg-[rgba(255,255,255,0.02)]'
                 }`
               }
             >
-              <Coins size={14} />
+              <Coins size={14} className="nav-icon" />
               SIP Strategy Hub
             </NavLink>
 
@@ -503,12 +521,12 @@ function AppContent() {
               className={({ isActive }) => 
                 `flex items-center gap-2.5 px-3 py-2 rounded-lg border-l-2 font-body text-[12.5px] transition-all duration-150 ${
                   isActive 
-                    ? 'bg-[rgba(255,255,255,0.05)] border-l-[#D4A843] text-white font-medium' 
+                    ? 'nav-active text-white font-medium' 
                     : 'border-l-transparent text-[#8892A4] hover:text-white hover:bg-[rgba(255,255,255,0.02)]'
                 }`
               }
             >
-              <Award size={14} />
+              <Award size={14} className="nav-icon" />
               Accuracy Matrix
             </NavLink>
           </nav>
@@ -630,6 +648,19 @@ function AppContent() {
               >
                 <Layers size={15} />
                 Assets index
+              </NavLink>
+
+              <NavLink 
+                to="/intelligence" 
+                onClick={() => setMobileMenuOpen(false)}
+                className={({ isActive }) => 
+                  `flex items-center gap-3 px-4 py-3 rounded-xl font-mono uppercase tracking-wider text-xs font-bold ${
+                    isActive ? 'bg-slate-800 text-white' : 'text-slate-400 hover:bg-slate-850'
+                  }`
+                }
+              >
+                <Sparkles size={15} />
+                Intelligence Hub
               </NavLink>
 
               <NavLink 

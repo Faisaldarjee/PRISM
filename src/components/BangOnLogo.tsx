@@ -126,9 +126,6 @@ export const BangOnLogo: React.FC<BangOnLogoProps> = ({
               BANG ON <span className="text-emerald-400">AI</span>
             </span>
           </div>
-          <span className="text-[9px] font-black tracking-widest text-[#8892A4] uppercase -mt-0.5">
-            SYSTEMATIC WEALTH
-          </span>
         </div>
       )}
     </div>

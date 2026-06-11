@@ -148,3 +148,10 @@ export async function getGeminiWeeklyReport(): Promise<{ report: string }> {
 export async function getSwingScannerSetups(): Promise<any[]> {
   return fetchJson<any[]>(`${API_BASE}/api/swing-scanner`);
 }
+
+export async function getAdvancedAccuracy(): Promise<any> {
+  const res = await fetch(`${API_BASE}/api/accuracy/advanced`);
+  if (!res.ok) throw new Error('Failed to fetch advanced accuracy metrics');
+  return res.json();
+}
+

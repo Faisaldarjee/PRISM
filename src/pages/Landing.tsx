@@ -185,7 +185,7 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
           className="mb-6 tracking-[0.25em] font-data text-[10.5px] text-[#E8C070] font-medium flex items-center gap-2 bg-[#D4A843]/5 border border-[#D4A843]/10 py-1.5 px-4 rounded-full"
         >
           <Sparkles size={11} className="text-[#D4A843] animate-pulse" />
-          SYSTEMATIC WEALTH INTELLIGENCE DIRECTIVE
+          QUANTITATIVE INTELLIGENCE DIRECTIVE
         </motion.div>
 
         {/* Dynamic Contrasting Split Headline */}

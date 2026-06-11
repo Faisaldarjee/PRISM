@@ -304,6 +304,128 @@ async function startServer() {
     }
   });
 
+  // ADVANCED ACCURACY METRICS
+  app.get('/api/accuracy/advanced', async (req, res) => {
+    try {
+      const report = getAccuracyReport();
+      if (!report || report.status === 'BUILDING') {
+        return res.json({ status: 'BUILDING', metrics: null });
+      }
+
+      const ledger = report.recent_ledger || [];
+      const verified = ledger.filter(r => r.outcome === 'CORRECT' || r.outcome === 'INCORRECT');
+
+      // 1. Confusion Matrix
+      let tp = 0, fp = 0, tn = 0, fn = 0;
+      verified.forEach(r => {
+        if (r.action === 'BUY' && r.outcome === 'CORRECT') tp++;
+        else if (r.action === 'BUY' && r.outcome === 'INCORRECT') fp++;
+        else if (r.action === 'SELL' && r.outcome === 'CORRECT') tn++;
+        else if (r.action === 'SELL' && r.outcome === 'INCORRECT') fn++;
+      });
+
+      // 2. Win Rate by Signal Type
+      const buySignals = verified.filter(r => r.action === 'BUY');
+      const sellSignals = verified.filter(r => r.action === 'SELL');
+      const buyWinRate = buySignals.length > 0
+        ? (buySignals.filter(r => r.outcome === 'CORRECT').length / buySignals.length * 100)
+        : 0;
+      const sellWinRate = sellSignals.length > 0
+        ? (sellSignals.filter(r => r.outcome === 'CORRECT').length / sellSignals.length * 100)
+        : 0;
+
+      // 3. Profit Factor
+      let grossProfit = 0, grossLoss = 0;
+      verified.forEach(r => {
+        const gainVal = parseFloat(r.gain?.replace('%', '').replace('+', '') || '0');
+        if (gainVal > 0) grossProfit += gainVal;
+        else grossLoss += Math.abs(gainVal);
+      });
+      const profitFactor = grossLoss > 0 ? Number((grossProfit / grossLoss).toFixed(2)) : grossProfit > 0 ? 999 : 0;
+
+      // 4. Sharpe Ratio (annualized, assuming ~252 trading days)
+      const returns = verified.map(r => parseFloat(r.gain?.replace('%', '').replace('+', '') || '0'));
+      const avgReturn = returns.length > 0 ? returns.reduce((a, b) => a + b, 0) / returns.length : 0;
+      const stdReturn = returns.length > 1
+        ? Math.sqrt(returns.reduce((sum, r) => sum + Math.pow(r - avgReturn, 2), 0) / (returns.length - 1))
+        : 1;
+      const sharpeRatio = stdReturn > 0 ? Number(((avgReturn / stdReturn) * Math.sqrt(252)).toFixed(2)) : 0;
+
+      // 5. Max Drawdown
+      let peak = 0, maxDrawdown = 0, equity = 0;
+      const equityCurve: { index: number; equity: number }[] = [];
+      returns.forEach((r, i) => {
+        equity += r;
+        equityCurve.push({ index: i + 1, equity: Number(equity.toFixed(2)) });
+        if (equity > peak) peak = equity;
+        const dd = peak - equity;
+        if (dd > maxDrawdown) maxDrawdown = dd;
+      });
+
+      // 6. Calmar Ratio
+      const totalReturn = equity;
+      const calmarRatio = maxDrawdown > 0 ? Number((totalReturn / maxDrawdown).toFixed(2)) : 0;
+
+      // 7. Average R:R Achieved
+      const wins = returns.filter(r => r > 0);
+      const losses = returns.filter(r => r < 0);
+      const avgWin = wins.length > 0 ? wins.reduce((a, b) => a + b, 0) / wins.length : 0;
+      const avgLoss = losses.length > 0 ? Math.abs(losses.reduce((a, b) => a + b, 0) / losses.length) : 1;
+      const avgRR = Number((avgWin / avgLoss).toFixed(2));
+
+      // 8. Rolling 30-day Accuracy (groups of 30)
+      const rollingAccuracy: { period: string; accuracy: number; trades: number }[] = [];
+      const chunkSize = Math.min(30, Math.max(5, Math.floor(verified.length / 4)));
+      for (let i = 0; i < verified.length; i += chunkSize) {
+        const chunk = verified.slice(i, i + chunkSize);
+        const correct = chunk.filter(r => r.outcome === 'CORRECT').length;
+        rollingAccuracy.push({
+          period: `Period ${Math.floor(i / chunkSize) + 1}`,
+          accuracy: Number((correct / chunk.length * 100).toFixed(1)),
+          trades: chunk.length
+        });
+      }
+
+      // 9. Monthly P&L Heatmap Data
+      const monthlyPnL: Record<string, number> = {};
+      verified.forEach(r => {
+        const date = r.date || '';
+        const monthKey = date.substring(0, 7); // YYYY-MM
+        const gainVal = parseFloat(r.gain?.replace('%', '').replace('+', '') || '0');
+        if (monthKey) {
+          monthlyPnL[monthKey] = (monthlyPnL[monthKey] || 0) + gainVal;
+        }
+      });
+
+      // 10. Agent Attribution (which agent contributed most to correct predictions)
+      const agentAttribution = report.by_agent || {};
+
+      res.json({
+        status: 'LIVE',
+        confusionMatrix: { tp, fp, tn, fn },
+        winRateBySignal: {
+          buy: { total: buySignals.length, winRate: Number(buyWinRate.toFixed(1)) },
+          sell: { total: sellSignals.length, winRate: Number(sellWinRate.toFixed(1)) }
+        },
+        profitFactor,
+        sharpeRatio,
+        maxDrawdown: Number(maxDrawdown.toFixed(2)),
+        calmarRatio,
+        avgRiskReward: avgRR,
+        equityCurve,
+        rollingAccuracy,
+        monthlyPnL,
+        agentAttribution,
+        totalTrades: verified.length,
+        totalWins: wins.length,
+        totalLosses: losses.length
+      });
+    } catch (error: any) {
+      console.error('Error in /api/accuracy/advanced:', error);
+      res.status(500).json({ detail: error.message });
+    }
+  });
+
   app.post('/api/accuracy/backtest/:symbol', async (req, res) => {
     try {
       const result = await runHistoricalBacktest(req.params.symbol);
