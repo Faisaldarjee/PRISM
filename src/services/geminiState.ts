@@ -100,9 +100,9 @@ export function handleGeminiError(err: any, context?: string) {
     errMsg.includes("billing");
 
   if (isRateLimit) {
-    console.log(`[Gemini State] ${context ? `[${context}] ` : ''}Rate limit or Free Tier Quota reached. Suspending Gemini features globally for 3 minutes, using high-quality deterministic model fallbacks.`);
+    console.log(`[Gemini State] ${context ? `[${context}] ` : ''}Rate limit or Free Tier Quota reached. Suspending Gemini features globally for 15 minutes, using high-quality deterministic model fallbacks.`);
     isRateLimited = true;
-    rateLimitResetTime = Date.now() + 180 * 1000; // 3 minutes cooling period
+    rateLimitResetTime = Date.now() + 15 * 60 * 1000; // 15 minutes cooling period
   }
 }
 

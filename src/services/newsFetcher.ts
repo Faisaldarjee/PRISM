@@ -64,7 +64,8 @@ const parser = new Parser({
 const FEEDS = [
   'https://economictimes.indiatimes.com/markets/rss.cms',
   'https://news.google.com/rss/headlines/section/topic/BUSINESS?hl=en-IN&gl=IN&ceid=IN:en',
-  'https://news.google.com/rss/search?q=Nifty+sensex+markets+india&hl=en-IN&gl=IN&ceid=IN:en'
+  'https://news.google.com/rss/search?q=Nifty+sensex+markets+india&hl=en-IN&gl=IN&ceid=IN:en',
+  'https://www.businesstoday.in/rss/markets'
 ];
 
 interface RSSItem {
