@@ -4,7 +4,7 @@ import os
 
 def print_usage():
     print("=" * 70)
-    print("                 ASTRAEUS SYMBOL REGISTRATION UTILITY")
+    print("                 PRISM SYMBOL REGISTRATION UTILITY")
     print("=" * 70)
     print("Usage: python add_symbol.py <ALIAS> <SYMBOL> <TYPE>")
     print("Example: python add_symbol.py IDFCFIRSTB IDFCFIRSTB.NS STOCK")

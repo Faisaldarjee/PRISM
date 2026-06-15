@@ -27,32 +27,32 @@ export default function Terms() {
               <Layers size={24} />
             </div>
             <div>
-              <span className="font-data text-[10px] text-[#4A5568] tracking-widest uppercase block">// CONTRACT CONFORMANCE</span>
+              <span className="font-data text-[10px] text-[#4A5568] tracking-widest uppercase block">CONTRACT CONFORMANCE</span>
               <h1 className="text-2xl font-black uppercase text-white font-display tracking-tight mt-0.5">Terms of Service</h1>
             </div>
           </div>
 
           <div className="space-y-6 text-[#8892A4] text-[13.5px] leading-relaxed">
             <p>
-              Please read these Terms of Service carefully before utilizing <strong className="text-white">Bang ON AI</strong>. Access to this platform is conditioned on your strict acceptance of and compliance with these terms.
+              Please read these Terms of Service carefully before utilizing <strong className="text-white">PRISM</strong>. Access to this platform is conditioned on your strict acceptance of and compliance with these terms.
             </p>
 
             <div className="space-y-2">
-              <h3 className="font-display font-semibold text-[15px] text-white uppercase tracking-wider">// 01. Platform Definition</h3>
+              <h3 className="font-display font-semibold text-[15px] text-white uppercase tracking-wider">01. Platform Definition</h3>
               <p>
-                Bang ON is purely an <strong className="text-white">educational study and research simulation playground</strong>. All signals, consensus indices, ATR position allocations, and technical indicators are generated for demonstration, research, and learning purposes only.
+                PRISM is purely an <strong className="text-white">educational study and research simulation playground</strong>. All signals, consensus indices, ATR position allocations, and technical indicators are generated for demonstration, research, and learning purposes only.
               </p>
             </div>
 
             <div className="space-y-2">
-              <h3 className="font-display font-semibold text-[15px] text-white uppercase tracking-wider">// 02. No Financial Advice</h3>
+              <h3 className="font-display font-semibold text-[15px] text-white uppercase tracking-wider">02. No Financial Advice</h3>
               <p>
                 We do NOT provide financial planning or investment management advice. We are not brokers, financial advisers, or analysts. No content or calculation on our workspace shall be construed as a recommendation to buy, sell, or hold financial assets in any live trading desk environment.
               </p>
             </div>
 
             <div className="space-y-2">
-              <h3 className="font-display font-semibold text-[15px] text-white uppercase tracking-wider">// 03. User Responsibility</h3>
+              <h3 className="font-display font-semibold text-[15px] text-white uppercase tracking-wider">03. User Responsibility</h3>
               <p>
                 You assume full responsibility for any trading activities you conduct in external trading environments. We are not liable or responsible, directly or indirectly, for any losses, damages, margin calls, or financial friction suffered as a result of using this platform. Play responsibly and study carefully.
               </p>

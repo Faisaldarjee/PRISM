@@ -9,7 +9,7 @@ from ensemble.accuracy_tracker import run_daily_accuracy_check, update_weights_f
 from ensemble.orchestrator import run_all_predictions
 
 def run_daily_pipeline():
-    print(f"[{datetime.datetime.now().isoformat()}] Starting Astraeus Daily Automation Pipeline...")
+    print(f"[{datetime.datetime.now().isoformat()}] Starting PRISM Daily Automation Pipeline...")
     os.makedirs('logs', exist_ok=True)
     
     summary = {
@@ -64,7 +64,7 @@ def run_daily_pipeline():
         today_str = datetime.date.today().strftime("%Y-%m-%d")
         log_file = os.path.join("logs", f"{today_str}.log")
         with open(log_file, "w") as f:
-            f.write(f"ASTRAEUS PORTFOLIO INTELLIGENCE PIPELINE SUMMARY - {today_str}\n")
+            f.write(f"PRISM PORTFOLIO INTELLIGENCE PIPELINE SUMMARY - {today_str}\n")
             f.write("=" * 70 + "\n")
             f.write(json.dumps(summary, indent=4))
         print(f"Daily pipeline log successfully saved to {log_file}")
@@ -73,11 +73,11 @@ def run_daily_pipeline():
         print(f"Error in Step 5: {e}")
         summary["steps"]["save_daily_log"] = f"FAILED: {str(e)}"
 
-    print(f"\n[{datetime.datetime.now().isoformat()}] Astraeus daily automation pipeline run complete.")
+    print(f"\n[{datetime.datetime.now().isoformat()}] PRISM daily automation pipeline run complete.")
 
 if __name__ == "__main__":
     print("=" * 70)
-    print("         ASTRAEUS SELF-LEARNING SCHEDULER DEPLOYED")
+    print("         PRISM SELF-LEARNING SCHEDULER DEPLOYED")
     print("=" * 70)
     print("Active Schedule: Daily at 16:00 IST (Market Close)")
     

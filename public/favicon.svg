@@ -1,104 +1,89 @@
 <svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Premium high-contrast dark circular base with double metallic gold border -->
-  <circle cx="100" cy="100" r="92" fill="#090D16" stroke="#F5C453" strokeWidth="5" />
-  <circle cx="100" cy="100" r="85" stroke="#4A3610" strokeWidth="1.5" fill="none" opacity="0.6" />
+  <defs>
+    <!-- Dark glowing aura -->
+    <radialGradient id="prismAura" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stopColor="rgba(212, 168, 67, 0.25)" />
+      <stop offset="60%" stopColor="rgba(15, 23, 42, 0.3)" />
+      <stop offset="100%" stopColor="rgba(0,0,0,0)" />
+    </radialGradient>
 
-  <!-- Candlesticks integrated in the background inside the "B" layout -->
-  <!-- Short Candle -->
-  <line x1="88" y1="62" x2="88" y2="108" stroke="#F5C453" strokeWidth="2.5" />
-  <rect x="83" y="72" width="10" height="26" fill="#F5C453" stroke="#2D1D04" strokeWidth="1" rx="1.5" />
+    <!-- Prism Glass Gradient -->
+    <linearGradient id="prismGlass" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stopColor="#2A354D" />
+      <stop offset="50%" stopColor="#141C2E" />
+      <stop offset="100%" stopColor="#080C14" />
+    </linearGradient>
 
-  <!-- Medium Candle -->
-  <line x1="106" y1="50" x2="106" y2="102" stroke="#FFDF79" strokeWidth="2.5" />
-  <rect x="101" y="60" width="10" height="32" fill="#FFDF79" stroke="#2D1D04" strokeWidth="1" rx="1.5" />
+    <!-- Beveled Golden/Silver Edges -->
+    <linearGradient id="bevelGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#FFF4D0" />
+      <stop offset="30%" stopColor="#D4A843" />
+      <stop offset="70%" stopColor="#A27926" />
+      <stop offset="100%" stopColor="#F6D583" />
+    </linearGradient>
 
-  <!-- Tall Candle -->
-  <line x1="124" y1="38" x2="124" y2="92" stroke="#FFF3D0" strokeWidth="2.5" />
-  <rect x="119" y="46" width="10" height="36" fill="#FFF3D0" stroke="#2D1D04" strokeWidth="1" rx="1.5" />
+    <!-- White Input Beam -->
+    <linearGradient id="inputBeam" x1="0%" y1="50%" x2="100%" y2="50%">
+      <stop offset="0%" stopColor="rgba(255, 255, 255, 0)" />
+      <stop offset="65%" stopColor="rgba(255, 255, 255, 0.6)" />
+      <stop offset="100%" stopColor="#FFFFFF" />
+    </linearGradient>
 
-  <!-- Outer Premium Golden Monogram "B" Curve & Frame -->
-  <!-- Elegant top bar, outer loops, and strong vertical backbone -->
-  <path 
-    d="M 60 45 
-       L 115 45 
-       C 145 45, 150 72, 126 92 
-       C 152 100, 146 142, 110 145 
-       L 60 145 
-       Z" 
-    fill="none" 
-    stroke="#E8C070" 
-    strokeWidth="11" 
-    strokeLinejoin="round" 
-    strokeLinecap="round" 
-  />
-  <!-- Inner white-gold glossy reflection core -->
-  <path 
-    d="M 60 45 
-       L 115 45 
-       C 145 45, 150 72, 126 92 
-       C 152 100, 146 142, 110 145 
-       L 60 145 
-       Z" 
-    fill="none" 
-    stroke="#FFFDF5" 
-    strokeWidth="3.5" 
-    strokeLinejoin="round" 
-    strokeLinecap="round" 
-    opacity="0.95"
-  />
+    <!-- Spectrum Gradients -->
+    <linearGradient id="rayRed" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#FFFFFF" />
+      <stop offset="30%" stopColor="#EF4444" opacity="0.8" />
+      <stop offset="100%" stopColor="#EF4444" opacity="0" />
+    </linearGradient>
+    <linearGradient id="rayOrange" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#FFFFFF" />
+      <stop offset="40%" stopColor="#F97316" opacity="0.8" />
+      <stop offset="100%" stopColor="#F97316" opacity="0" />
+    </linearGradient>
+    <linearGradient id="rayYellow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#FFFFFF" />
+      <stop offset="45%" stopColor="#FBBF24" opacity="0.8" />
+      <stop offset="100%" stopColor="#FBBF24" opacity="0" />
+    </linearGradient>
+    <linearGradient id="rayGreen" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#FFFFFF" />
+      <stop offset="50%" stopColor="#10B981" opacity="0.8" />
+      <stop offset="100%" stopColor="#10B981" opacity="0" />
+    </linearGradient>
+    <linearGradient id="rayBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#FFFFFF" />
+      <stop offset="60%" stopColor="#3B82F6" opacity="0.8" />
+      <stop offset="100%" stopColor="#3B82F6" opacity="0" />
+    </linearGradient>
+    <linearGradient id="rayViolet" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#FFFFFF" />
+      <stop offset="70%" stopColor="#8B5CF6" opacity="0.8" />
+      <stop offset="100%" stopColor="#8B5CF6" opacity="0" />
+    </linearGradient>
+  </defs>
 
-  <!-- Iconic Golden Breakout Zigzag Arrow slicing through center -->
-  <path 
-    d="M 42 125 
-       L 78 90 
-       L 100 110 
-       L 155 52" 
-    fill="none" 
-    stroke="#000000" 
-    strokeWidth="16" 
-    strokeLinecap="round" 
-    strokeLinejoin="round" 
-  />
-  <path 
-    d="M 42 125 
-       L 78 90 
-       L 100 110 
-       L 155 52" 
-    fill="none" 
-    stroke="#F5C453" 
-    strokeWidth="11" 
-    strokeLinecap="round" 
-    strokeLinejoin="round" 
-  />
-  <path 
-    d="M 42 125 
-       L 78 90 
-       L 100 110 
-       L 155 52" 
-    fill="none" 
-    stroke="#FFFDF5" 
-    strokeWidth="4" 
-    strokeLinecap="round" 
-    strokeLinejoin="round" 
-  />
+  <!-- Ambient Back Glow -->
+  <circle cx="100" cy="100" r="95" fill="url(#prismAura)" />
 
-  <!-- 3D Multi-faceted Arrow Head -->
-  <g transform="translate(155, 52) rotate(-42)">
-    <!-- Shaded bottom-right facet -->
-    <polygon 
-      points="0,0 -20,12 -12,3" 
-      fill="#B08323" 
-      stroke="#1E1602" 
-      strokeWidth="1" 
-    />
-    <!-- Highlighted top-left facet -->
-    <polygon 
-      points="0,0 -12,-3 -20,-12" 
-      fill="#FFFDF5" 
-      stroke="#F5C453" 
-      strokeWidth="1" 
-    />
-    <!-- Center reflection ridge -->
-    <line x1="0" y1="0" x2="-12" y2="0" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" opacity="0.95" />
-  </g>
+  <!-- Dark circular base frame -->
+  <circle cx="100" cy="100" r="92" fill="#060913" stroke="#1E293B" strokeWidth="2" />
+  <circle cx="100" cy="100" r="86" stroke="#D4A843" strokeWidth="1" fill="none" opacity="0.25" />
+
+  <!-- Laser Beam Entering -->
+  <path d="M 20 110 L 78 95" stroke="url(#inputBeam)" strokeWidth="4.5" strokeLinecap="round" />
+  <path d="M 78 95 L 115 110" stroke="#FFFFFF" strokeWidth="3" opacity="0.8" />
+
+  <!-- Spectral output fanning -->
+  <path d="M 115 110 L 175 145" stroke="url(#rayViolet)" strokeWidth="6" strokeLinecap="round" />
+  <path d="M 115 110 L 180 133" stroke="url(#rayBlue)" strokeWidth="6.5" strokeLinecap="round" />
+  <path d="M 115 110 L 182 120" stroke="url(#rayGreen)" strokeWidth="7" strokeLinecap="round" />
+  <path d="M 115 110 L 182 108" stroke="url(#rayYellow)" strokeWidth="7.5" strokeLinecap="round" />
+  <path d="M 115 110 L 180 96" stroke="url(#rayOrange)" strokeWidth="7" strokeLinecap="round" />
+  <path d="M 115 110 L 175 83" stroke="url(#rayRed)" strokeWidth="6.5" strokeLinecap="round" />
+
+  <!-- Triangular Glass Prism -->
+  <polygon points="100,42 56,132 144,132" fill="none" stroke="rgba(0,0,0,0.5)" strokeWidth="8" strokeLinejoin="round" />
+  <polygon points="100,45 60,130 140,130" fill="url(#prismGlass)" />
+  <polygon points="100,45 60,130 140,130" fill="none" stroke="url(#bevelGold)" strokeWidth="4.5" strokeLinejoin="round" />
+  <line x1="100" y1="45" x2="60" y2="130" stroke="#FFFDF5" strokeWidth="1.5" strokeLinecap="round" opacity="0.8" />
 </svg>

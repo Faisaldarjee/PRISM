@@ -5,7 +5,7 @@ import os
 
 def print_banner():
     print("="*60)
-    print(" ASTRAEUS: MULTI-AGENT PREDICTION SYSTEM (NSE/BSE) ")
+    print(" PRISM: MULTI-AGENT PREDICTION SYSTEM (NSE/BSE) ")
     print("="*60)
 
 def main():

@@ -27,32 +27,32 @@ export default function Disclaimer() {
               <AlertTriangle size={24} />
             </div>
             <div>
-              <span className="font-data text-[10px] text-[#4A5568] tracking-widest uppercase block">// STATUTORY DISCLOSURE</span>
+              <span className="font-data text-[10px] text-[#4A5568] tracking-widest uppercase block">STATUTORY DISCLOSURE</span>
               <h1 className="text-2xl font-black uppercase text-white font-display tracking-tight mt-0.5">SEBI Risk Index</h1>
             </div>
           </div>
 
           <div className="space-y-6 text-[#8892A4] text-[13.5px] leading-relaxed">
             <p>
-              In accordance with SEBI compliance directives for educational software systems, <strong className="text-white">Bang ON AI</strong> provides the following standard trade safety notices:
+              In accordance with SEBI compliance directives for educational software systems, <strong className="text-white">PRISM</strong> provides the following standard trade safety notices:
             </p>
 
             <div className="space-y-2">
-              <h3 className="font-display font-semibold text-[15px] text-white uppercase tracking-wider">// 01. Not SEBI Registered</h3>
+              <h3 className="font-display font-semibold text-[15px] text-white uppercase tracking-wider">01. Not SEBI Registered</h3>
               <p>
-                Bang ON AI is <strong className="text-white">NOT registered</strong> with the Securities and Exchange Board of India (SEBI) under any portfolio allocation, advisory, investment advisory, or research analyst license schemes. No signals, predictions, consensus indexes, or AI morning briefings constitute legal, fiscal, or SEBI-sanctioned actionable trading material.
+                PRISM is <strong className="text-white">NOT registered</strong> with the Securities and Exchange Board of India (SEBI) under any portfolio allocation, advisory, investment advisory, or research analyst license schemes. No signals, predictions, consensus indexes, or AI morning briefings constitute legal, fiscal, or SEBI-sanctioned actionable trading material.
               </p>
             </div>
 
             <div className="space-y-2">
-              <h3 className="font-display font-semibold text-[15px] text-white uppercase tracking-wider">// 02. Volatility and Losses</h3>
+              <h3 className="font-display font-semibold text-[15px] text-white uppercase tracking-wider">02. Volatility and Losses</h3>
               <p>
                 Equities swing trading involves substantial risk of capital loss. Past performances or backtested mock returns modeled in our calculations are absolutely <strong className="text-white">NOT indicative</strong> of prospective actual market performances. Stock price technical behaviors are highly volatile, unstable, and prone to extreme fluctuations.
               </p>
             </div>
 
             <div className="space-y-2">
-              <h3 className="font-display font-semibold text-[15px] text-white uppercase tracking-wider">// 03. Friction Modelling Limitations</h3>
+              <h3 className="font-display font-semibold text-[15px] text-white uppercase tracking-wider">03. Friction Modelling Limitations</h3>
               <p>
                 While our built-in friction engine simulates STT, stamp duty, GST, brokerages, and transaction charges to ensure quantitative realism, simulated figures are estimated averages only. Real-time slippages and unexpected terminal access speeds can vary considerably in actual market trading.
               </p>

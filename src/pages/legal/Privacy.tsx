@@ -27,18 +27,18 @@ export default function Privacy() {
               <ShieldCheck size={24} />
             </div>
             <div>
-              <span className="font-data text-[10px] text-[#4A5568] tracking-widest uppercase block">// BANG ON SECURITY</span>
+              <span className="font-data text-[10px] text-[#4A5568] tracking-widest uppercase block">PRISM SECURITY</span>
               <h1 className="text-2xl font-black uppercase text-white font-display tracking-tight mt-0.5">Privacy Directive</h1>
             </div>
           </div>
 
           <div className="space-y-6 text-[#8892A4] text-[13.5px] leading-relaxed">
             <p>
-              At <strong className="text-white">Bang ON AI</strong>, we believe data sovereignty and confidentiality are paramount. This privacy statement outlines the specific metrics we collect, store, and utilize.
+              At <strong className="text-white">PRISM</strong>, we believe data sovereignty and confidentiality are paramount. This privacy statement outlines the specific metrics we collect, store, and utilize.
             </p>
 
             <div className="space-y-2">
-              <h3 className="font-display font-semibold text-[15px] text-white uppercase tracking-wider">// 01. Information Collection</h3>
+              <h3 className="font-display font-semibold text-[15px] text-white uppercase tracking-wider">01. Information Collection</h3>
               <p>
                 We collect only minimal identifiable information necessary to run persistent user configurations:
               </p>
@@ -49,14 +49,14 @@ export default function Privacy() {
             </div>
 
             <div className="space-y-2">
-              <h3 className="font-display font-semibold text-[15px] text-white uppercase tracking-wider">// 02. Data Usage and Security</h3>
+              <h3 className="font-display font-semibold text-[15px] text-white uppercase tracking-wider">02. Data Usage and Security</h3>
               <p>
                 We do NOT sell, rent, license, or disclose your email address or account telemetry to any third-party marketing brokers. Inside guest mode, all your preferences are completely stored client-side in your local workspace cache. When syncing is initialized, details are secured within Google Firebase Firestore datastores under robust role-based security rules.
               </p>
             </div>
 
             <div className="space-y-2">
-              <h3 className="font-display font-semibold text-[15px] text-white uppercase tracking-wider">// 03. Cookies</h3>
+              <h3 className="font-display font-semibold text-[15px] text-white uppercase tracking-wider">03. Cookies</h3>
               <p>
                 Our infrastructure uses secure temporary client-side storage mechanisms (localStorage) strictly to preserve your configurations and session state across logins. No invasive tracking cookies are used.
               </p>

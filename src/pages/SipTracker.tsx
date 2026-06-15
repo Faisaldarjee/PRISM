@@ -135,25 +135,25 @@ export function SipTracker() {
       let resAssets = assetsList;
       if (!resAssets) {
         try {
-          const cached = localStorage.getItem('bangon_assets');
+          const cached = localStorage.getItem('prism_assets');
           resAssets = cached ? JSON.parse(cached) : [];
         } catch {
           resAssets = [];
         }
       } else {
-        try { localStorage.setItem('bangon_assets', JSON.stringify(resAssets)); } catch {}
+        try { localStorage.setItem('prism_assets', JSON.stringify(resAssets)); } catch {}
       }
 
       let resPreds = allPreds;
       if (!resPreds) {
         try {
-          const cached = localStorage.getItem('bangon_preds');
+          const cached = localStorage.getItem('prism_preds');
           resPreds = cached ? JSON.parse(cached) : [];
         } catch {
           resPreds = [];
         }
       } else {
-        try { localStorage.setItem('bangon_preds', JSON.stringify(resPreds)); } catch {}
+        try { localStorage.setItem('prism_preds', JSON.stringify(resPreds)); } catch {}
       }
 
       setAssets(resAssets);

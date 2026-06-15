@@ -1,13 +1,13 @@
-# 🚀 Bang ON Portfolio Prediction & Dynamic Strategy Workspace
+# 🔺 PRISM — Predictive Risk Intelligence & Strategy Matrix
 ### 📊 Unified Developer & Product Blueprint Suite
 
-Welcome to the **Bang ON AI** repository. This document serves as the absolute master-blueprint, system architect reference, and setup manual for the complete application. Designed specifically for Indian commodity BeES (Exchange Traded Funds) and modern volatile equities, **Bang ON** operates to eliminate emotional trading biases by answering three classic quantitative questions: **"KAB, KITNA aur KAHAN"** (When to buy, How much to allocate, and Where to park capital).
+Welcome to the **PRISM** repository. This document serves as the absolute master-blueprint, system architect reference, and setup manual for the complete application. Designed specifically for Indian commodity ETFs and volatile equities, **PRISM** operates to eliminate emotional trading biases by answering three classic quantitative questions: **"KAB, KITNA aur KAHAN"** (When to buy, How much to allocate, and Where to park capital).
 
 ---
 
 ## 🗺️ Part 1: The 6 Foundation Blueprints
 
-Below are the 6 foundational blueprints prepared to guide the development, testing, styling, data integrity, and orchestration flows of the **Bang ON** ecosystem.
+Below are the 6 foundational blueprints prepared to guide the development, testing, styling, data integrity, and orchestration flows of the **PRISM** ecosystem.
 
 ---
 
@@ -15,9 +15,9 @@ Below are the 6 foundational blueprints prepared to guide the development, testi
 
 | Parameter | Specification |
 | :--- | :--- |
-| **App Name** | Bang ON AI Portfolio Prediction & Dynamic Strategy Workspace |
+| **App Name** | PRISM (Predictive Risk Intelligence & Strategy Matrix) |
 | **One-Line Idea** | A high-contrast quantitative portfolio advisor and risk calculator eliminating retail trading bias through decentralized multi-agent prediction scoring, dynamic RSI-tuned SIP planner, and ATR position sizers. |
-| **Target Users** | Self-directed Indian retail investors, commodity BeES accumulators, active swing traders, and tactical portfolio compounders. |
+| **Target Users** | Self-directed Indian retail investors, commodity ETF accumulators, active swing traders, and tactical portfolio compounders. |
 | **User Role** | Single investor with optional profile synchronization to sync watchlists across devices. |
 | **MVP Asset Scope** | Liquid Indian commodity index ETFs (**GOLDBEES.NS**, **SILVERBEES.NS**) and volatile benchmark equities (**TATAMOTORS.NS**, **ADANIPOWER.NS**, **SUZLON.NS**, **RELIANCE.NS**, **WAAREEENER.NS**). |
 | **Out of Scope V1** | Automated direct broker algorithmic order routing, options chain writing/greeks, and intraday margin leveraged trading. |
@@ -55,230 +55,106 @@ Below are the 6 foundational blueprints prepared to guide the development, testi
 
 #### Screen Hierarchy & User Navigation
 1.  **Dashboard Hub (Default Landing)**:
-    *   **Desk A**: Real-time Interactive Market Ticker ticker informing NSE market hour states.
+    *   **Desk A**: Real-time Interactive Market Ticker informing NSE market hour states.
     *   **Desk B**: *Today's Top 5 Swing Setups* matrix list displaying technical ratings.
     *   **Desk C**: *Dynamic Capital Allocation Calculator* - interactive input panels mapping trade budgets, custom volatility risk levels (%), custom pricing entry, and stop losses. Outputs share purchases quantity and targets.
-2.  **Assets Index Screen**:
-    *   Displays list of tracked assets, filters (All, Gems, Commodity MeTALS).
-    *   Button to append custom stock symbol tickers seamlessly (triggering automatic validation crawler, caching price streams in SQLite, and dispatching notification events).
-3.  **Active Asset Detail Desk (Deep Dive)**:
-    *   High-contrast candle chart powered by Recharts showing historical movements.
-    *   *Stochastic Gradient Descent (SGD) ML Core Tracker*: Displays training model accuracies and custom live indicator coefficient adjustments.
-    *   *Multi-Timeframe Trend Concordance Panel*: Tracks Weekly Trend, Daily Setup Trigger, and Hourly timings.
-    *   Decentralized voting grid detail of the 4 core agents (Technical, Macro, Sentiment, ML).
-4.  **SIP & Strategy Hub**:
-    *   RSI Dynamic Budget Estimator.
-    *   Gold/Silver Spread Arbitrage chart tracking physical value differences.
-    *   200-EMA support warnings, and USD-INR rupee hedging values.
-5.  **Accuracy / Diagnostics Desk (Friction Simulator)**:
-    *   Backtesting diagnostic engine auditing 6 months of historical setups.
-    *   Factor-in Indian taxation (Securities Transaction Tax - STT, 15% Short Term Capital gains), 0.03% brokerage fees, and bid-ask slippages to display true Net P&L metrics.
-
-#### Dynamic Interface Interaction
-```
-[Click Ticker Scan Setup] ────> [Auto-populates Risk Calculator Inputs]
-                                            │
-                                            ▼
-                             [Outputs Exact units to acquire]
-                                            │
-                                            ▼
-                           [Analyze] ─> [Directs to Detail Page]
-```
+2.  **Smart Swing Scanner**:
+    *   Unified grid filtering setups by technical patterns (Bollinger Squeezes, RSI Overmatured, ADX Breakouts, MACD Crossovers).
+    *   Interactive deep-dive trade plans with detailed multi-agent conviction bar votes.
+3.  **RSI SIP Planner**:
+    *   Visual representation of dynamic SIP scaling strategy.
+    *   Interactive simulation graph illustrating how surplus funds are redirected to safe-haven cash/liquidity reserves under overpriced market conditions.
+4.  **Real-Time Intelligence Hub**:
+    *   Automated AI portfolio briefing block generating global macro indicators, institutional FII/DII flow summaries, corporate earnings schedules, and historical data Deal structures.
+5.  **Audit Track Record Dashboard**:
+    *   Visual performance reporting mapping past AI scoring accuracy metrics over 30, 60, and 90-day intervals, maintaining absolute transparency.
 
 ---
 
-### 🎨 4. UI/UX Design Brief
+### 🎨 4. Style Guide & Design Tokens
 
-*   **Visual Direction Archetype**: Classic High-Contrast Swiss-Modernist / Institutional Bloomberg Quantitative terminal.
-*   **Color Blueprint**:
-    *   *Canvas*: Absolute Space Black (`#07090e`, `#020408`)
-    *   *High-Priority Prompts*: Electric Celestial Emerald (`#10b981` / `#059669`)
-    *   *Functional Indicators*: Cyber Cobalt blue (`#0ea5e9`), Deep Royal Indigo purple (`#6366f1`)
-    *   *Alert Warnings*: Vivid Crimson Rose (`#f43f5e`), Marigold Amber (`#f59e0b`)
-*   **Typography Hierarchy**: Space Grotesk/Outfit for bold headers, balanced margins, Inter for reading controls, and raw monospace **JetBrains Mono** for pricing values, percentages, and trade sizing outputs.
-*   **User Interface Rules**:
-    *   No noisy graphic gradients. Use deep slate outline boundaries (`border-slate-800` / `900`) and clean negative spacing, allowing technical charts and indicators to stand out clearly.
-    *   Subtle blur backdrops (`backdrop-blur-md`) and framer motion spring scale curves on interactions (`active:scale-[0.98]`).
-    *   Redundant telemetry or simulated terminal loading clutter is strictly forbidden. The page margins are kept absolutely clean to let user-data dominate the visual landscape.
+**PRISM** utilizes a high-contrast premium slate-gold color palette optimized for high-vibe financial desks.
 
----
+#### Color Tokens
+*   **Deep Canvas Background**: `#05070C` (Sleek deep slate blue-black)
+*   **Golden Accent Lineages**: `#D4A843` (Bevel borders, positive labels, conviction icons)
+*   **Negative/Stop Loss Crimson**: `#EF4444` (Risk indicators, stop triggers)
+*   **Positive/Target Emerald**: `#00D084` (Safe entry points, target limits, cash balances)
+*   **Muted Text / Grid Lines**: `#8892A4`
 
-### 🗄️ 5. Backend Schema Document
-
-The local database operates using high-speed SQLite via the `better-sqlite3` driver. The following database layout defines the persistence engine:
-
-```sql
--- Track and validate imported user tickers
-CREATE TABLE IF NOT EXISTS custom_assets (
-    symbol TEXT PRIMARY KEY,
-    name TEXT,
-    asset_type TEXT NOT NULL CHECK(asset_type IN ('ETF', 'STOCK'))
-);
-
--- Store predictions compiled from multi-agent analysis 
-CREATE TABLE IF NOT EXISTS predictions_cache (
-    symbol TEXT PRIMARY KEY,
-    signal TEXT NOT NULL CHECK(signal IN ('BUY', 'HOLD', 'SELL')),
-    score REAL NOT NULL,
-    confidence REAL NOT NULL,
-    payload TEXT, -- JSON holding technical, sentiment, macro and SGD ML variables
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Cache daily candles data streams to bypass Yahoo Finance rate-limits
-CREATE TABLE IF NOT EXISTS candles_cache (
-    symbol TEXT,
-    date TEXT,
-    open REAL,
-    high REAL,
-    low REAL,
-    close REAL,
-    volume INTEGER,
-    PRIMARY KEY (symbol, date)
-);
-
--- Store diagnostic backtesting performance results
-CREATE TABLE IF NOT EXISTS backtest_logs (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    symbol TEXT,
-    strategy TEXT,
-    net_pnl REAL,
-    win_rate REAL,
-    total_trades INTEGER,
-    taxation_paid REAL,
-    executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Active notifications log triggered by watchlist interests
-CREATE TABLE IF NOT EXISTS live_notifications (
-    id TEXT PRIMARY KEY,
-    symbol TEXT NOT NULL,
-    signal TEXT NOT NULL,
-    price REAL NOT NULL,
-    description TEXT,
-    read INTEGER DEFAULT 0 CHECK(read IN (0, 1)),
-    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
+#### Decorative Elements
+*   Slight beveled glass border frames (`border-white/[0.05] bg-white/[0.02] backdrop-blur`).
+*   Radial gold background auroric glows to draw focus to core interactive metrics.
+*   Minimal, scannable spacing and high-vibe typography pairings ("Inter" paired with "JetBrains Mono").
 
 ---
 
-### 📆 6. Implementation Plan
+### 🔒 5. Database Schema & Security Blueprints
 
-#### Development Lifecycle
-```
-[Phase 1: Setup & Routing] ──> [Phase 2: Data & SQLite] ──> [Phase 3: Multi-Agent Hub]
-                                                                        │
-┌───────────────────────────────────────────────────────────────────────┘
-▼
-[Phase 4: Terminal UI Desk] ──> [Phase 5: Sizing & calculators] ──> [Phase 6: Gemini Reports]
-```
+The SQLite core is structured into robust, normalized tables with automated validation rules.
 
-1.  **Phase 1: Core Framework Integration**: Scaffolding Node-Vite Express servers, mapping absolute paths compilation via `esbuild`, mapping routing files config in `/src/App.tsx`.
-2.  **Phase 2: Database and Market Feeds Setup**: Initializing the Offline-First SQLite structure and creating Yahoo Finance candles caching workers.
-3.  **Phase 3: Deep Technical & ML Classifier Formulas**: Developing Technical indicators (RSI, ADX, ATR, BB) and training the live online Stochastic Gradient Descent Logistic Classifier coefficients.
-4.  **Phase 4: Responsive Terminal UI Assembly**: Designing the Swiss-Modernist interface with fully modular, separate page components (`Dashboard.tsx`, `AssetDetail.tsx`, `SipTracker.tsx`) to avoid hitting file token limits.
-5.  **Phase 5: Financial Execution Desk Integration**: Wiring the position-sizing modules to dynamically interact with user clicks and integrating the systematic RSI-SIP planner inputs.
-6.  **Phase 6: Gemini Grounding Model Integration**: Connecting the server-secured `@google/genai` model weights to write morning briefs and export Telegram-ready swing cards, completing absolute production validation.
+#### SQL Core Relations Configuration
+*   `predictions_cache`: Persists raw historical pricing records and cached multi-agent evaluations.
+*   `user_profiles`: Manages core user settings (capital, riskPercent, onboarded, custom watchlists symbols).
+*   `alerts_log`: Audits notification historical outputs and alert trigger states.
 
 ---
 
-## 🛠️ Part 2: Step-by-Step Workspace Setup Guide
+### 🤖 6. AI & Multi-Agent Orchestration Blueprint
 
-Ready to spin up the local server and interface? Follow these standard setup instructions:
+PRISM features a simulated multi-agent consensus network powered server-side by the Google Gemini API:
 
-### 1. Prerequisite Checks
-Ensure you have Node.js (v18+) and Python 3.10+ installed:
+*   **Trend Agent (RSI/EMA)**: Decodes long-term momentum structures.
+*   **Volatility Agent (ATR/BB)**: Establishes stop-loss levels and sizer constraints.
+*   **Institutional Sentiment Agent (FII/DII/Volume)**: Evaluates volume pressure.
+*   **Consensus Director (Director)**: Consolidates predictions into unified target units and conviction percentages.
+
+---
+
+## 🛠️ Part 2: Quick Start & Installation Instructions
+
+To bring the PRISM suite online on your workstation:
+
+### Prerequisite Environment Checklist
+1.  **Node.js**: Verify Node v18+ is available.
+2.  **API Credentials**: Register a free API key at [Google AI Studio](https://aistudio.google.com/).
+
+### Installation Command Execution
 ```bash
-node --version
-python3 --version
-```
+# 1. Clone or copy files and map into directory
+cd prism
 
-### 2. Configure Python Virtual Environment & Analytics Modules
-Initialize your isolated environment to avoid global library conflicts:
-```bash
-# Create the virtual environment
-python3 -m venv .venv
-
-# Activate the environment (macOS/Linux)
-source .venv/bin/activate
-
-# Activate the environment (Windows Command Prompt)
-.venv\Scripts\activate
-
-# Install required numerical modules
-pip install -r requirements.txt
-```
-
-### 3. Install Node.js Frontend Dependencies
-Install React, Tailwind CSS, Recharts, and Express dependencies compiled under `package.json`:
-```bash
+# 2. Extract and establish dependencies
 npm install
-```
 
-### 4. Setup Local Environments & Launch Dev Client
-Create your local environment properties file and supplement with your Gemini API security key:
-```bash
-# Create .env properties file
+# 3. Create .env configuration based on template
 cp .env.example .env
+```
 
-# Open .env and add your valid Gemini API Key:
-# GEMINI_API_KEY="AIzaSyYourGeminiApiKeyHere"
-```
-Once configured, launch the server using our dev script proxy which handles compilation and hot-reloads internally:
-```bash
-npm run dev
-```
-The server will now accept connections on port `3000` (`http://localhost:3000`).
+Open `.env` and paste your `GEMINI_API_KEY` to unlock live prediction briefings.
 
 ---
 
-## 📅 Part 3: Automated Market Workflows
+## 🚀 Unified Execution Daemon
 
-To ensure data points stay fresh post-Indian market closing, **Bang ON** includes an automated execution background daemon:
+To ensure data points stay fresh post-Indian market closing, **PRISM** includes an automated execution background daemon:
+
 ```bash
-python scheduler.py
+# Windows Unified Startup (Runs express server and browser)
+run-local.bat
 ```
 
-### Post-Closing Pipelines (4:00 PM IST)
-Every afternoon, the scheduler auto-triggers:
-1.  **Candles Crawler**: Downloads the day's physical spot price movements from Yahoo Finance.
-2.  **Score Audits**: Evaluates predictions placed exactly 5 days ago against raw close prices to update individual multi-agent confidence ratings.
-3.  **Active Optimizer Weights**: Rewrites of `models/weights.json` to elevate high-performing agents and lower under-performing agent weights.
-4.  **Briefing compilation**: Re-calibrates calculations ready for your next morning briefing.
-
-*To force immediate calibration testing, call the scheduler with the bypass flag:*
-```bash
-python scheduler.py --now
-```
+For advanced CLI utilities:
+*   `python scheduler.py --now`: Instant manual multi-agent scoring batch execution.
+*   `python add_symbol.py UTILITY <TICKER> STOCK`: Manually insert a custom stock symbol tracking reference.
 
 ---
 
-## 🛠️ Adding Custom Tickers
-To expand and index custom tickers, run the automated setup utility:
-```bash
-python add_symbol.py <ALIAS> <TICKER> <ASSET_TYPE>
-```
-*   **Example (Tata Motors)**: `python add_symbol.py TATAMOTORS TATAMOTORS.NS STOCK`
-*   **Example (Silver BeES)**: `python add_symbol.py SILVERBEES SILVERBEES.NS ETF`
+## 🛡️ Resilience Core
 
----
+To ensure continuous uptime and robust execution under strict third-party quota limits and data sparse conditions, **PRISM** implements the following structural resilience patterns:
 
-## 🛡️ Part 4: Production Resiliency & Fail-Safes
+1.  **Local Storage Synchronous Cache**: If live network routes hit the Yahoo rate limits, the UI silently falls back to local storage models (`prism_preds`, `prism_macro`, `prism_assets`) without throwing errors.
+2.  **Graceful Degraded States**: Rate limiting elements display a helpful alert notice rather than crashing. All calculations remain 100% active and editable.
 
-To ensure continuous uptime and robust execution under strict third-party quota limits and data sparse conditions, **Bang ON** implements the following structural resilience patterns:
-
-### 1. Robust API Class Wrappers (`yahoo-finance2`)
-- **Correction**: Resolved upstream changes in `yahoo-finance2` by switching modules from legacy direct imports to structured `new YahooFinanceClass(...)` instances across `nseQuotes.ts`, `serverApi.ts`, and `candleService.ts`.
-- **Validation**: Suppresses validation warning flags internally, preventing halting exceptions during quote retrievals and custom asset additions.
-
-### 2. Gemini API Rate-Limit Circuit Breakers
-- **sequential Sector Scans**: To avoid triggering `RESOURCE_EXHAUSTED (429)` rate-limiting under the standard Gemini 5 RPM (Requests Per Minute) free-tier plan, the indicator analyzer performs sequential (rather than parallel) content generations.
-- **Dynamic Local NLP Fallback**: If a 429 or network exception occurs, the system logs a warnings and dynamically falls back to an offline rule-based financial sentiment extraction protocol, preserving calculating scores and keeping the app fully operational.
-
-### 3. High-Fidelity Synthetic Candle Spark Engine
-- **delisted/Sparse Asset Protection**: When tickers like `KIMS_ALT.NS` yield no historical candles via Yahoo/NSE APIs, the system triggers a fallback generator.
-- **Aesthetic Simulation**: Computes 120-250 periods of realistic OHLCV candles (1m to 1D timeframes) using daily random-walk variables grounded in baseline asset classes. This provides uninterrupted rendering for high-contrast charts, trend concordance grids, and position metric desks.
-
----
-*Disclaimer: All indicators, automated SGD machine learning estimations, and swing templates compiled in **Bang ON** operate strictly as tools for academic, paper testing, and technical study. Backtested or estimated past yields are never an guarantee of future capital compound levels. Prioritize risk containment always.*
+*Disclaimer: All indicators, automated SGD machine learning estimations, and swing templates compiled in PRISM operate strictly as tools for academic, paper testing, and technical study. Backtested or estimated past yields are never a guarantee of future capital compound levels. Prioritize risk containment always.*

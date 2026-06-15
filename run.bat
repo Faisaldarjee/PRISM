@@ -1,7 +1,7 @@
 @echo off
-title Astraeus Portfolio Prediction Suite
+title PRISM Suite
 echo ====================================================================
-echo                 ASTRAEUS PORTFOLIO INTELLIGENCE CLIENT
+echo                 PRISM PORTFOLIO INTELLIGENCE CLIENT
 echo ====================================================================
 echo.
 
@@ -18,7 +18,7 @@ if exist .venv\Scripts\activate (
 
 :: 2. Start Python FastAPI Backend Service
 echo [Backend] Launching Python FastAPI Ensemble predicting module in the background...
-start "Astraeus Backend Server" python -m uvicorn api.main:app --port 8000 --reload
+start "PRISM Backend Server" python -m uvicorn api.main:app --port 8000 --reload
 
 :: Wait for FastAPI backend initialization (3 seconds)
 echo [System] Synchronizing backend startup (3s)...
@@ -27,7 +27,7 @@ timeout /t 3 /nobreak > nul
 :: 3. Start Frontend Dashboard dev server
 echo [Frontend] Starting React user dashboard interface...
 cd frontend
-start "Astraeus Frontend Dashboard" npm run dev
+start "PRISM Frontend Dashboard" npm run dev
 
 :: Wait for Vite dev server initialization (3 seconds)
 echo [System] Synchronizing frontend startup (3s)...

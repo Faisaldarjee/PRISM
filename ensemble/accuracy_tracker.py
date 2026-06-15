@@ -405,7 +405,7 @@ def print_accuracy_report():
         stats_90 = calculate_accuracy_stats(days=90)
         
         print("\n" + "="*70)
-        print("                 ASTRAEUS SELF-LEARNING AGENT REPORT                 ")
+        print("                 PRISM SELF-LEARNING AGENT REPORT                 ")
         print("="*70)
         print(f"Predictions Created This Month: {monthly_count}")
         print("\nSystemic directional accuracy over temporal intervals:")

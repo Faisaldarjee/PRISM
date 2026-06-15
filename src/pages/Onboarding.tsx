@@ -53,10 +53,10 @@ export default function Onboarding({ onComplete, onSkip, onCancel }: OnboardingP
       setStep(step + 1);
     } else {
       // Complete onboarding
-      localStorage.setItem('bangon_onboarded', 'true');
-      localStorage.setItem('bangon_capital', capital.toString());
-      localStorage.setItem('bangon_risk', riskPercent.toString());
-      localStorage.setItem('bangon_focus_markets', JSON.stringify(selectedMarkets));
+      localStorage.setItem('prism_onboarded', 'true');
+      localStorage.setItem('prism_capital', capital.toString());
+      localStorage.setItem('prism_risk', riskPercent.toString());
+      localStorage.setItem('prism_focus_markets', JSON.stringify(selectedMarkets));
       onComplete(capital, riskPercent, selectedMarkets);
     }
   };
@@ -95,7 +95,7 @@ export default function Onboarding({ onComplete, onSkip, onCancel }: OnboardingP
           </button>
           <span className="text-[#4A5568] hidden sm:inline">|</span>
           <span className="font-display font-semibold text-sm tracking-[0.1em] text-[#8892A4] hidden sm:inline">
-            BANG ON <span className="text-[#E8C070]">ONBOARDING</span>
+            PRISM <span className="text-[#E8C070]">ONBOARDING</span>
           </span>
         </div>
 

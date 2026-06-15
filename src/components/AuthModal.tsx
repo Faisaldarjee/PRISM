@@ -272,7 +272,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
           <div className="pt-2 text-center text-xs font-mono">
             {view === 'LOGIN' ? (
               <span className="text-slate-500">
-                New to Bang On AI?{' '}
+                New to PRISM?{' '}
                 <button 
                   type="button"
                   onClick={() => setView('SIGNUP')}

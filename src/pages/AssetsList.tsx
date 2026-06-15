@@ -509,7 +509,7 @@ export function AssetsList() {
         </div>
         
         <span className="text-[10px] text-[#8892A4] block sm:inline font-mono">
-          AGGREGATED_REGISTRY // <span className="text-white font-bold">{filteredAssets.length}</span> / {assets.length} ITEMS CARRIED
+          AGGREGATED REGISTRY · <span className="text-white font-bold">{filteredAssets.length}</span> / {assets.length} ITEMS CARRIED
         </span>
       </div>
 

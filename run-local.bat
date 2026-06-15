@@ -1,6 +1,6 @@
 @echo off
 echo =================================================================
-echo             Starting Bang ON Locally (Unified Process)
+echo             Starting PRISM Locally (Unified Process)
 echo =================================================================
 echo.
 

@@ -12,7 +12,7 @@ import Onboarding from './pages/Onboarding';
 import Privacy from './pages/legal/Privacy';
 import Terms from './pages/legal/Terms';
 import Disclaimer from './pages/legal/Disclaimer';
-import { BangOnLogo } from './components/BangOnLogo';
+import { PrismLogo } from './components/PrismLogo';
 import { AuthProvider, useAuth } from './services/AuthProvider';
 import { AuthModal } from './components/AuthModal';
 import { importAsset } from './api';
@@ -96,13 +96,35 @@ function AppContent() {
 
   const [guestMode, setGuestMode] = useState(false);
 
+  // One-time migration from old brand keys (bangon_*) to new (prism_*)
   useEffect(() => {
-    localStorage.removeItem('bangon_guest_mode');
+    const migrationKeys = ['onboarded', 'capital', 'risk', 'focus_markets', 'guest_mode'];
+    migrationKeys.forEach(k => {
+      const oldVal = localStorage.getItem(`bangon_${k}`);
+      if (oldVal && !localStorage.getItem(`prism_${k}`)) {
+        localStorage.setItem(`prism_${k}`, oldVal);
+        localStorage.removeItem(`bangon_${k}`);
+      }
+    });
+
+    // Also migrate other potential cached objects
+    const dataKeys = ['preds', 'macro', 'assets', 'swing', 'intel', 'global_macro', 'flow_sig', 'hist_flows', 'events', 'bulk_deals'];
+    dataKeys.forEach(k => {
+      const oldVal = localStorage.getItem(`bangon_${k}`);
+      if (oldVal && !localStorage.getItem(`prism_${k}`)) {
+        localStorage.setItem(`prism_${k}`, oldVal);
+        localStorage.removeItem(`bangon_${k}`);
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    localStorage.removeItem('prism_guest_mode');
     setGuestMode(false);
   }, []);
 
   const [onboarded, setOnboarded] = useState(() => {
-    return localStorage.getItem('bangon_onboarded') === 'true';
+    return localStorage.getItem('prism_onboarded') === 'true';
   });
 
   const { 
@@ -129,15 +151,15 @@ function AppContent() {
   useEffect(() => {
     if (user && userProfile) {
       if (userProfile.onboarded) {
-        localStorage.setItem('bangon_onboarded', 'true');
+        localStorage.setItem('prism_onboarded', 'true');
         if (userProfile.capital) {
-          localStorage.setItem('bangon_capital', userProfile.capital.toString());
+          localStorage.setItem('prism_capital', userProfile.capital.toString());
         }
         if (userProfile.riskPercent) {
-          localStorage.setItem('bangon_risk', userProfile.riskPercent.toString());
+          localStorage.setItem('prism_risk', userProfile.riskPercent.toString());
         }
         if (userProfile.focusMarkets) {
-          localStorage.setItem('bangon_focus_markets', JSON.stringify(userProfile.focusMarkets));
+          localStorage.setItem('prism_focus_markets', JSON.stringify(userProfile.focusMarkets));
         }
         setOnboarded(true);
         // Dispatch to update active tab/context values in other open components
@@ -145,13 +167,13 @@ function AppContent() {
       } else {
         // If they are logged in but don't have onboarding in their Firebase profile yet,
         // let's check if they have it in localStorage (onboarded as guest before log in) and sync it!
-        const hasLocalOnboarded = localStorage.getItem('bangon_onboarded') === 'true';
+        const hasLocalOnboarded = localStorage.getItem('prism_onboarded') === 'true';
         if (hasLocalOnboarded) {
-          const cap = Number(localStorage.getItem('bangon_capital') || '50000');
-          const risk = Number(localStorage.getItem('bangon_risk') || '2');
+          const cap = Number(localStorage.getItem('prism_capital') || '50000');
+          const risk = Number(localStorage.getItem('prism_risk') || '2');
           let markets: string[] = ['etfs', 'large-cap'];
           try {
-            markets = JSON.parse(localStorage.getItem('bangon_focus_markets') || '["etfs", "large-cap"]');
+            markets = JSON.parse(localStorage.getItem('prism_focus_markets') || '["etfs", "large-cap"]');
           } catch (e) {}
           
           updateOnboardingSettings(cap, risk, markets).then(() => {
@@ -167,7 +189,7 @@ function AppContent() {
     if (user) {
       setAuthModalOpen(false);
       setGuestMode(false);
-      localStorage.removeItem('bangon_guest_mode');
+      localStorage.removeItem('prism_guest_mode');
     }
   }, [user]);
 
@@ -229,11 +251,11 @@ function AppContent() {
   }, [user, userProfile?.customAssets]);
 
   const handleLogout = async () => {
-    localStorage.removeItem('bangon_guest_mode');
-    localStorage.removeItem('bangon_onboarded');
-    localStorage.removeItem('bangon_capital');
-    localStorage.removeItem('bangon_risk');
-    localStorage.removeItem('bangon_focus_markets');
+    localStorage.removeItem('prism_guest_mode');
+    localStorage.removeItem('prism_onboarded');
+    localStorage.removeItem('prism_capital');
+    localStorage.removeItem('prism_risk');
+    localStorage.removeItem('prism_focus_markets');
     localStorage.removeItem('guest_custom_assets');
     setGuestMode(false);
     setOnboarded(false);
@@ -305,10 +327,10 @@ function AppContent() {
     return (
       <Onboarding 
         onComplete={(capital, risk, markets) => {
-          localStorage.setItem('bangon_onboarded', 'true');
-          localStorage.setItem('bangon_capital', capital.toString());
-          localStorage.setItem('bangon_risk', risk.toString());
-          localStorage.setItem('bangon_focus_markets', JSON.stringify(markets));
+          localStorage.setItem('prism_onboarded', 'true');
+          localStorage.setItem('prism_capital', capital.toString());
+          localStorage.setItem('prism_risk', risk.toString());
+          localStorage.setItem('prism_focus_markets', JSON.stringify(markets));
           
           if (user) {
             updateOnboardingSettings(capital, risk, markets)
@@ -319,14 +341,14 @@ function AppContent() {
           }
         }} 
         onSkip={() => {
-          localStorage.setItem('bangon_onboarded', 'true');
+          localStorage.setItem('prism_onboarded', 'true');
           // provide safe defaults for guest or cloud
           const cap = 50000;
           const risk = 2;
           const markets = ['etfs', 'large-cap'];
-          localStorage.setItem('bangon_capital', cap.toString());
-          localStorage.setItem('bangon_risk', risk.toString());
-          localStorage.setItem('bangon_focus_markets', JSON.stringify(markets));
+          localStorage.setItem('prism_capital', cap.toString());
+          localStorage.setItem('prism_risk', risk.toString());
+          localStorage.setItem('prism_focus_markets', JSON.stringify(markets));
 
           if (user) {
             updateOnboardingSettings(cap, risk, markets)
@@ -340,7 +362,7 @@ function AppContent() {
           if (user) {
             handleLogout();
           } else {
-            localStorage.removeItem('bangon_guest_mode');
+            localStorage.removeItem('prism_guest_mode');
             setGuestMode(false);
           }
         }}
@@ -357,7 +379,7 @@ function AppContent() {
       {/* MOBILE UPPER HEADER BAR */}
       <header className="md:hidden flex h-16 border-b border-[rgba(255,255,255,0.05)] bg-[#05070C]/90 backdrop-blur-md sticky top-0 z-50 items-center justify-between px-6 w-full">
         <Link to="/" className="flex items-center">
-          <BangOnLogo size={32} showText={true} />
+          <PrismLogo size={32} showText={true} />
         </Link>
         
         <div className="flex items-center gap-2">
@@ -391,7 +413,7 @@ function AppContent() {
             <div className="absolute inset-x-0 bottom-0 top-0 bg-radial from-[#D4A843]/15 via-transparent to-transparent blur-md -z-10 pointer-events-none" />
             <div className="flex items-center justify-between">
               <Link to="/" className="flex items-center">
-                <BangOnLogo size={36} showText={true} />
+                <PrismLogo size={36} showText={true} />
               </Link>
             </div>
           </div>
@@ -545,7 +567,7 @@ function AppContent() {
           <div className="py-1 px-2.5 bg-[rgba(255,255,255,0.02)] rounded-lg border border-transparent flex items-center justify-between">
             <span className="text-[8.5px] text-[#4A5568] font-data uppercase tracking-wider leading-none">SIGNALS</span>
             <div className="flex items-center gap-1 text-[9.5px] font-data font-bold text-[#00D084] leading-none">
-              ★ BANG_ON_ACTIVE
+              ★ PRISM_ACTIVE
             </div>
           </div>
         </div>
@@ -560,7 +582,7 @@ function AppContent() {
           >
             <div className="flex justify-between items-center pb-4 border-b border-slate-800">
               <Link to="/" onClick={() => setMobileMenuOpen(false)}>
-                <BangOnLogo size={36} showText={true} />
+                <PrismLogo size={36} showText={true} />
               </Link>
               <button onClick={() => setMobileMenuOpen(false)} className="text-slate-400 hover:text-white">
                 <X size={18} />

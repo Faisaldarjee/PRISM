@@ -26,7 +26,7 @@ def set_cached(key: str, data: Any):
     _cache[key] = (data, datetime.now())
 
 # Initialize FastAPI App
-app = FastAPI(title="Astraeus Prediction System API", version="1.0.0")
+app = FastAPI(title="PRISM Prediction System API", version="1.0.0")
 
 # CORS Configuration
 # Allow Port 5173 (React Dev) and Port 3000 (Express/Vite proxy)

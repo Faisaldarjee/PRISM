@@ -1,6 +1,6 @@
 @echo off
 echo =================================================================
-echo             Setting up Bang ON locally for Windows PC
+echo             Setting up PRISM locally for Windows PC
 echo =================================================================
 echo.
 

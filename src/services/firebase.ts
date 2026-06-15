@@ -22,7 +22,7 @@ const cleanEnvVar = (value: any): string => {
 };
 
 const rawProjectId = cleanEnvVar(import.meta.env.VITE_FIREBASE_PROJECT_ID);
-const resolvedProjectId = rawProjectId || 'bangonlocal';
+const resolvedProjectId = rawProjectId || 'prismlocal';
 const defaultAuthDomain = cleanEnvVar(import.meta.env.VITE_FIREBASE_AUTH_DOMAIN) || `${resolvedProjectId}.firebaseapp.com`;
 
 const firebaseConfig = {

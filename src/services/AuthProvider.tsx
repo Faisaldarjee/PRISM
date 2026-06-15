@@ -368,7 +368,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('guest_profile', JSON.stringify(parsed));
       setUserProfile({
         userId: 'guest',
-        email: 'guest@bangon.ai',
+        email: 'guest@prism.app',
         displayName: 'Guest Trader',
         createdAt: new Date(),
         vIPStatus: 'FREE',

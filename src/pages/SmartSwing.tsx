@@ -211,7 +211,7 @@ export function SmartSwing() {
   const handleShareSetup = (symbol: string) => {
     setLastSharedStock(symbol);
     if (navigator.clipboard) {
-      navigator.clipboard.writeText(`Astraeus Swing Trade Plan for ${symbol}: Target ₹${deepDiveStock?.trade_plan?.target_1 || deepDiveStock?.target1}, Stop Loss ₹${deepDiveStock?.trade_plan?.stop_loss || deepDiveStock?.stopLoss}`);
+      navigator.clipboard.writeText(`PRISM Swing Trade Plan for ${symbol}: Target ₹${deepDiveStock?.trade_plan?.target_1 || deepDiveStock?.target1}, Stop Loss ₹${deepDiveStock?.trade_plan?.stop_loss || deepDiveStock?.stopLoss}`);
     }
     setTimeout(() => {
       setLastSharedStock(null);
@@ -487,7 +487,7 @@ export function SmartSwing() {
                             </span>
                             <span className="text-gray-600">•</span>
                             <span className="text-[10px] text-[#8892A4] font-body bg-white/[0.02] px-1.5 py-0.5 rounded">
-                              {setup.sector || 'Astraeus Pick'}
+                              {setup.sector || 'PRISM Pick'}
                             </span>
                           </div>
                           <h3 className="font-display font-black text-white text-lg tracking-wide mt-1.5">

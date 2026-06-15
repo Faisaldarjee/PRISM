@@ -136,7 +136,7 @@ async function startServer() {
   // Temporary admin database export endpoint for local backups/downloads
   app.get('/api/admin/export-db', (req, res) => {
     const adminKey = req.header('X-Admin-Key') || req.query.key;
-    const expectedKey = process.env.ADMIN_EXPORT_KEY || 'BangOnLocalBackup2026';
+    const expectedKey = process.env.ADMIN_EXPORT_KEY || 'PrismBackup2026';
     
     if (!adminKey || adminKey !== expectedKey) {
       return res.status(401).json({ detail: 'Unauthorized. Valid X-Admin-Key or ?key= parameter is required.' });
@@ -933,7 +933,7 @@ async function startServer() {
   }
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Astraeus server fully integrated. Root accessible on http://localhost:${PORT}`);
+    console.log(`🚀 PRISM server fully integrated. Root accessible on http://localhost:${PORT}`);
   });
 }
 

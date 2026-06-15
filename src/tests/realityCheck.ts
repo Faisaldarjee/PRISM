@@ -17,7 +17,7 @@ async function getCandles(symbol: string, limit: number) {
 }
 
 async function runRealityChecker() {
-  console.log('Starting Bang ON E2E Reality Check...\n');
+  console.log('Starting PRISM E2E Reality Check...\n');
   let passCount = 0;
 
   // TEST 1: NSE Quote

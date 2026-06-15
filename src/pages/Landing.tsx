@@ -16,7 +16,7 @@ import {
   Menu,
   Sparkles
 } from 'lucide-react';
-import { BangOnLogo } from '../components/BangOnLogo';
+import { PrismLogo } from '../components/PrismLogo';
 import { useAuth } from '../services/AuthProvider';
 
 interface LandingProps {
@@ -93,7 +93,7 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
           {/* Logo segment */}
           <div className="flex items-center cursor-pointer z-10 animate-fade-in" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-            <BangOnLogo size={36} showText={true} />
+            <PrismLogo size={36} showText={true} />
           </div>
 
           {/* Nav links */}
@@ -198,7 +198,7 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
           <div className="flex flex-col md:flex-row items-center justify-between gap-8 md:gap-12 relative">
             {/* Left Wing: Objective Strategy */}
             <div className="flex-1 text-center md:text-right md:pr-10">
-              <span className="font-data text-[9.5px] text-[#8892A4] tracking-widest block mb-2.5 font-bold select-none">// OBJECTIVE PARADIGM</span>
+              <span className="font-data text-[9.5px] text-[#8892A4] tracking-widest block mb-2.5 font-bold select-none">OBJECTIVE PARADIGM</span>
               <h1 className="text-4.5xl sm:text-5xl md:text-6xl font-extrabold font-display tracking-tight text-white leading-[1.05] uppercase">
                 TRADE WHAT <span className="text-white block sm:inline">YOU SEE.</span>
               </h1>
@@ -211,7 +211,7 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
 
             {/* Right Wing: Solution Mindset */}
             <div className="flex-1 text-center md:text-left md:pl-10">
-              <span className="font-data text-[9.5px] text-[#E8C070] tracking-widest block mb-2.5 font-bold select-none">// SYSTEMATIC SHIELD</span>
+              <span className="font-data text-[9.5px] text-[#E8C070] tracking-widest block mb-2.5 font-bold select-none">SYSTEMATIC SHIELD</span>
               <h1 className="text-4.5xl sm:text-5xl md:text-6xl font-black font-display tracking-tight text-[#E8C070] leading-[1.05] uppercase" style={{ textShadow: '0 0 35px rgba(212,168,67,0.18)' }}>
                 NOT WHAT <span className="text-[#E8C070] block sm:inline">YOU FEEL.</span>
               </h1>
@@ -232,7 +232,7 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 w-full max-w-4xl mb-14">
           <div className="clay-element p-6 text-left transform hover:-translate-y-1 transition-all duration-300">
             <div className="flex justify-between items-start mb-2.5">
-              <span className="font-data text-[9px] uppercase font-bold text-[#D4A843] tracking-widest">LAYER_01 // AGENTS</span>
+              <span className="font-data text-[9px] uppercase font-bold text-[#D4A843] tracking-widest">LAYER 01 · AGENTS</span>
               <span className="text-[10px] bg-[#D4A843]/15 text-[#E8C070] px-1.5 py-0.5 rounded font-data font-bold">X4 CORES</span>
             </div>
             <span className="font-display text-[16.5px] font-semibold text-[#F0F4FF] block leading-snug">4 Algo Agents</span>
@@ -241,7 +241,7 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
 
           <div className="clay-element p-6 text-left transform hover:-translate-y-1 transition-all duration-300">
             <div className="flex justify-between items-start mb-2.5">
-              <span className="font-data text-[9px] uppercase font-bold text-[#D4A843] tracking-widest">LAYER_02 // SCANNER</span>
+              <span className="font-data text-[9px] uppercase font-bold text-[#D4A843] tracking-widest">LAYER 02 · SCANNER</span>
               <span className="text-[10px] bg-white/10 text-white px-1.5 py-0.5 rounded font-data">463 SCAN</span>
             </div>
             <span className="font-display text-[16.5px] font-semibold text-[#F0F4FF] block leading-snug">463 Stocks</span>
@@ -250,7 +250,7 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
 
           <div className="clay-element p-6 text-left transform hover:-translate-y-1 transition-all duration-300">
             <div className="flex justify-between items-start mb-2.5">
-              <span className="font-data text-[9px] uppercase font-bold text-[#D4A843] tracking-widest">LAYER_03 // FRICTION</span>
+              <span className="font-data text-[9px] uppercase font-bold text-[#D4A843] tracking-widest">LAYER 03 · FRICTION</span>
               <span className="text-[10px] bg-[#00D084]/20 text-[#00D084] px-1.5 py-0.5 rounded font-data font-bold">STT ACCURATE</span>
             </div>
             <span className="font-display text-[16.5px] font-semibold text-[#F0F4FF] block leading-snug">Real Backtest</span>
@@ -448,7 +448,7 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
                 Consolidates multiple timeframe trendlines, ADX thresholds, and volume multiples. Prevents entry into listless consolidation traps.
               </p>
             </div>
-            <span className="font-data text-[10px] text-[#4A5568] mt-4 block">MODULE_01 // DESK</span>
+            <span className="font-data text-[10px] text-[#4A5568] mt-4 block">MODULE 01 · DESK</span>
           </div>
 
           {/* Card 2 */}
@@ -462,7 +462,7 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
                 Enter target capital or custom account risk percentages. Evaluates the ATR volatility in real-time to compute conservative trading volumes.
               </p>
             </div>
-            <span className="font-data text-[10px] text-[#4A5568] mt-4 block">MODULE_02 // SIZER</span>
+            <span className="font-data text-[10px] text-[#4A5568] mt-4 block">MODULE 02 · SIZER</span>
           </div>
 
           {/* Card 3 */}
@@ -476,7 +476,7 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
                 Calculates weighted parameters from Technical indicators, AI brief diagnostics, and Macro trends to authorize a signal consensus.
               </p>
             </div>
-            <span className="font-data text-[10px] text-[#4A5568] mt-4 block">MODULE_03 // MATRIX</span>
+            <span className="font-data text-[10px] text-[#4A5568] mt-4 block">MODULE 03 · MATRIX</span>
           </div>
 
           {/* Card 4 */}
@@ -490,7 +490,7 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
                 Integrates weekly long-term direction, daily setups, and hourly oscillator status so you only deploy when momentum aligns.
               </p>
             </div>
-            <span className="font-data text-[10px] text-[#4A5568] mt-4 block">MODULE_04 // CONCORD</span>
+            <span className="font-data text-[10px] text-[#4A5568] mt-4 block">MODULE 04 · CONCORD</span>
           </div>
 
           {/* Card 5 */}
@@ -504,7 +504,7 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
                 Automatically calculates budget adjustments. Automatically scales up ETF allocations at oversold market floors and pauses at euphoric peaks.
               </p>
             </div>
-            <span className="font-data text-[10px] text-[#4A5568] mt-4 block">MODULE_05 // SIP</span>
+            <span className="font-data text-[10px] text-[#4A5568] mt-4 block">MODULE 05 · SIP</span>
           </div>
 
           {/* Card 6 */}
@@ -518,7 +518,7 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
                 Calculates actual post-friction returns. Automatically accounts for STT, SEBI turnover fees, local stamp taxes, and 15% STCG.
               </p>
             </div>
-            <span className="font-data text-[10px] text-[#4A5568] mt-4 block">MODULE_06 // FRICTION</span>
+            <span className="font-data text-[10px] text-[#4A5568] mt-4 block">MODULE 06 · FRICTION</span>
           </div>
         </div>
       </section>
@@ -533,31 +533,31 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
 
           <div className="grid grid-cols-1 sm:grid-cols-5 gap-6 relative">
             <div className="flex flex-col gap-3">
-              <span className="font-data text-[11px] text-[#E8C070] font-black tracking-widest block">01 // INITIAL ACCESS</span>
+              <span className="font-data text-[11px] text-[#E8C070] font-black tracking-widest block">01 · INITIAL ACCESS</span>
               <h4 className="font-display font-medium text-[14px] text-[#F0F4FF]">Start Instantly</h4>
               <p className="text-[#8892A4] text-[12.5px] leading-relaxed font-body">No sign-up barriers. The entire terminal sandbox opens instantly in free guest test mode.</p>
             </div>
 
             <div className="flex flex-col gap-3">
-              <span className="font-data text-[11px] text-[#E8C070] font-black tracking-widest block">02 // ALGO SCANNING</span>
+              <span className="font-data text-[11px] text-[#E8C070] font-black tracking-widest block">02 · ALGO SCANNING</span>
               <h4 className="font-display font-medium text-[14px] text-[#F0F4FF]">Review Active Setup</h4>
-              <p className="text-[#8892A4] text-[12.5px] leading-relaxed font-body">Observe automated daily swing signals matching the Bollinger squeeze metrics.</p>
+              <p className="text-[#8892A4] text-[12.5px] leading-relaxed font-body">Observe automated daily swing daily swing signals matching Bollinger squeeze metrics.</p>
             </div>
 
             <div className="flex flex-col gap-3">
-              <span className="font-data text-[11px] text-[#E8C070] font-black tracking-widest block">03 // DYNAMIC SIZER</span>
+              <span className="font-data text-[11px] text-[#E8C070] font-black tracking-widest block">03 · DYNAMIC SIZER</span>
               <h4 className="font-display font-medium text-[14px] text-[#F0F4FF]">Evaluate Risk Unit</h4>
               <p className="text-[#8892A4] text-[12.5px] leading-relaxed font-body">Input account size to get entry parameters, clear ATR stops, and quantities.</p>
             </div>
 
             <div className="flex flex-col gap-3">
-              <span className="font-data text-[11px] text-[#E8C070] font-black tracking-widest block">04 // DIAGNOSE AGENTS</span>
+              <span className="font-data text-[11px] text-[#E8C070] font-black tracking-widest block">04 · DIAGNOSE AGENTS</span>
               <h4 className="font-display font-medium text-[14px] text-[#F0F4FF]">Review Consensus</h4>
               <p className="text-[#8892A4] text-[12.5px] leading-relaxed font-body">Inspect multi-agent votes: technical scores, AI reports, and macro trends.</p>
             </div>
 
             <div className="flex flex-col gap-3">
-              <span className="font-data text-[11px] text-[#E8C070] font-black tracking-widest block">05 // JOURNAL SYNC</span>
+              <span className="font-data text-[11px] text-[#E8C070] font-black tracking-widest block">05 · JOURNAL SYNC</span>
               <h4 className="font-display font-medium text-[14px] text-[#F0F4FF]">Activate Sync</h4>
               <p className="text-[#8892A4] text-[12.5px] leading-relaxed font-body">Optionally sign up for cloud synchronization to secure your mock logs and watchlist.</p>
             </div>
@@ -657,20 +657,20 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
 
       {/* BOTTOM DISCLAIMER FOOTER */}
       <footer className="py-12 bg-[#05070C] text-[#4A5568] px-6 border-t border-[rgba(255,255,255,0.04)]">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2">
-            <BangOnLogo size={28} showText={true} />
-            <span className="text-[11px] font-data text-slate-500">// WEALTH_INTEL</span>
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
+          <div className="flex items-center gap-3">
+            <PrismLogo size={36} showText={true} />
+            <span className="text-[11px] font-data text-slate-500"> </span>
           </div>
 
-          <div className="flex items-center gap-6 text-[11px] font-data">
-            <Link to="/privacy" className="hover:text-[#E8C070] transition-colors">PRIVACY</Link>
-            <Link to="/terms" className="hover:text-[#E8C070] transition-colors">TERMS</Link>
-            <Link to="/disclaimer" className="hover:text-[#E8C070] transition-colors">SEBI_RISK_INDEX</Link>
+          <div className="flex items-center gap-6 text-[11px] font-data font-bold tracking-wider">
+            <Link to="/privacy" className="hover:text-[#E8C070] transition-colors uppercase">Privacy Policy</Link>
+            <Link to="/terms" className="hover:text-[#E8C070] transition-colors uppercase">Terms of Use</Link>
+            <Link to="/disclaimer" className="hover:text-[#E8C070] transition-colors uppercase text-[#E8C070]">Risk Disclosure</Link>
           </div>
 
-          <div className="text-[10px] font-body text-center md:text-right max-w-xs leading-normal">
-            ⚠️ Disclaimer: Bang ON AI is an AI-powered analytics platform and NOT a SEBI-registered investment advisor. All tools and insights are provided for educational and research purposes only
+          <div className="text-[10px] font-body text-center md:text-right max-w-sm leading-relaxed text-slate-500">
+            <span className="text-[#E8C070] font-bold">DISCLAIMER:</span> PRISM is an educational research and analytics suite, NOT a SEBI-registered investment advisor. All metrics and simulated models are provided for study purposes only.
           </div>
         </div>
       </footer>

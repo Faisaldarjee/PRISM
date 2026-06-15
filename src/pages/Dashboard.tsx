@@ -48,7 +48,7 @@ export function Dashboard() {
   const { user, generateAlertForInterestedSymbols } = useAuth();
   const [predictions, setPredictions] = useState<Prediction[]>(() => {
     try {
-      const saved = localStorage.getItem('bangon_preds');
+      const saved = localStorage.getItem('prism_preds');
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
@@ -56,7 +56,7 @@ export function Dashboard() {
   });
   const [macro, setMacro] = useState<MacroData | null>(() => {
     try {
-      const saved = localStorage.getItem('bangon_macro');
+      const saved = localStorage.getItem('prism_macro');
       return saved ? JSON.parse(saved) : null;
     } catch {
       return null;
@@ -64,7 +64,7 @@ export function Dashboard() {
   });
   const [assets, setAssets] = useState<Asset[]>(() => {
     try {
-      const saved = localStorage.getItem('bangon_assets');
+      const saved = localStorage.getItem('prism_assets');
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
@@ -75,18 +75,18 @@ export function Dashboard() {
   // States
   const [swingSetups, setSwingSetups] = useState<any[]>(() => {
     try {
-      const saved = localStorage.getItem('bangon_swing');
+      const saved = localStorage.getItem('prism_swing');
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
     }
   });
   const [calcCapital, setCalcCapital] = useState<number>(() => {
-    const saved = localStorage.getItem('bangon_capital');
+    const saved = localStorage.getItem('prism_capital');
     return saved ? Number(saved) : 50000;
   });
   const [calcRiskPct, setCalcRiskPct] = useState<number>(() => {
-    const saved = localStorage.getItem('bangon_risk');
+    const saved = localStorage.getItem('prism_risk');
     return saved ? Number(saved) : 2;
   });
   const [selectedCalcSetup, setSelectedCalcSetup] = useState<any | null>(null);
@@ -96,7 +96,7 @@ export function Dashboard() {
   const [loading, setLoading] = useState(() => {
     // If we have some cached local data, skip full-screen spinner to maximize perception speed
     try {
-      const p = localStorage.getItem('bangon_preds');
+      const p = localStorage.getItem('prism_preds');
       return !p;
     } catch {
       return true;
@@ -175,19 +175,19 @@ export function Dashboard() {
       // Check if we retrieved anything and cache it
       if (predsData && predsData.length > 0) {
         setPredictions(predsData);
-        try { localStorage.setItem('bangon_preds', JSON.stringify(predsData)); } catch {}
+        try { localStorage.setItem('prism_preds', JSON.stringify(predsData)); } catch {}
       }
       if (macroData) {
         setMacro(macroData);
-        try { localStorage.setItem('bangon_macro', JSON.stringify(macroData)); } catch {}
+        try { localStorage.setItem('prism_macro', JSON.stringify(macroData)); } catch {}
       }
       if (assetsData && assetsData.length > 0) {
         setAssets(assetsData);
-        try { localStorage.setItem('bangon_assets', JSON.stringify(assetsData)); } catch {}
+        try { localStorage.setItem('prism_assets', JSON.stringify(assetsData)); } catch {}
       }
       if (scannerData && scannerData.length > 0) {
         setSwingSetups(scannerData || []);
-        try { localStorage.setItem('bangon_swing', JSON.stringify(scannerData)); } catch {}
+        try { localStorage.setItem('prism_swing', JSON.stringify(scannerData)); } catch {}
       }
 
       // Check if now we have absolutely nothing (no local data, and network failed)
@@ -384,7 +384,7 @@ export function Dashboard() {
           <div className="space-y-1 text-left">
             <p className="font-semibold uppercase tracking-wider text-[10px] font-data text-[#D4A843]">Market Feed Congested</p>
             <p className="text-zinc-400 font-body text-xs leading-relaxed">
-              We are currently experiencing transient rate limits on our market intelligence agents. Bang On has gracefully transitioned your desk to local fallback snapshots and stable cached rulesets. Core charts and indices remain fully operational.
+              We are currently experiencing transient rate limits on our market intelligence agents. PRISM has gracefully transitioned your desk to local fallback snapshots and stable cached rulesets. Core charts and indices remain fully operational.
             </p>
           </div>
         </div>
@@ -397,7 +397,7 @@ export function Dashboard() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div className="space-y-1">
             <span className="font-data text-[10px] text-[#D4A843] uppercase tracking-widest block font-medium">
-              CORE_DESK_ACCELERATOR // STT_ALIGNED
+              PRISMATIC RISK INTELLIGENCE MATRIX · SYSTEMATIC ANALYSIS
             </span>
             <h2 className="text-2xl font-medium tracking-tight text-[#F0F4FF] font-display">
               Good morning, {username}

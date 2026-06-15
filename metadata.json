@@ -1,6 +1,6 @@
 {
-  "name": "Bang On AI",
-  "description": "Systematic accumulation and quantitative Swing trade playbook templates for Indian stocks.",
+  "name": "PRISM",
+  "description": "PRISM — Predictive Risk Intelligence & Strategy Matrix. Indian equities and commodity swing trade templates.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

@@ -78,7 +78,7 @@ interface BulkDeal {
 export function IntelligenceHub() {
   const [masterSummary, setMasterSummary] = useState<NewsMasterSummary | null>(() => {
     try {
-      const saved = localStorage.getItem('bangon_intel');
+      const saved = localStorage.getItem('prism_intel');
       return saved ? JSON.parse(saved) : null;
     } catch {
       return null;
@@ -86,7 +86,7 @@ export function IntelligenceHub() {
   });
   const [macroData, setMacroData] = useState<GlobalMacroData | null>(() => {
     try {
-      const saved = localStorage.getItem('bangon_global_macro');
+      const saved = localStorage.getItem('prism_global_macro');
       return saved ? JSON.parse(saved) : null;
     } catch {
       return null;
@@ -94,7 +94,7 @@ export function IntelligenceHub() {
   });
   const [flowSignal, setFlowSignal] = useState<FIIDIISignal | null>(() => {
     try {
-      const saved = localStorage.getItem('bangon_flow_sig');
+      const saved = localStorage.getItem('prism_flow_sig');
       return saved ? JSON.parse(saved) : null;
     } catch {
       return null;
@@ -102,7 +102,7 @@ export function IntelligenceHub() {
   });
   const [historicalFlows, setHistoricalFlows] = useState<HistoricalFlow[]>(() => {
     try {
-      const saved = localStorage.getItem('bangon_hist_flows');
+      const saved = localStorage.getItem('prism_hist_flows');
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
@@ -110,7 +110,7 @@ export function IntelligenceHub() {
   });
   const [events, setEvents] = useState<UpcomingEvent[]>(() => {
     try {
-      const saved = localStorage.getItem('bangon_events');
+      const saved = localStorage.getItem('prism_events');
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
@@ -118,7 +118,7 @@ export function IntelligenceHub() {
   });
   const [bulkDeals, setBulkDeals] = useState<BulkDeal[]>(() => {
     try {
-      const saved = localStorage.getItem('bangon_bulk_deals');
+      const saved = localStorage.getItem('prism_bulk_deals');
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
@@ -126,7 +126,7 @@ export function IntelligenceHub() {
   });
   const [loading, setLoading] = useState(() => {
     try {
-      const saved = localStorage.getItem('bangon_intel');
+      const saved = localStorage.getItem('prism_intel');
       return !saved;
     } catch {
       return true;
@@ -157,27 +157,27 @@ export function IntelligenceHub() {
 
         if (intelRes) {
           setMasterSummary(intelRes);
-          try { localStorage.setItem('bangon_intel', JSON.stringify(intelRes)); } catch {}
+          try { localStorage.setItem('prism_intel', JSON.stringify(intelRes)); } catch {}
         }
         if (macroRes) {
           setMacroData(macroRes);
-          try { localStorage.setItem('bangon_global_macro', JSON.stringify(macroRes)); } catch {}
+          try { localStorage.setItem('prism_global_macro', JSON.stringify(macroRes)); } catch {}
         }
         if (flowSigRes) {
           setFlowSignal(flowSigRes);
-          try { localStorage.setItem('bangon_flow_sig', JSON.stringify(flowSigRes)); } catch {}
+          try { localStorage.setItem('prism_flow_sig', JSON.stringify(flowSigRes)); } catch {}
         }
         if (flowsRes) {
           setHistoricalFlows(flowsRes || []);
-          try { localStorage.setItem('bangon_hist_flows', JSON.stringify(flowsRes)); } catch {}
+          try { localStorage.setItem('prism_hist_flows', JSON.stringify(flowsRes)); } catch {}
         }
         if (eventsRes) {
           setEvents(eventsRes || []);
-          try { localStorage.setItem('bangon_events', JSON.stringify(eventsRes)); } catch {}
+          try { localStorage.setItem('prism_events', JSON.stringify(eventsRes)); } catch {}
         }
         if (dealsRes) {
           setBulkDeals(dealsRes || []);
-          try { localStorage.setItem('bangon_bulk_deals', JSON.stringify(dealsRes)); } catch {}
+          try { localStorage.setItem('prism_bulk_deals', JSON.stringify(dealsRes)); } catch {}
         }
 
         const isFullyEmpty = !intelRes && !macroRes && !masterSummary && !macroData;
@@ -222,7 +222,7 @@ export function IntelligenceHub() {
           <div className="space-y-1 text-left">
             <p className="font-semibold uppercase tracking-wider text-[10px] font-data text-[#D4A843]">Workspace Feed Congested</p>
             <p className="text-zinc-400 font-body text-xs leading-relaxed">
-              We are currently experiencing transient rate limits on our market intelligence agents. Bang On has gracefully transitioned your desk to local fallback snapshots and stable cached rulesets. Core charts and indices remain fully operational.
+              We are currently experiencing transient rate limits on our market intelligence agents. PRISM has gracefully transitioned your desk to local fallback snapshots and stable cached rulesets. Core charts and indices remain fully operational.
             </p>
           </div>
         </div>
