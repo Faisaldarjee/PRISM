@@ -13,181 +13,171 @@ export const PrismLogo: React.FC<PrismLogoProps> = ({
 }) => {
   const uniqueId = useId().replace(/:/g, '');
   
-  const pyramidGlow = `pyramidGlow-${uniqueId}`;
-  const soulGlow = `soulGlow-${uniqueId}`;
   const goldMetallic = `goldMetallic-${uniqueId}`;
-  const glassLeft = `glassLeft-${uniqueId}`;
-  const glassRight = `glassRight-${uniqueId}`;
-  const glassBottom = `glassBottom-${uniqueId}`;
-  const glassCenter = `glassCenter-${uniqueId}`;
-  const softGlow = `softGlow-${uniqueId}`;
+  const silverMetallic = `silverMetallic-${uniqueId}`;
+  const blueFacetBg = `blueFacetBg-${uniqueId}`;
+  const blueGlow = `blueGlow-${uniqueId}`;
+  const radiantSpot = `radiantSpot-${uniqueId}`;
 
   return (
     <div className={`flex items-center gap-3.5 ${className}`}>
-      {/* Premium 3D Gold-Beveled Purple Glass Pyramid */}
+      {/* Precision 3D Gold & Silver Beveled Prism with Neon Core */}
       <svg 
         width={size} 
         height={size} 
         viewBox="0 0 200 200" 
         fill="none" 
+        style={{ overflow: 'visible' }}
         xmlns="http://www.w3.org/2000/svg"
-        className="shrink-0 drop-shadow-[0_4px_24px_rgba(212,168,67,0.35)]"
+        className="shrink-0 drop-shadow-[0_4px_20px_rgba(56,189,248,0.25)]"
       >
         <defs>
-          {/* Radial gold-orange and purple ambient dispersion behind the pyramid */}
-          <radialGradient id={pyramidGlow} cx="100" cy="116" r="90" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stopColor="rgba(245, 158, 11, 0.45)" />
-            <stop offset="35%" stopColor="rgba(124, 58, 237, 0.28)" />
-            <stop offset="70%" stopColor="rgba(212, 168, 67, 0.08)" />
-            <stop offset="100%" stopColor="rgba(0,0,0,0)" />
-          </radialGradient>
-
-          {/* Central solar core glow */}
-          <radialGradient id={soulGlow} cx="100" cy="116" r="45" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stopColor="#FFFFFF" />
-            <stop offset="20%" stopColor="#FFF4B8" />
-            <stop offset="50%" stopColor="#F59E0B" opacity="0.95" />
-            <stop offset="85%" stopColor="#7C3AED" opacity="0.55" />
-            <stop offset="100%" stopColor="#05070C" opacity="0" />
-          </radialGradient>
-
-          {/* Luxury multi-tier golden metallic gradient for border and bevel structure */}
+          {/* Luxury gold metallic gradient for outer bezel */}
           <linearGradient id={goldMetallic} x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#FFFFFF" />
-            <stop offset="20%" stopColor="#FDE047" />
-            <stop offset="45%" stopColor="#CA8A04" />
-            <stop offset="70%" stopColor="#FFF4CE" />
-            <stop offset="85%" stopColor="#D4A843" />
+            <stop offset="0%" stopColor="#FFF2A1" />
+            <stop offset="25%" stopColor="#D4A843" />
+            <stop offset="50%" stopColor="#9A7010" />
+            <stop offset="75%" stopColor="#F5D061" />
             <stop offset="100%" stopColor="#854D00" />
           </linearGradient>
 
-          {/* Translucent glass gradients for distinct 3D lighting facets */}
-          <linearGradient id={glassLeft} x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#8B5CF6" />
-            <stop offset="50%" stopColor="#4C1D95" />
-            <stop offset="100%" stopColor="#1E1B4B" />
+          {/* Luxury silver metallic gradient for inner bevel */}
+          <linearGradient id={silverMetallic} x1="100%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#FFFFFF" />
+            <stop offset="30%" stopColor="#CBD5E1" />
+            <stop offset="50%" stopColor="#94A3B8" />
+            <stop offset="75%" stopColor="#E2E8F0" />
+            <stop offset="100%" stopColor="#475569" />
           </linearGradient>
 
-          <linearGradient id={glassRight} x1="100%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#EC4899" />
-            <stop offset="50%" stopColor="#7C3AED" />
-            <stop offset="100%" stopColor="#2E1065" />
+          {/* Deep cybernetic navy-blue facet base */}
+          <linearGradient id={blueFacetBg} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#0B132B" />
+            <stop offset="50%" stopColor="#050814" />
+            <stop offset="100%" stopColor="#1C2541" />
           </linearGradient>
 
-          <linearGradient id={glassBottom} x1="50%" y1="0%" x2="50%" y2="100%">
-            <stop offset="0%" stopColor="#4F46E5" />
-            <stop offset="50%" stopColor="#2D124E" />
-            <stop offset="100%" stopColor="#0F172A" />
-          </linearGradient>
-
-          <linearGradient id={glassCenter} x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#FFF2A1" />
-            <stop offset="40%" stopColor="#F59E0B" />
-            <stop offset="80%" stopColor="#EA580C" opacity="0.9" />
-            <stop offset="100%" stopColor="#7C3AED" opacity="0.75" />
-          </linearGradient>
-
-          <filter id={softGlow} x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="3.5" />
+          {/* High-intensity baby blue radial glow for the core */}
+          <radialGradient id={blueGlow} cx="100" cy="107" r="60" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stopColor="#FFFFFF" />
+            <stop offset="15%" stopColor="#E0F2FE" />
+            <stop offset="35%" stopColor="#38BDF8" />
+            <stop offset="65%" stopColor="#0284C7" />
+            <stop offset="90%" stopColor="#0A192F" opacity="0.3" />
+            <stop offset="100%" stopColor="#020813" opacity="0" />
+          </radialGradient>
+          
+          <filter id={radiantSpot} x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="3" />
           </filter>
         </defs>
 
-        {/* Ambient atmospheric display bloom */}
-        <circle cx="100" cy="116" r="90" fill={`url(#${pyramidGlow})`} />
+        {/* Ambient atmospheric backdrop shadow and slight blue bloom */}
+        <circle cx="100" cy="107" r="85" fill="#030712" opacity="0.4" filter={`url(#${radiantSpot})`} />
 
-        {/* Outer background backing shadow panel */}
-        <polygon points="100,24 28,156 172,156" fill="#04050A" />
+        {/* Outer background backing shadow panel inside the triangle */}
+        <polygon points="100,32 35,145 165,145" fill="#030712" />
 
         {/* 3D Glass Facet Layers */}
         {/* Left Facet */}
-        <polygon points="100,24 28,156 62,136 100,84" fill={`url(#${glassLeft})`} />
-
+        <polygon points="100,32 35,145 100,107" fill={`url(#${blueFacetBg})`} />
         {/* Right Facet */}
-        <polygon points="100,24 172,156 138,136 100,84" fill={`url(#${glassRight})`} />
-
+        <polygon points="100,32 165,145 100,107" fill={`url(#${blueFacetBg})`} />
         {/* Bottom Facet */}
-        <polygon points="28,156 172,156 138,136 62,136" fill={`url(#${glassBottom})`} />
+        <polygon points="35,145 165,145 100,107" fill={`url(#${blueFacetBg})`} />
 
-        {/* Center/Inner Facet */}
-        <polygon points="100,84 62,136 138,136" fill={`url(#${glassCenter})`} />
+        {/* Central Luminous High-Intensity Blue Glow Core */}
+        <circle cx="100" cy="107" r="50" fill={`url(#${blueGlow})`} opacity="0.95" />
+        <circle cx="100" cy="107" r="12" fill="#FFFFFF" opacity="0.9" filter={`url(#${radiantSpot})`} />
+        <circle cx="100" cy="107" r="6" fill="#FFFFFF" />
 
-        {/* Golden-white solar soul glow center */}
-        <circle cx="100" cy="116" r="35" fill={`url(#${soulGlow})`} />
-        
-        {/* Core luminous spot (the bright heart) */}
-        <circle cx="100" cy="116" r="14" fill="#FFFFFF" opacity="0.95" filter={`url(#${softGlow})`} />
-        <circle cx="100" cy="116" r="7" fill="#FFFFFF" />
-
-        {/* Thicker Luxury Golden Bevel Frames */}
-        {/* Outer triangle frame */}
+        {/* Outer Gold Beveled Triangle Frame */}
         <polygon 
-          points="100,24 28,156 172,156" 
+          points="100,32 35,145 165,145" 
           fill="none" 
           stroke={`url(#${goldMetallic})`} 
-          strokeWidth="9" 
+          strokeWidth="7" 
           strokeLinejoin="round" 
         />
 
-        {/* Inner triangle frame */}
+        {/* Inner Silver Accent Triangle Frame */}
         <polygon 
-          points="100,84 62,136 138,136" 
+          points="100,39 42,139 158,139" 
           fill="none" 
-          stroke={`url(#${goldMetallic})`} 
-          strokeWidth="6" 
+          stroke={`url(#${silverMetallic})`} 
+          strokeWidth="1.8" 
           strokeLinejoin="round" 
+          opacity="0.8"
         />
 
-        {/* Connecting corner bevel ridges */}
-        {/* Apex to Inner-Apex */}
+        {/* Connecting 3D Corner Bevel Struts (Y-shape pointing from corners to center) */}
+        {/* Strut 1: Apex to Center */}
         <line 
-          x1="100" y1="24" 
-          x2="100" y2="84" 
+          x1="100" y1="32" 
+          x2="100" y2="107" 
           stroke={`url(#${goldMetallic})`} 
-          strokeWidth="6" 
+          strokeWidth="4" 
           strokeLinecap="round"
         />
-        {/* Bottom-Left to Inner-Bottom-Left */}
         <line 
-          x1="28" y1="156" 
-          x2="62" y2="136" 
-          stroke={`url(#${goldMetallic})`} 
-          strokeWidth="6" 
+          x1="100" y1="36" 
+          x2="100" y2="104" 
+          stroke={`url(#${silverMetallic})`} 
+          strokeWidth="1.5" 
           strokeLinecap="round"
-        />
-        {/* Bottom-Right to Inner-Bottom-Right */}
-        <line 
-          x1="172" y1="156" 
-          x2="138" y2="136" 
-          stroke={`url(#${goldMetallic})`} 
-          strokeWidth="6" 
-          strokeLinecap="round"
+          opacity="0.95"
         />
 
-        {/* Premium Specular Sparkles/Glints at Vertices */}
-        <circle cx="100" cy="24" r="5" fill="#FFFFFF" />
-        <circle cx="28" cy="156" r="4" fill="#FFF4CE" />
-        <circle cx="172" cy="156" r="4" fill="#FFF4CE" />
-        <circle cx="100" cy="84" r="3.5" fill="#FFFFFF" opacity="0.95" />
-
-        {/* Soft diagonal highlight sweep to accent the glass faces */}
+        {/* Strut 2: Bottom-Left to Center */}
         <line 
-          x1="100" y1="35" 
-          x2="55" y2="112" 
-          stroke="#FFFFFF" 
-          strokeWidth="2.2" 
-          strokeLinecap="round" 
-          opacity="0.65" 
+          x1="35" y1="145" 
+          x2="100" y2="107" 
+          stroke={`url(#${goldMetallic})`} 
+          strokeWidth="4" 
+          strokeLinecap="round"
         />
+        <line 
+          x1="40" y1="142" 
+          x2="97" y2="109" 
+          stroke={`url(#${silverMetallic})`} 
+          strokeWidth="1.5" 
+          strokeLinecap="round"
+          opacity="0.95"
+        />
+
+        {/* Strut 3: Bottom-Right to Center */}
+        <line 
+          x1="165" y1="145" 
+          x2="100" y2="107" 
+          stroke={`url(#${goldMetallic})`} 
+          strokeWidth="4" 
+          strokeLinecap="round"
+        />
+        <line 
+          x1="160" y1="142" 
+          x2="103" y2="109" 
+          stroke={`url(#${silverMetallic})`} 
+          strokeWidth="1.5" 
+          strokeLinecap="round"
+          opacity="0.95"
+        />
+
+        {/* Vertices Specular Highlights */}
+        <circle cx="100" cy="32" r="4.5" fill="#FFFFFF" />
+        <circle cx="35" cy="145" r="4" fill="#FFFFFF" />
+        <circle cx="165" cy="145" r="4" fill="#FFFFFF" />
       </svg>
 
       {showText && (
         <div className="flex flex-col select-none leading-none pt-0.5">
           <div className="flex items-center">
-            <span className="font-display text-[18px] font-black uppercase tracking-[0.25em] text-[#E5C060] leading-none">
+            <span className="font-display text-[21px] font-black uppercase tracking-[0.32em] bg-gradient-to-r from-[#FFF5C0] via-[#E5BF5E] to-[#B58B24] bg-clip-text text-transparent leading-none">
               PRISM
             </span>
           </div>
-          <span className="text-[7px] font-data tracking-[0.15em] text-[#8892A4] mt-1 block font-bold uppercase whitespace-nowrap">
+          {/* Thin, elegant horizontal gold/bronze separator line matching the user's design */}
+          <div className="w-[115px] h-[1px] bg-gradient-to-r from-transparent via-[#E5BF5E]/40 to-transparent my-1.5" />
+          <span className="text-[7.5px] font-mono tracking-[0.2em] text-[#E5BF5E]/90 block font-bold uppercase whitespace-nowrap">
             EVERY ANGLE. ONE SIGNAL.
           </span>
         </div>

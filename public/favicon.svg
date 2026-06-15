@@ -1,89 +1,137 @@
 <svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <!-- Dark glowing aura -->
-    <radialGradient id="prismAura" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stopColor="rgba(212, 168, 67, 0.25)" />
-      <stop offset="60%" stopColor="rgba(15, 23, 42, 0.3)" />
-      <stop offset="100%" stopColor="rgba(0,0,0,0)" />
+    <!-- Luxury gold metallic gradient for outer bezel -->
+    <linearGradient id="goldMetallic" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#FFF2A1" />
+      <stop offset="25%" stopColor="#D4A843" />
+      <stop offset="50%" stopColor="#9A7010" />
+      <stop offset="75%" stopColor="#F5D061" />
+      <stop offset="100%" stopColor="#854D00" />
+    </linearGradient>
+
+    <!-- Luxury silver metallic gradient for inner bevel -->
+    <linearGradient id="silverMetallic" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stopColor="#FFFFFF" />
+      <stop offset="30%" stopColor="#CBD5E1" />
+      <stop offset="50%" stopColor="#94A3B8" />
+      <stop offset="75%" stopColor="#E2E8F0" />
+      <stop offset="100%" stopColor="#475569" />
+    </linearGradient>
+
+    <!-- Deep cybernetic navy-blue facet base -->
+    <linearGradient id="blueFacetBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#0B132B" />
+      <stop offset="50%" stopColor="#050814" />
+      <stop offset="100%" stopColor="#1C2541" />
+    </linearGradient>
+
+    <!-- High-intensity baby blue radial glow for the core -->
+    <radialGradient id="blueGlow" cx="100" cy="107" r="60" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stopColor="#FFFFFF" />
+      <stop offset="15%" stopColor="#E0F2FE" />
+      <stop offset="35%" stopColor="#38BDF8" />
+      <stop offset="65%" stopColor="#0284C7" />
+      <stop offset="90%" stopColor="#0A192F" opacity="0.3" />
+      <stop offset="100%" stopColor="#020813" opacity="0" />
     </radialGradient>
-
-    <!-- Prism Glass Gradient -->
-    <linearGradient id="prismGlass" x1="50%" y1="0%" x2="50%" y2="100%">
-      <stop offset="0%" stopColor="#2A354D" />
-      <stop offset="50%" stopColor="#141C2E" />
-      <stop offset="100%" stopColor="#080C14" />
-    </linearGradient>
-
-    <!-- Beveled Golden/Silver Edges -->
-    <linearGradient id="bevelGold" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stopColor="#FFF4D0" />
-      <stop offset="30%" stopColor="#D4A843" />
-      <stop offset="70%" stopColor="#A27926" />
-      <stop offset="100%" stopColor="#F6D583" />
-    </linearGradient>
-
-    <!-- White Input Beam -->
-    <linearGradient id="inputBeam" x1="0%" y1="50%" x2="100%" y2="50%">
-      <stop offset="0%" stopColor="rgba(255, 255, 255, 0)" />
-      <stop offset="65%" stopColor="rgba(255, 255, 255, 0.6)" />
-      <stop offset="100%" stopColor="#FFFFFF" />
-    </linearGradient>
-
-    <!-- Spectrum Gradients -->
-    <linearGradient id="rayRed" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stopColor="#FFFFFF" />
-      <stop offset="30%" stopColor="#EF4444" opacity="0.8" />
-      <stop offset="100%" stopColor="#EF4444" opacity="0" />
-    </linearGradient>
-    <linearGradient id="rayOrange" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stopColor="#FFFFFF" />
-      <stop offset="40%" stopColor="#F97316" opacity="0.8" />
-      <stop offset="100%" stopColor="#F97316" opacity="0" />
-    </linearGradient>
-    <linearGradient id="rayYellow" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stopColor="#FFFFFF" />
-      <stop offset="45%" stopColor="#FBBF24" opacity="0.8" />
-      <stop offset="100%" stopColor="#FBBF24" opacity="0" />
-    </linearGradient>
-    <linearGradient id="rayGreen" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stopColor="#FFFFFF" />
-      <stop offset="50%" stopColor="#10B981" opacity="0.8" />
-      <stop offset="100%" stopColor="#10B981" opacity="0" />
-    </linearGradient>
-    <linearGradient id="rayBlue" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stopColor="#FFFFFF" />
-      <stop offset="60%" stopColor="#3B82F6" opacity="0.8" />
-      <stop offset="100%" stopColor="#3B82F6" opacity="0" />
-    </linearGradient>
-    <linearGradient id="rayViolet" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stopColor="#FFFFFF" />
-      <stop offset="70%" stopColor="#8B5CF6" opacity="0.8" />
-      <stop offset="100%" stopColor="#8B5CF6" opacity="0" />
-    </linearGradient>
+    
+    <filter id="radiantSpot" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" />
+    </filter>
   </defs>
 
-  <!-- Ambient Back Glow -->
-  <circle cx="100" cy="100" r="95" fill="url(#prismAura)" />
+  <!-- Ambient atmospheric backdrop shadow and slight blue bloom -->
+  <circle cx="100" cy="107" r="85" fill="#030712" opacity="0.4" filter="url(#radiantSpot)" />
 
-  <!-- Dark circular base frame -->
-  <circle cx="100" cy="100" r="92" fill="#060913" stroke="#1E293B" strokeWidth="2" />
-  <circle cx="100" cy="100" r="86" stroke="#D4A843" strokeWidth="1" fill="none" opacity="0.25" />
+  <!-- Outer background backing shadow panel inside the triangle -->
+  <polygon points="100,32 35,145 165,145" fill="#030712" />
 
-  <!-- Laser Beam Entering -->
-  <path d="M 20 110 L 78 95" stroke="url(#inputBeam)" strokeWidth="4.5" strokeLinecap="round" />
-  <path d="M 78 95 L 115 110" stroke="#FFFFFF" strokeWidth="3" opacity="0.8" />
+  <!-- 3D Glass Facet Layers -->
+  <!-- Left Facet -->
+  <polygon points="100,32 35,145 100,107" fill="url(#blueFacetBg)" />
+  <!-- Right Facet -->
+  <polygon points="100,32 165,145 100,107" fill="url(#blueFacetBg)" />
+  <!-- Bottom Facet -->
+  <polygon points="35,145 165,145 100,107" fill="url(#blueFacetBg)" />
 
-  <!-- Spectral output fanning -->
-  <path d="M 115 110 L 175 145" stroke="url(#rayViolet)" strokeWidth="6" strokeLinecap="round" />
-  <path d="M 115 110 L 180 133" stroke="url(#rayBlue)" strokeWidth="6.5" strokeLinecap="round" />
-  <path d="M 115 110 L 182 120" stroke="url(#rayGreen)" strokeWidth="7" strokeLinecap="round" />
-  <path d="M 115 110 L 182 108" stroke="url(#rayYellow)" strokeWidth="7.5" strokeLinecap="round" />
-  <path d="M 115 110 L 180 96" stroke="url(#rayOrange)" strokeWidth="7" strokeLinecap="round" />
-  <path d="M 115 110 L 175 83" stroke="url(#rayRed)" strokeWidth="6.5" strokeLinecap="round" />
+  <!-- Central Luminous High-Intensity Blue Glow Core -->
+  <circle cx="100" cy="107" r="50" fill="url(#blueGlow)" opacity="0.95" />
+  <circle cx="100" cy="107" r="12" fill="#FFFFFF" opacity="0.95" filter="url(#radiantSpot)" />
+  <circle cx="100" cy="107" r="6" fill="#FFFFFF" />
 
-  <!-- Triangular Glass Prism -->
-  <polygon points="100,42 56,132 144,132" fill="none" stroke="rgba(0,0,0,0.5)" strokeWidth="8" strokeLinejoin="round" />
-  <polygon points="100,45 60,130 140,130" fill="url(#prismGlass)" />
-  <polygon points="100,45 60,130 140,130" fill="none" stroke="url(#bevelGold)" strokeWidth="4.5" strokeLinejoin="round" />
-  <line x1="100" y1="45" x2="60" y2="130" stroke="#FFFDF5" strokeWidth="1.5" strokeLinecap="round" opacity="0.8" />
+  <!-- Outer Gold Beveled Triangle Frame -->
+  <polygon 
+    points="100,32 35,145 165,145" 
+    fill="none" 
+    stroke="url(#goldMetallic)" 
+    strokeWidth="7" 
+    strokeLinejoin="round" 
+  />
+
+  <!-- Inner Silver Accent Triangle Frame -->
+  <polygon 
+    points="100,39 42,139 158,139" 
+    fill="none" 
+    stroke="url(#silverMetallic)" 
+    strokeWidth="1.8" 
+    strokeLinejoin="round" 
+    opacity="0.8"
+  />
+
+  <!-- Connecting 3D Corner Bevel Struts (Y-shape pointing from corners to center) -->
+  <!-- Strut 1: Apex to Center -->
+  <line 
+    x1="100" y1="32" 
+    x2="100" y2="107" 
+    stroke="url(#goldMetallic)" 
+    strokeWidth="4" 
+    strokeLinecap="round"
+  />
+  <line 
+    x1="100" y1="36" 
+    x2="100" y2="104" 
+    stroke="url(#silverMetallic)" 
+    strokeWidth="1.5" 
+    strokeLinecap="round"
+    opacity="0.95"
+  />
+
+  <!-- Strut 2: Bottom-Left to Center -->
+  <line 
+    x1="35" y1="145" 
+    x2="100" y2="107" 
+    stroke="url(#goldMetallic)" 
+    strokeWidth="4" 
+    strokeLinecap="round"
+  />
+  <line 
+    x1="40" y1="142" 
+    x2="97" y2="109" 
+    stroke="url(#silverMetallic)" 
+    strokeWidth="1.5" 
+    strokeLinecap="round"
+    opacity="0.95"
+  />
+
+  <!-- Strut 3: Bottom-Right to Center -->
+  <line 
+    x1="165" y1="145" 
+    x2="100" y2="107" 
+    stroke="url(#goldMetallic)" 
+    strokeWidth="4" 
+    strokeLinecap="round"
+  />
+  <line 
+    x1="160" y1="142" 
+    x2="103" y2="109" 
+    stroke="url(#silverMetallic)" 
+    strokeWidth="1.5" 
+    strokeLinecap="round"
+    opacity="0.95"
+  />
+
+  <!-- Vertices Specular Highlights -->
+  <circle cx="100" cy="32" r="4.5" fill="#FFFFFF" />
+  <circle cx="35" cy="145" r="4" fill="#FFFFFF" />
+  <circle cx="165" cy="145" r="4" fill="#FFFFFF" />
 </svg>
