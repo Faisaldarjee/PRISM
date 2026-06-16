@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { 
   User, 
   onAuthStateChanged, 
@@ -39,6 +39,7 @@ export interface UserProfile {
   riskPercent?: number;
   focusMarkets?: string[];
   customAssets?: string[];
+  notificationPrefs?: any;
 }
 
 export interface Watchlist {
@@ -88,6 +89,7 @@ interface AuthContextType {
   markNotificationRead: (notificationId: string) => Promise<void>;
   clearAllNotifications: () => Promise<void>;
   generateAlertForInterestedSymbols: (predictions: any[], assets: any[]) => Promise<void>;
+  updateNotificationPrefs: (newPrefs: any) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -147,10 +149,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           {
             notificationId: 'n_welcome',
             userId: 'guest',
-            symbol: 'GOLDBEES.NS',
-            signal: 'BUY',
-            price: 60.1,
-            description: 'Welcome to PRISM AI! Track your favorite Indian volatility SIP alerts with dynamic interest syncing.',
+            symbol: 'PRISM',
+            signal: 'WELCOME',
+            price: 0,
+            description: 'Your guest workspace is ready. Explore the Smart Swing scanner or search any NSE stock.',
+            title: 'Welcome to PRISM',
+            message: 'Your guest workspace is ready. Explore the Smart Swing scanner or search any NSE stock.',
+            type: 'WELCOME',
             timestamp: new Date(),
             read: false
           }
@@ -352,11 +357,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Interests update
   const updateInterests = async (symbols: string[]) => {
     const formatted = symbols.map(s => s.toUpperCase());
-    if (user && userProfile) {
+    if (user) {
       const profileRef = doc(db, 'users', user.uid);
       try {
         await setDoc(profileRef, { interestedSymbols: formatted }, { merge: true });
-        setUserProfile({ ...userProfile, interestedSymbols: formatted });
+        if (userProfile) {
+          setUserProfile({ ...userProfile, interestedSymbols: formatted });
+        } else {
+          setUserProfile({
+            userId: user.uid,
+            email: user.email || '',
+            displayName: user.displayName || user.email?.split('@')[0] || 'Member',
+            createdAt: new Date(),
+            vIPStatus: 'FREE',
+            interestedSymbols: formatted
+          });
+        }
       } catch (err) {
         handleFirestoreError(err, OperationType.WRITE, `users/${user.uid}`);
       }
@@ -369,7 +385,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUserProfile({
         userId: 'guest',
         email: 'guest@prism.app',
-        displayName: 'Guest Trader',
+        displayName: 'Guest',
         createdAt: new Date(),
         vIPStatus: 'FREE',
         interestedSymbols: formatted
@@ -435,6 +451,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } catch (e) {
         localStorage.setItem('guest_custom_assets', JSON.stringify([symUpper]));
       }
+    }
+  };
+
+  // Update Notification Preferences (Firestore & Local Fallbacks)
+  const updateNotificationPrefs = async (newPrefs: any) => {
+    if (user && userProfile) {
+      const profileRef = doc(db, 'users', user.uid);
+      try {
+        await updateDoc(profileRef, {
+          notificationPrefs: newPrefs
+        });
+        setUserProfile({
+          ...userProfile,
+          notificationPrefs: newPrefs
+        });
+      } catch (err) {
+        handleFirestoreError(err, OperationType.WRITE, `users/${user.uid}`);
+      }
+    } else {
+      localStorage.setItem('prism_guest_notif_prefs', JSON.stringify(newPrefs));
     }
   };
 
@@ -519,6 +555,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const processingAlertsRef = useRef<Set<string>>(new Set());
+
   // AI & Analytics Interest Matcher Notification Generator
   // Automatically generates tailored signal notification items if an asset of interest has a BUY or SELL setup
   const generateAlertForInterestedSymbols = async (predictions: any[], assets: any[]) => {
@@ -535,6 +573,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     for (const pred of matchedPredictions) {
       const symbolUpper = pred.symbol.toUpperCase();
       
+      const busyKey = `${user?.uid || 'guest'}_${symbolUpper}_${pred.signal}_${Math.floor(Date.now() / 15000)}`; // 15s lock
+      if (processingAlertsRef.current.has(busyKey)) {
+        continue;
+      }
+      processingAlertsRef.current.add(busyKey);
+
       // Let's check if we already have an unread notification matching this symbol + signal state
       const existingAlert = notifications.find(n => 
         n.symbol.toUpperCase() === symbolUpper && 
@@ -609,7 +653,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       removePurchase,
       markNotificationRead,
       clearAllNotifications,
-      generateAlertForInterestedSymbols
+      generateAlertForInterestedSymbols,
+      updateNotificationPrefs
     }}>
       {children}
     </AuthContext.Provider>

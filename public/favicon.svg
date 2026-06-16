@@ -1,6 +1,6 @@
 <svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <!-- Luxury gold metallic gradient for outer bezel -->
+    <!-- Luxury gold metallic gradient for outer bezel based on the user's original design -->
     <linearGradient id="goldMetallic" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stopColor="#FFF2A1" />
       <stop offset="25%" stopColor="#D4A843" />
@@ -9,7 +9,7 @@
       <stop offset="100%" stopColor="#854D00" />
     </linearGradient>
 
-    <!-- Luxury silver metallic gradient for inner bevel -->
+    <!-- Luxury silver metallic gradient for inner bevel and struts -->
     <linearGradient id="silverMetallic" x1="100%" y1="0%" x2="0%" y2="100%">
       <stop offset="0%" stopColor="#FFFFFF" />
       <stop offset="30%" stopColor="#CBD5E1" />
@@ -18,15 +18,29 @@
       <stop offset="100%" stopColor="#475569" />
     </linearGradient>
 
-    <!-- Deep cybernetic navy-blue facet base -->
-    <linearGradient id="blueFacetBg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stopColor="#0B132B" />
-      <stop offset="50%" stopColor="#050814" />
-      <stop offset="100%" stopColor="#1C2541" />
+    <!-- Deep cybernetic navy-blue & cobalt glass facet base (Just like original image!) -->
+    <linearGradient id="facetLeft" x1="35" y1="145" x2="100" y2="32">
+      <stop offset="0%" stopColor="#030C24" />
+      <stop offset="40%" stopColor="#0B1C47" />
+      <stop offset="80%" stopColor="#1E40AF" />
+      <stop offset="100%" stopColor="#3B82F6" />
     </linearGradient>
 
-    <!-- High-intensity baby blue radial glow for the core -->
-    <radialGradient id="blueGlow" cx="100" cy="107" r="60" gradientUnits="userSpaceOnUse">
+    <linearGradient id="facetRight" x1="165" y1="145" x2="100" y2="32">
+      <stop offset="0%" stopColor="#020617" />
+      <stop offset="45%" stopColor="#0F1E3D" />
+      <stop offset="80%" stopColor="#1E3A8A" />
+      <stop offset="100%" stopColor="#2563EB" />
+    </linearGradient>
+
+    <linearGradient id="facetBottom" x1="100" y1="107" x2="100" y2="145">
+      <stop offset="0%" stopColor="#010411" />
+      <stop offset="55%" stopColor="#0B132B" />
+      <stop offset="100%" stopColor="#1E293B" />
+    </linearGradient>
+
+    <!-- High-intensity blue & cyan radial glow for the core matching the logo spotlight -->
+    <radialGradient id="neonGlowCore" cx="100" cy="107" r="60" gradientUnits="userSpaceOnUse">
       <stop offset="0%" stopColor="#FFFFFF" />
       <stop offset="15%" stopColor="#E0F2FE" />
       <stop offset="35%" stopColor="#38BDF8" />
@@ -48,15 +62,15 @@
 
   <!-- 3D Glass Facet Layers -->
   <!-- Left Facet -->
-  <polygon points="100,32 35,145 100,107" fill="url(#blueFacetBg)" />
+  <polygon points="100,32 35,145 100,107" fill="url(#facetLeft)" />
   <!-- Right Facet -->
-  <polygon points="100,32 165,145 100,107" fill="url(#blueFacetBg)" />
+  <polygon points="100,32 165,145 100,107" fill="url(#facetRight)" />
   <!-- Bottom Facet -->
-  <polygon points="35,145 165,145 100,107" fill="url(#blueFacetBg)" />
+  <polygon points="35,145 165,145 100,107" fill="url(#facetBottom)" />
 
   <!-- Central Luminous High-Intensity Blue Glow Core -->
-  <circle cx="100" cy="107" r="50" fill="url(#blueGlow)" opacity="0.95" />
-  <circle cx="100" cy="107" r="12" fill="#FFFFFF" opacity="0.95" filter="url(#radiantSpot)" />
+  <circle cx="100" cy="107" r="50" fill="url(#neonGlowCore)" opacity="0.95" />
+  <circle cx="100" cy="107" r="12" fill="#FFFFFF" opacity="0.9" filter="url(#radiantSpot)" />
   <circle cx="100" cy="107" r="6" fill="#FFFFFF" />
 
   <!-- Outer Gold Beveled Triangle Frame -->

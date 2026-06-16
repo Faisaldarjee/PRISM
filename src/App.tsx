@@ -15,6 +15,7 @@ import Disclaimer from './pages/legal/Disclaimer';
 import { PrismLogo } from './components/PrismLogo';
 import { AuthProvider, useAuth } from './services/AuthProvider';
 import { AuthModal } from './components/AuthModal';
+import { NotificationPreferences } from './components/NotificationPreferences';
 import { importAsset } from './api';
 import { 
   TrendingUp, 
@@ -789,33 +790,38 @@ function AppContent() {
 
             {/* Dynamic Interest Preferences (Simplest checkbox configuration layout possible) */}
             {showInterestSettings && (
-              <div className="p-4 rounded-xl border border-slate-850 bg-slate-950/40 space-y-3 mb-4 animate-fadeIn">
-                <div className="flex justify-between items-baseline">
-                  <h4 className="text-[10px] font-black tracking-wider uppercase font-mono text-indigo-400">Target Notification Toggles</h4>
-                  <p className="text-[9px] text-slate-500 font-mono">Select what systems track for you</p>
+              <div className="space-y-4 mb-4 animate-fadeIn">
+                <div className="p-4 rounded-xl border border-slate-850 bg-slate-955/20 space-y-3">
+                  <div className="flex justify-between items-baseline">
+                    <h4 className="text-[10px] font-black tracking-wider uppercase font-mono text-indigo-400">Target Notification Toggles</h4>
+                    <p className="text-[9px] text-slate-500 font-mono">Select what systems track for you</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-[11px] font-mono">
+                    {POPULAR_ASSETS.map((asset) => {
+                      const active = userInterests.includes(asset.symbol);
+                      return (
+                        <button 
+                          key={asset.symbol}
+                          onClick={() => handleToggleInterest(asset.symbol)}
+                          className={`p-2 rounded-lg border text-left flex items-center justify-between transition-colors ${
+                            active 
+                              ? 'bg-slate-850 border-emerald-500/30 text-emerald-400 font-bold' 
+                              : 'bg-slate-900/40 border-slate-800 text-slate-400 hover:text-slate-300'
+                          }`}
+                        >
+                          <span className="truncate">{asset.label}</span>
+                          {active ? <Check size={11} className="text-emerald-400 shrink-0 ml-1" /> : <div className="w-2 h-2 rounded-full bg-slate-800 scale-75 shrink-0 ml-1" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <p className="text-[9px] text-slate-500 leading-normal italic font-mono">
+                    💡 Interests like Suzlon, Adani Power or Tata Motors are monitored daily. Instantly alerts you inside this center with precise buy & accumulation actions!
+                  </p>
                 </div>
-                <div className="grid grid-cols-2 gap-2 text-[11px] font-mono">
-                  {POPULAR_ASSETS.map((asset) => {
-                    const active = userInterests.includes(asset.symbol);
-                    return (
-                      <button 
-                        key={asset.symbol}
-                        onClick={() => handleToggleInterest(asset.symbol)}
-                        className={`p-2 rounded-lg border text-left flex items-center justify-between transition-colors ${
-                          active 
-                            ? 'bg-slate-850 border-emerald-500/30 text-emerald-400 font-bold' 
-                            : 'bg-slate-900/40 border-slate-800 text-slate-400 hover:text-slate-300'
-                        }`}
-                      >
-                        <span className="truncate">{asset.label}</span>
-                        {active ? <Check size={11} className="text-emerald-400 shrink-0 ml-1" /> : <div className="w-2 h-2 rounded-full bg-slate-800 scale-75 shrink-0 ml-1" />}
-                      </button>
-                    );
-                  })}
-                </div>
-                <p className="text-[9px] text-slate-500 leading-normal italic font-mono">
-                  💡 Interests like Suzlon, Adani Power or Tata Motors are monitored daily. Instantly alerts you inside this center with precise buy & accumulation actions!
-                </p>
+                
+                {/* Advanced Preferences Panel */}
+                <NotificationPreferences />
               </div>
             )}
 
@@ -858,9 +864,11 @@ function AppContent() {
                     
                     <div className="flex justify-between items-baseline font-mono text-[9px]">
                       <span className={`px-1.5 py-0.5 rounded font-black tracking-wider uppercase leading-none whitespace-nowrap text-[8px] ${
-                        notif.signal === 'BUY' ? 'bg-emerald-950/45 text-emerald-400' : 'bg-rose-950/45 text-rose-400'
+                        notif.signal === 'BUY' ? 'bg-emerald-950/45 text-emerald-400' : 
+                        notif.signal === 'WELCOME' ? 'bg-blue-950/45 text-blue-400' : 'bg-rose-950/45 text-rose-400'
                       }`}>
-                        {notif.signal === 'BUY' ? 'RECOMMENDED ACCUMULATION':'HOLD / TAKE GAINS'}
+                        {notif.signal === 'BUY' ? 'RECOMMENDED ACCUMULATION' :
+                         notif.signal === 'WELCOME' ? 'SYSTEM WELCOME' : 'HOLD / TAKE GAINS'}
                       </span>
                       <span className="text-zinc-500 leading-none shrink-0">
                         {notif.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -873,7 +881,9 @@ function AppContent() {
 
                     <div className="flex justify-between items-center text-[10px] font-mono border-t border-slate-850/60 pt-2 text-zinc-500">
                       <span>Symbol: <strong className="text-slate-300 font-bold">{notif.symbol}</strong></span>
-                      <span>Trigger Price: <strong className="text-amber-400 font-bold">₹{notif.price.toLocaleString('en-IN')}</strong></span>
+                      {notif.signal !== 'WELCOME' && (
+                        <span>Trigger Price: <strong className="text-amber-400 font-bold">₹{notif.price.toLocaleString('en-IN')}</strong></span>
+                      )}
                     </div>
                   </div>
                 ))

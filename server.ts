@@ -94,6 +94,41 @@ async function startServer() {
     timezone: 'Asia/Kolkata'
   });
 
+  // Every 30 minutes Mon-Fri during 9:15 AM to 3:30 PM market window
+  cron.schedule('0,30 9-15 * * 1-5', async () => {
+    const kolkataTime = new Date().toLocaleString("en-US", {timeZone: "Asia/Kolkata"});
+    const hours = new Date(kolkataTime).getHours();
+    const minutes = new Date(kolkataTime).getMinutes();
+    
+    // Aligns exactly to 9:15 AM to 3:30 PM IST market hours
+    if ((hours === 9 && minutes < 15) || (hours === 15 && minutes > 30)) {
+      return;
+    }
+    
+    console.log('[Scheduler] Running scheduled 30-minute market notifications sweep...');
+    try {
+      const { checkAndSendNotifications } = await import('./src/services/notificationEngine');
+      await checkAndSendNotifications();
+    } catch (err: any) {
+      console.error('[Scheduler] Market sweep error:', err.message);
+    }
+  }, {
+    timezone: 'Asia/Kolkata'
+  });
+
+  // 4:00 PM IST Mon-Fri: dispatch Daily Digest Emails
+  cron.schedule('0 16 * * 1-5', async () => {
+    console.log('[Scheduler] Running scheduled 4:00 PM daily notifications summary digest...');
+    try {
+      const { sendDailySummary } = await import('./src/services/notificationEngine');
+      await sendDailySummary();
+    } catch (err: any) {
+      console.error('[Scheduler] EOD summary error:', err.message);
+    }
+  }, {
+    timezone: 'Asia/Kolkata'
+  });
+
   // Basic security and logging
   app.use(helmet({
     contentSecurityPolicy: false, // Disable for Vite dev
@@ -156,6 +191,46 @@ async function startServer() {
         console.error('Error during database database streaming:', err);
       }
     });
+  });
+
+  // Trigger notification sweeps immediately for validation/debugging
+  app.get('/api/admin/notifications/check', async (req, res) => {
+    const adminKey = req.header('X-Admin-Key') || req.query.key;
+    const expectedKey = process.env.ADMIN_EXPORT_KEY || 'PrismBackup2026';
+    
+    if (!adminKey || adminKey !== expectedKey) {
+      return res.status(401).json({ detail: 'Unauthorized. Valid key is required.' });
+    }
+    
+    console.log('[Admin API] Manual notification sweep triggered...');
+    try {
+      const { checkAndSendNotifications } = await import('./src/services/notificationEngine');
+      await checkAndSendNotifications();
+      return res.json({ status: 'success', message: 'Notification sweep completed.' });
+    } catch (err: any) {
+      console.error('[Admin API] Sweep error:', err.message);
+      return res.status(500).json({ error: err.message });
+    }
+  });
+
+  // Trigger daily summary summaries immediately for verification/debugging
+  app.get('/api/admin/notifications/summary', async (req, res) => {
+    const adminKey = req.header('X-Admin-Key') || req.query.key;
+    const expectedKey = process.env.ADMIN_EXPORT_KEY || 'PrismBackup2026';
+    
+    if (!adminKey || adminKey !== expectedKey) {
+      return res.status(401).json({ detail: 'Unauthorized. Valid key is required.' });
+    }
+    
+    console.log('[Admin API] Manual summary dispatch triggered...');
+    try {
+      const { sendDailySummary } = await import('./src/services/notificationEngine');
+      await sendDailySummary();
+      return res.json({ status: 'success', message: 'Daily summaries sent successfully.' });
+    } catch (err: any) {
+      console.error('[Admin API] Summary error:', err.message);
+      return res.status(500).json({ error: err.message });
+    }
   });
 
   // Gemini API Quota endpoint
