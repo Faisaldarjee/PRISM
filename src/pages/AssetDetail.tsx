@@ -21,6 +21,8 @@ import { LiveChart } from '../components/charts/LiveChart';
 import { AgentCard } from '../components/AgentCard';
 import { SMCPanel } from '../components/SMCPanel';
 import { NiftyDerivativeDashboard } from '../components/NiftyDerivativeDashboard';
+import AdUnit from '../components/AdUnit';
+import { useProStatus } from '../hooks/useProStatus';
 import { 
   ArrowLeft, 
   RefreshCw, 
@@ -115,6 +117,7 @@ async function fetchWithRetry(
 }
 
 export function AssetDetail() {
+  const { isPro } = useProStatus();
   const { symbol } = useParams<{ symbol: string }>();
   const resolvedSymbol = symbol || 'GOLDBEES.NS';
 
@@ -490,6 +493,16 @@ export function AssetDetail() {
         )}
       </section>
 
+      {!isPro && (
+        <div className="mt-4 mb-2">
+          <AdUnit 
+            slot="SLOT_ASSET_2" 
+            format="auto"
+            className="rounded-lg overflow-hidden"
+          />
+        </div>
+      )}
+
       {/* Dynamic F&O and Spot Tab Selectors for NIFTY 50 */}
       {isNifty50 && (
         <div className="flex border-b border-white/[0.04] gap-2 mb-2">
@@ -758,6 +771,16 @@ export function AssetDetail() {
           smcData={(prediction as any).smcData}
         />
       </section>
+
+      {!isPro && (
+        <div className="mt-4 mb-2">
+          <AdUnit 
+            slot="SLOT_ASSET_1" 
+            format="auto"
+            className="rounded-lg overflow-hidden"
+          />
+        </div>
+      )}
 
       {/* SMART MONEY CONCEPTS (SMC) INSTANT REPORT */}
       <section className="pb-6">

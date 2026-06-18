@@ -33,6 +33,8 @@ export interface UserProfile {
   displayName?: string;
   createdAt: any;
   vIPStatus: 'FREE' | 'PRO' | 'ELITE';
+  isPro?: boolean;
+  plan?: string;
   interestedSymbols: string[];
   onboarded?: boolean;
   capital?: number;
@@ -191,6 +193,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               displayName: currentFirebaseUser.displayName || currentFirebaseUser.email?.split('@')[0] || 'Member',
               createdAt: serverTimestamp(),
               vIPStatus: 'FREE',
+              isPro: false,
+              plan: 'free',
               interestedSymbols: ['TATAMOTORS.NS', 'RELIANCE.NS', 'ADANIPOWER.NS'] // set smart defaults
             };
             await setDoc(userDocRef, initialProfile);
@@ -294,6 +298,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           displayName: name,
           createdAt: new Date().toISOString(),
           vIPStatus: 'FREE',
+          isPro: false,
+          plan: 'free',
           interestedSymbols: ['TATAMOTORS.NS', 'RELIANCE.NS', 'ADANIPOWER.NS']
         };
         await setDoc(doc(db, 'users', uId), initialProfile);

@@ -16,6 +16,7 @@ import { PrismLogo } from './components/PrismLogo';
 import { AuthProvider, useAuth } from './services/AuthProvider';
 import { AuthModal } from './components/AuthModal';
 import { NotificationPreferences } from './components/NotificationPreferences';
+import ProBanner from './components/ProBanner';
 import { importAsset } from './api';
 import { 
   TrendingUp, 
@@ -556,6 +557,10 @@ function AppContent() {
           </div>
         </div>
 
+        <div className="mt-4 mb-2">
+          <ProBanner className="mx-0" />
+        </div>
+
         {/* Sidebar Footer Info */}
         <div className="space-y-3.5 border-t border-[rgba(255,255,255,0.04)] pt-4 mt-auto">
           {/* Indian Market Hours Pulse Indicator */}
@@ -699,6 +704,10 @@ function AppContent() {
                 ← Back to landing page
               </Link>
             </nav>
+
+            <div className="mt-auto pt-4 border-t border-slate-800">
+              <ProBanner className="mx-0" />
+            </div>
           </div>
         </div>
       )}

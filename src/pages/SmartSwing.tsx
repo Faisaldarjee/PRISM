@@ -1,5 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { LiveChart } from '../components/charts/LiveChart';
+import AdUnit from '../components/AdUnit';
+import { useProStatus } from '../hooks/useProStatus';
 import { 
   fetchWithRetry, 
   SectionSkeleton, 
@@ -107,6 +109,7 @@ export const SECTOR_EMOJIS: Record<string, string> = {
 };
 
 export function SmartSwing() {
+  const { isPro } = useProStatus();
   const [sectors, setSectors] = useState<SectorMomentum[]>([]);
   const [setups, setSetups] = useState<SwingSetup[]>([]);
   const [selectedSector, setSelectedSector] = useState<SectorMomentum | null>(null);
@@ -508,6 +511,14 @@ export function SmartSwing() {
           <SectionError message={`${errorSetups}. Please trigger a scan manually using the Scanner Refresh button in the header.`} />
         )}
 
+        {!isPro && (
+          <AdUnit
+            slot="SLOT_SCANNER_2"
+            format="auto"
+            className="mb-4 rounded-lg overflow-hidden"
+          />
+        )}
+
         {loadingSetups ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {Array.from({ length: 3 }).map((_, idx) => (
@@ -556,204 +567,214 @@ export function SmartSwing() {
                 const isDeepDived = deepDiveStock?.symbol === setup.symbol;
 
                 return (
-                  <div
-                    key={setup.symbol}
-                    onClick={() => initiateDeepDive(setup)}
-                    className={`flex-shrink-0 w-[calc(100vw-3rem)] md:w-auto snap-center whitespace-normal glass-card p-6 rounded-2xl flex flex-col justify-between hover:bg-[#0D0F14] cursor-pointer transition-all duration-150 relative border ${
-                      isBuy
-                        ? 'border-emerald-500/25 bg-slate-950/80 shadow-[0_0_15px_rgba(16,185,129,0.06)]'
-                        : isSell
-                        ? 'border-rose-500/25 bg-slate-950/80 shadow-[0_0_15px_rgba(239,68,68,0.06)]'
-                        : 'border-white/[0.04] bg-slate-950/90'
-                    } ${isDeepDived ? 'ring-1 ring-[#D4A843] shadow-[0_0_20px_rgba(212,168,67,0.12)]' : ''}`}
-                  >
-                    {/* Top Ticker Row */}
-                    <div>
-                      <div className="flex justify-between items-start border-b border-white/[0.03] pb-3 mb-3.5">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono text-[10.5px] font-bold text-gray-500 uppercase">
-                              #{index + 1} ON RADAR
-                            </span>
-                            <span className="text-gray-600">•</span>
-                            <span className="text-[10px] text-[#8892A4] font-body bg-white/[0.02] px-1.5 py-0.5 rounded">
-                              {setup.sector || 'PRISMX Pick'}
-                            </span>
-                          </div>
-                          <h3 className="font-display font-black text-white text-lg tracking-wide mt-1.5">
-                            {setup.tickerName}
-                          </h3>
-                        </div>
-
-                        {/* Signal Badge */}
-                        <div className="text-right">
-                          <span className={`inline-block font-mono text-[10px] font-black tracking-widest uppercase px-2.5 py-1 rounded-md border ${
-                            isBuy
-                              ? 'text-emerald-400 bg-emerald-500/5 border-emerald-500/15'
-                              : isSell
-                              ? 'text-rose-400 bg-rose-500/5 border-rose-500/15'
-                              : 'text-[#E8C070] bg-[#E8C070]/5 border-[#E8C070]/15'
-                          }`}>
-                            {isBuy ? '🟢 BUY' : isSell ? '🔴 SELL' : '🟡 HOLD'}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Price & Change Row */}
-                      <div className="flex items-baseline gap-2 mb-4">
-                        <span className="font-mono text-xl font-bold text-slate-200">
-                          ₹{setup.lastPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                        </span>
-                        <span className={`font-mono text-xs font-semibold ${
-                          setup.changePercent >= 0 ? 'text-[#34A77A]' : 'text-[#E05252]'
-                        }`}>
-                          {formatChange(setup.changePercent)}
-                        </span>
-                      </div>
-
-                      {/* Integrated Intelligence Signals */}
-                      <div className="mb-4 bg-black/40 border border-white/[0.02] p-2.5 rounded-xl space-y-2">
-                        <div className="flex justify-between items-center text-[9px] uppercase font-mono tracking-wider text-gray-500">
-                          <span>Intelligence Signals:</span>
-                          <span className="text-[#E8C070] font-semibold text-[8px] lowercase">integrated</span>
-                        </div>
-                        <div className="flex justify-between gap-1 text-center">
-                          {/* Global */}
-                          <div 
-                            title={setup.intelligenceContext?.globalMacro || "S&P +0.8%, VIX 13.4 — positive for markets"}
-                            className="flex-1 py-1 px-1 bg-white/[0.02] border border-white/[0.04] rounded-lg text-[10px] font-mono hover:bg-white/[0.05] transition-all cursor-help"
-                          >
-                            <span className="block text-[7px] text-gray-500 uppercase leading-none">GLOB</span>
-                            <span className="block font-bold text-emerald-400 mt-1">🌐</span>
-                          </div>
-
-                          {/* FII */}
-                          <div 
-                            title={setup.intelligenceContext?.fiiActivity || "FII net buying ₹2,340 Cr — bullish"}
-                            className="flex-1 py-1 px-1 bg-white/[0.02] border border-white/[0.04] rounded-lg text-[10px] font-mono hover:bg-white/[0.05] transition-all cursor-help"
-                          >
-                            <span className="block text-[7px] text-gray-500 uppercase leading-none">INST</span>
-                            <span className="block font-bold mt-1">🏦</span>
-                          </div>
-
-                          {/* Events */}
-                          <div 
-                            title={setup.intelligenceContext?.earningsAlert || "No results in next 7 days — clear"}
-                            className="flex-1 py-1 px-1 bg-white/[0.02] border border-white/[0.04] rounded-lg text-[10px] font-mono hover:bg-white/[0.05] transition-all cursor-help"
-                          >
-                            <span className="block text-[7px] text-gray-500 uppercase leading-none">EVNT</span>
-                            <span className={`block font-bold mt-1 ${setup.intelligenceContext?.earningsAlert ? "text-rose-400 opacity-100" : "text-emerald-400 opacity-60"}`}>📅</span>
-                          </div>
-
-                          {/* Deals */}
-                          <div 
-                            title={setup.intelligenceContext?.bulkDealAlert || "Promoter activity is stable — neutral"}
-                            className="flex-1 py-1 px-1 bg-white/[0.02] border border-white/[0.04] rounded-lg text-[10px] font-mono hover:bg-white/[0.05] transition-all cursor-help"
-                          >
-                            <span className="block text-[7px] text-gray-500 uppercase leading-none">DEAL</span>
-                            <span className="block font-bold mt-1">📊</span>
-                          </div>
-
-                          {/* News */}
-                          <div 
-                            title={setup.intelligenceContext?.newsSentiment || "Positive — consensus upgrade expected"}
-                            className="flex-1 py-1 px-1 bg-white/[0.02] border border-white/[0.04] rounded-lg text-[10px] font-mono hover:bg-white/[0.05] transition-all cursor-help"
-                          >
-                            <span className="block text-[7px] text-gray-500 uppercase leading-none">NEWS</span>
-                            <span className="block font-bold text-emerald-400 mt-1 font-sans">📰</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Technical Strength Unicode Score Bar */}
-                      <div className="space-y-1 mb-4 flex justify-between items-center bg-black/30 p-2.5 rounded-lg border border-white/[0.02]">
-                        <span className="text-[9.5px] uppercase font-mono tracking-wider text-gray-500">
-                          Tech Score:
-                        </span>
-                        <div className="flex items-center gap-1.5 font-mono text-xs text-amber-500">
-                          <span className="tracking-thinnest leading-none opacity-85 select-none text-[10.5px] font-semibold">
-                            {renderScoreBar(setup.setupScore)}
-                          </span>
-                          <span className="font-bold text-[11px] text-[#D4A843]">
-                            {Math.round(setup.setupScore)}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* RSI & Wave indicators */}
-                      <div className="flex justify-between items-center text-[10px] font-mono text-gray-400 py-2 border-b border-white/[0.03] mb-3">
-                        <span>
-                          RSI <strong className="text-slate-300">{setup.rsi}</strong>
-                        </span>
-                        <span className="text-gray-600 font-normal select-none">•</span>
-                        <span>
-                          ADX <strong className="text-slate-300">{setup.adx}</strong>
-                        </span>
-                        <span className="text-gray-600 font-normal select-none">•</span>
-                        <span>
-                          BB Squeeze {setup.isSqueezed ? <span className="text-amber-400 font-bold">★ Squeeze</span> : <span className="text-gray-500">No</span>}
-                        </span>
-                      </div>
-
-                      {/* Candle Patterns */}
-                      {setup.detected_patterns && setup.detected_patterns.length > 0 && (
-                        <div className="mb-4 flex flex-col gap-1">
-                          <span className="text-[11px] uppercase font-sans font-medium text-[#8892A4] block">
-                            Patterns Found
-                          </span>
+                  <React.Fragment key={setup.symbol}>
+                    <div
+                      onClick={() => initiateDeepDive(setup)}
+                      className={`flex-shrink-0 w-[calc(100vw-3rem)] md:w-auto snap-center whitespace-normal glass-card p-6 rounded-2xl flex flex-col justify-between hover:bg-[#0D0F14] cursor-pointer transition-all duration-150 relative border ${
+                        isBuy
+                          ? 'border-emerald-500/25 bg-slate-950/80 shadow-[0_0_15px_rgba(16,185,129,0.06)]'
+                          : isSell
+                          ? 'border-rose-500/25 bg-slate-950/80 shadow-[0_0_15px_rgba(239,68,68,0.06)]'
+                          : 'border-white/[0.04] bg-slate-950/90'
+                      } ${isDeepDived ? 'ring-1 ring-[#D4A843] shadow-[0_0_20px_rgba(212,168,67,0.12)]' : ''}`}
+                    >
+                      {/* Top Ticker Row */}
+                      <div>
+                        <div className="flex justify-between items-start border-b border-white/[0.03] pb-3 mb-3.5">
                           <div>
-                            <span className="text-[10px] font-sans font-medium text-[#D4A843] bg-[#D4A843]/8 border border-[#D4A843]/20 px-2 py-0.5 rounded">
-                              Pattern Match: {setup.detected_patterns[0].replace(/ \(.*\)/, '')}
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono text-[10.5px] font-bold text-gray-500 uppercase">
+                                #{index + 1} ON RADAR
+                              </span>
+                              <span className="text-gray-600">•</span>
+                              <span className="text-[10px] text-[#8892A4] font-body bg-white/[0.02] px-1.5 py-0.5 rounded">
+                                {setup.sector || 'PRISMX Pick'}
+                              </span>
+                            </div>
+                            <h3 className="font-display font-black text-white text-lg tracking-wide mt-1.5">
+                              {setup.tickerName}
+                            </h3>
+                          </div>
+
+                          {/* Signal Badge */}
+                          <div className="text-right">
+                            <span className={`inline-block font-mono text-[10px] font-black tracking-widest uppercase px-2.5 py-1 rounded-md border ${
+                              isBuy
+                                ? 'text-emerald-400 bg-emerald-500/5 border-emerald-500/15'
+                                : isSell
+                                ? 'text-rose-400 bg-rose-500/5 border-rose-500/15'
+                                : 'text-[#E8C070] bg-[#E8C070]/5 border-[#E8C070]/15'
+                            }`}>
+                              {isBuy ? '🟢 BUY' : isSell ? '🔴 SELL' : '🟡 HOLD'}
                             </span>
                           </div>
                         </div>
-                      )}
 
-                      {/* Entry targets info */}
-                      <div className="grid grid-cols-3 gap-2 text-center text-[11px] font-mono bg-white/[0.01] border border-white/[0.03] p-2.5 rounded-lg mb-3">
-                        <div>
-                          <span className="text-[9px] text-gray-400 block mb-0.5 uppercase">ENTRY</span>
-                          <span className="text-gray-200 font-black">₹{Math.round(setup.lastPrice)}</span>
+                        {/* Price & Change Row */}
+                        <div className="flex items-baseline gap-2 mb-4">
+                          <span className="font-mono text-xl font-bold text-slate-200">
+                            ₹{setup.lastPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                          </span>
+                          <span className={`font-mono text-xs font-semibold ${
+                            setup.changePercent >= 0 ? 'text-[#34A77A]' : 'text-[#E05252]'
+                          }`}>
+                            {formatChange(setup.changePercent)}
+                          </span>
                         </div>
-                        <div>
-                          <span className="text-[9px] text-rose-400/80 block mb-0.5 uppercase">STOP LOSS</span>
-                          <span className="text-rose-400 font-bold">₹{Math.round(setup.stopLoss)}</span>
+
+                        {/* Integrated Intelligence Signals */}
+                        <div className="mb-4 bg-black/40 border border-white/[0.02] p-2.5 rounded-xl space-y-2">
+                          <div className="flex justify-between items-center text-[9px] uppercase font-mono tracking-wider text-gray-500">
+                            <span>Intelligence Signals:</span>
+                            <span className="text-[#E8C070] font-semibold text-[8px] lowercase">integrated</span>
+                          </div>
+                          <div className="flex justify-between gap-1 text-center">
+                            {/* Global */}
+                            <div 
+                              title={setup.intelligenceContext?.globalMacro || "S&P +0.8%, VIX 13.4 — positive for markets"}
+                              className="flex-1 py-1 px-1 bg-white/[0.02] border border-white/[0.04] rounded-lg text-[10px] font-mono hover:bg-white/[0.05] transition-all cursor-help"
+                            >
+                              <span className="block text-[7px] text-gray-500 uppercase leading-none">GLOB</span>
+                              <span className="block font-bold text-emerald-400 mt-1">🌐</span>
+                            </div>
+
+                            {/* FII */}
+                            <div 
+                              title={setup.intelligenceContext?.fiiActivity || "FII net buying ₹2,340 Cr — bullish"}
+                              className="flex-1 py-1 px-1 bg-white/[0.02] border border-white/[0.04] rounded-lg text-[10px] font-mono hover:bg-white/[0.05] transition-all cursor-help"
+                            >
+                              <span className="block text-[7px] text-gray-500 uppercase leading-none">INST</span>
+                              <span className="block font-bold mt-1">🏦</span>
+                            </div>
+
+                            {/* Events */}
+                            <div 
+                              title={setup.intelligenceContext?.earningsAlert || "No results in next 7 days — clear"}
+                              className="flex-1 py-1 px-1 bg-white/[0.02] border border-white/[0.04] rounded-lg text-[10px] font-mono hover:bg-white/[0.05] transition-all cursor-help"
+                            >
+                              <span className="block text-[7px] text-gray-500 uppercase leading-none">EVNT</span>
+                              <span className={`block font-bold mt-1 ${setup.intelligenceContext?.earningsAlert ? "text-rose-400 opacity-100" : "text-emerald-400 opacity-60"}`}>📅</span>
+                            </div>
+
+                            {/* Deals */}
+                            <div 
+                              title={setup.intelligenceContext?.bulkDealAlert || "Promoter activity is stable — neutral"}
+                              className="flex-1 py-1 px-1 bg-white/[0.02] border border-white/[0.04] rounded-lg text-[10px] font-mono hover:bg-white/[0.05] transition-all cursor-help"
+                            >
+                              <span className="block text-[7px] text-gray-500 uppercase leading-none">DEAL</span>
+                              <span className="block font-bold mt-1">📊</span>
+                            </div>
+
+                            {/* News */}
+                            <div 
+                              title={setup.intelligenceContext?.newsSentiment || "Positive — consensus upgrade expected"}
+                              className="flex-1 py-1 px-1 bg-white/[0.02] border border-white/[0.04] rounded-lg text-[10px] font-mono hover:bg-white/[0.05] transition-all cursor-help"
+                            >
+                              <span className="block text-[7px] text-gray-500 uppercase leading-none">NEWS</span>
+                              <span className="block font-bold text-emerald-400 mt-1 font-sans">📰</span>
+                            </div>
+                          </div>
                         </div>
-                        <div>
-                          <span className="text-[9px] text-emerald-400/80 block mb-0.5 uppercase">TARGET 1</span>
-                          <span className="text-emerald-400 font-bold">₹{Math.round(setup.target1)}</span>
+
+                        {/* Technical Strength Unicode Score Bar */}
+                        <div className="space-y-1 mb-4 flex justify-between items-center bg-black/30 p-2.5 rounded-lg border border-white/[0.02]">
+                          <span className="text-[9.5px] uppercase font-mono tracking-wider text-gray-500">
+                            Tech Score:
+                          </span>
+                          <div className="flex items-center gap-1.5 font-mono text-xs text-amber-500">
+                            <span className="tracking-thinnest leading-none opacity-85 select-none text-[10.5px] font-semibold">
+                              {renderScoreBar(setup.setupScore)}
+                            </span>
+                            <span className="font-bold text-[11px] text-[#D4A843]">
+                              {Math.round(setup.setupScore)}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* RSI & Wave indicators */}
+                        <div className="flex justify-between items-center text-[10px] font-mono text-gray-400 py-2 border-b border-white/[0.03] mb-3">
+                          <span>
+                            RSI <strong className="text-slate-300">{setup.rsi}</strong>
+                          </span>
+                          <span className="text-gray-600 font-normal select-none">•</span>
+                          <span>
+                            ADX <strong className="text-slate-300">{setup.adx}</strong>
+                          </span>
+                          <span className="text-gray-600 font-normal select-none">•</span>
+                          <span>
+                            BB Squeeze {setup.isSqueezed ? <span className="text-amber-400 font-bold">★ Squeeze</span> : <span className="text-gray-500">No</span>}
+                          </span>
+                        </div>
+
+                        {/* Candle Patterns */}
+                        {setup.detected_patterns && setup.detected_patterns.length > 0 && (
+                          <div className="mb-4 flex flex-col gap-1">
+                            <span className="text-[11px] uppercase font-sans font-medium text-[#8892A4] block">
+                              Patterns Found
+                            </span>
+                            <div>
+                              <span className="text-[10px] font-sans font-medium text-[#D4A843] bg-[#D4A843]/8 border border-[#D4A843]/20 px-2 py-0.5 rounded">
+                                Pattern Match: {setup.detected_patterns[0].replace(/ \(.*\)/, '')}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Entry targets info */}
+                        <div className="grid grid-cols-3 gap-2 text-center text-[11px] font-mono bg-white/[0.01] border border-white/[0.03] p-2.5 rounded-lg mb-3">
+                          <div>
+                            <span className="text-[9px] text-gray-400 block mb-0.5 uppercase">ENTRY</span>
+                            <span className="text-gray-200 font-black">₹{Math.round(setup.lastPrice)}</span>
+                          </div>
+                          <div>
+                            <span className="text-[9px] text-rose-400/80 block mb-0.5 uppercase">STOP LOSS</span>
+                            <span className="text-rose-400 font-bold">₹{Math.round(setup.stopLoss)}</span>
+                          </div>
+                          <div>
+                            <span className="text-[9px] text-emerald-400/80 block mb-0.5 uppercase">TARGET 1</span>
+                            <span className="text-emerald-400 font-bold">₹{Math.round(setup.target1)}</span>
+                          </div>
+                        </div>
+
+                        {/* Hold velocity & R:R details */}
+                        <div className="flex justify-between items-center text-[10.5px] font-mono text-gray-400 mb-5 px-1">
+                          <span className="flex items-center gap-1">
+                            <Clock size={11.5} className="text-amber-500 shrink-0" />
+                            <span>Hold: {setup.hold_time_recommendation ? setup.hold_time_recommendation.split(' (')[0] : '10-15 Days'}</span>
+                          </span>
+                          
+                          <span>
+                            R:R{' '}
+                            <strong className="text-[#E8C070] font-black bg-[#E8C070]/5 px-1.5 py-0.5 rounded border border-[#E8C070]/10">
+                              {setup.trade_plan?.risk_reward_ratio || (Math.abs((setup.target1 || 0) - (setup.lastPrice || 0)) / Math.max(1, Math.abs((setup.lastPrice || 0) - (setup.stopLoss || 0)))).toFixed(1)}x
+                            </strong>
+                          </span>
                         </div>
                       </div>
 
-                      {/* Hold velocity & R:R details */}
-                      <div className="flex justify-between items-center text-[10.5px] font-mono text-gray-400 mb-5 px-1">
-                        <span className="flex items-center gap-1">
-                          <Clock size={11.5} className="text-amber-500 shrink-0" />
-                          <span>Hold: {setup.hold_time_recommendation ? setup.hold_time_recommendation.split(' (')[0] : '10-15 Days'}</span>
-                        </span>
-                        
-                        <span>
-                          R:R{' '}
-                          <strong className="text-[#E8C070] font-black bg-[#E8C070]/5 px-1.5 py-0.5 rounded border border-[#E8C070]/10">
-                            {setup.trade_plan?.risk_reward_ratio || (Math.abs((setup.target1 || 0) - (setup.lastPrice || 0)) / Math.max(1, Math.abs((setup.lastPrice || 0) - (setup.stopLoss || 0)))).toFixed(1)}x
-                          </strong>
-                        </span>
+                      {/* Bottom Deep Dive Button */}
+                      <div className="pt-3 border-t border-white/[0.03] flex items-center justify-between gap-1">
+                        <button
+                          onClick={() => initiateDeepDive(setup)}
+                          className={`w-full py-2 flex items-center justify-center gap-1.5 text-[11px] font-semibold text-[#D4A843] border rounded-xl hover:bg-amber-500/5 transition-all text-center cursor-pointer ${
+                            isDeepDived ? 'bg-amber-500/10 border-[#D4A843]' : 'border-[#D4A843]/30 bg-black/40'
+                          }`}
+                        >
+                          Deep Dive Integration
+                          <span>→</span>
+                        </button>
                       </div>
                     </div>
-
-                    {/* Bottom Deep Dive Button */}
-                    <div className="pt-3 border-t border-white/[0.03] flex items-center justify-between gap-1">
-                      <button
-                        onClick={() => initiateDeepDive(setup)}
-                        className={`w-full py-2 flex items-center justify-center gap-1.5 text-[11px] font-semibold text-[#D4A843] border rounded-xl hover:bg-amber-500/5 transition-all text-center cursor-pointer ${
-                          isDeepDived ? 'bg-amber-500/10 border-[#D4A843]' : 'border-[#D4A843]/30 bg-black/40'
-                        }`}
-                      >
-                        Deep Dive Integration
-                        <span>→</span>
-                      </button>
-                    </div>
-                  </div>
+                    {!isPro && (index + 1) % 10 === 0 && (
+                      <div className="flex-shrink-0 w-[calc(100vw-3rem)] md:w-auto md:col-span-3">
+                        <AdUnit
+                          slot="SLOT_SCANNER_1"
+                          format="fluid"
+                          className="my-3 rounded-lg overflow-hidden"
+                        />
+                      </div>
+                    )}
+                  </React.Fragment>
                 );
               })}
             </div>

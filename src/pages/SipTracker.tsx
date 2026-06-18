@@ -5,6 +5,8 @@ import {
   SectionError 
 } from '../utils/apiHelpers';
 import { SipData, HistoryBar, Asset, Prediction } from '../types';
+import AdUnit from '../components/AdUnit';
+import { useProStatus } from '../hooks/useProStatus';
 import { 
   LineChart, 
   Line, 
@@ -83,6 +85,7 @@ export function calculateXIRR(cashFlows: { date: Date; amount: number }[]): numb
 }
 
 export function SipTracker() {
+  const { isPro } = useProStatus();
   // Asset Dropdown Selector
   const [assets, setAssets] = useState<Asset[]>([]);
   const [selectedAsset, setSelectedAsset] = useState('GOLDBEES.NS');
@@ -841,6 +844,16 @@ export function SipTracker() {
         </div>
 
       </div>
+
+      {!isPro && (
+        <div className="mt-4 mb-2">
+          <AdUnit 
+            slot="SLOT_SIP_1" 
+            format="auto" 
+            className="rounded-lg overflow-hidden"
+          />
+        </div>
+      )}
 
       {/* SIP PERFORMANCE TRACKER */}
       <h3 id="section-tracker-title" className="text-sm font-mono font-bold uppercase text-[#E8C070] tracking-widest border-b border-white/[0.05] pb-2 flex items-center gap-2 mt-2">

@@ -10,6 +10,8 @@ import { Prediction, MacroData, Asset } from '../types';
 import { SignalBadge } from '../components/SignalBadge';
 import { ConfidenceBar } from '../components/ConfidenceBar';
 import { useAuth } from '../services/AuthProvider';
+import AdUnit from '../components/AdUnit';
+import { useProStatus } from '../hooks/useProStatus';
 import { 
   TrendingUp, 
   RefreshCw, 
@@ -51,6 +53,7 @@ const getStockInfo = (symbol: string) => {
 
 export function Dashboard() {
   const { user, generateAlertForInterestedSymbols } = useAuth();
+  const { isPro } = useProStatus();
   
   // Independent caches / fallback loaders
   const [predictions, setPredictions] = useState<Prediction[]>(() => {
@@ -734,6 +737,16 @@ export function Dashboard() {
         </div>
       </div>
 
+      {!isPro && (
+        <div className="mt-4 mb-2">
+          <AdUnit 
+            slot="SLOT_DASHBOARD_1" 
+            format="auto"
+            className="rounded-lg overflow-hidden"
+          />
+        </div>
+      )}
+
       {/* ETF PREVIEW SECTION */}
       <section className="space-y-4">
         <div className="flex items-center gap-2">
@@ -993,6 +1006,16 @@ export function Dashboard() {
             </div>
           </div>
         </section>
+      )}
+
+      {!isPro && (
+        <div className="mt-4 mb-2">
+          <AdUnit 
+            slot="SLOT_DASHBOARD_2"
+            format="auto" 
+            className="rounded-lg overflow-hidden"
+          />
+        </div>
       )}
     </div>
   );

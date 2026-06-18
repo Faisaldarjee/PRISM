@@ -5,6 +5,8 @@ import {
   SectionError 
 } from '../utils/apiHelpers';
 import { AccuracyData } from '../types';
+import AdUnit from '../components/AdUnit';
+import { useProStatus } from '../hooks/useProStatus';
 import { 
   AreaChart, 
   Area, 
@@ -61,6 +63,7 @@ const DEFAULT_SYMBOLS_FOR_BACKTEST = [
 ];
 
 export function Accuracy() {
+  const { isPro } = useProStatus();
   const [accuracy, setAccuracy] = useState<any | null>(null);
   const [advanced, setAdvanced] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
@@ -454,6 +457,16 @@ export function Accuracy() {
             </div>
 
           </div>
+
+          {!isPro && (
+            <div className="mt-4 mb-2">
+              <AdUnit 
+                slot="SLOT_ACCURACY_1" 
+                format="auto" 
+                className="rounded-lg overflow-hidden"
+              />
+            </div>
+          )}
 
           {/* SECTION 4: EQUITY CURVE CHART */}
           <div className="glass-card p-5 animate-fadeInUp shadow-lg" id="equity-curve-card">
