@@ -1,6 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { getAllPredictions, getMacro, getAssets, getSwingScannerSetups } from '../api';
+import { 
+  fetchWithRetry, 
+  authFetch, 
+  SectionSkeleton, 
+  SectionError 
+} from '../utils/apiHelpers';
 import { Prediction, MacroData, Asset } from '../types';
 import { SignalBadge } from '../components/SignalBadge';
 import { ConfidenceBar } from '../components/ConfidenceBar';
@@ -46,6 +51,8 @@ const getStockInfo = (symbol: string) => {
 
 export function Dashboard() {
   const { user, generateAlertForInterestedSymbols } = useAuth();
+  
+  // Independent caches / fallback loaders
   const [predictions, setPredictions] = useState<Prediction[]>(() => {
     try {
       const saved = localStorage.getItem('prism_preds');
@@ -70,9 +77,6 @@ export function Dashboard() {
       return [];
     }
   });
-  const [selectedStockTab, setSelectedStockTab] = useState<'ALL' | 'GIANTS' | 'COMMODITY_METALS'>('ALL');
-  
-  // States
   const [swingSetups, setSwingSetups] = useState<any[]>(() => {
     try {
       const saved = localStorage.getItem('prism_swing');
@@ -81,6 +85,8 @@ export function Dashboard() {
       return [];
     }
   });
+
+  const [selectedStockTab, setSelectedStockTab] = useState<'ALL' | 'GIANTS' | 'COMMODITY_METALS'>('ALL');
   const [calcCapital, setCalcCapital] = useState<number>(() => {
     const saved = localStorage.getItem('prism_capital');
     return saved ? Number(saved) : 50000;
@@ -93,17 +99,27 @@ export function Dashboard() {
   const [calculatorCustomPrice, setCalculatorCustomPrice] = useState<string>('240.0');
   const [calculatorCustomSLPct, setCalculatorCustomSLPct] = useState<string>('3.5');
 
-  const [loading, setLoading] = useState(() => {
-    // If we have some cached local data, skip full-screen spinner to maximize perception speed
-    try {
-      const p = localStorage.getItem('prism_preds');
-      return !p;
-    } catch {
-      return true;
-    }
-  });
-  const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // Independent loading and error states for robust decoupled architecture
+  const [predictionsLoading, setPredictionsLoading] = useState(false);
+  const [predictionsError, setPredictionsError] = useState<string | null>(null);
+
+  const [macroLoading, setMacroLoading] = useState(false);
+  const [macroError, setMacroError] = useState<string | null>(null);
+
+  const [assetsLoading, setAssetsLoading] = useState(false);
+  const [assetsError, setAssetsError] = useState<string | null>(null);
+
+  const [swingSetupsLoading, setSwingSetupsLoading] = useState(false);
+  const [swingSetupsError, setSwingSetupsError] = useState<string | null>(null);
+
+  const [fiidiiLoading, setFiidiiLoading] = useState(false);
+  const [fiidiiError, setFiidiiError] = useState<string | null>(null);
+
+  const [morningBriefing, setMorningBriefing] = useState<any>(null);
+  const [morningBriefingLoading, setMorningBriefingLoading] = useState(false);
+  const [morningBriefingError, setMorningBriefingError] = useState<string | null>(null);
+
+  const [refreshCounter, setRefreshCounter] = useState(0);
   const [congestionNotice, setCongestionNotice] = useState(false);
 
   const handleAssetClick = (symbol: string, currentPrice: number, stopLossPct = 3.5) => {
@@ -120,112 +136,171 @@ export function Dashboard() {
     }, 50);
   };
 
-  async function loadData(isSilent = false) {
-    if (refreshing) {
-      console.log('[Dashboard] Refresh already in progress, skipping duplicate.');
-      return;
-    }
-    if (!isSilent && !predictions.length) setLoading(true);
-    else setRefreshing(true);
-    setError(null);
-    setCongestionNotice(false);
+  const loadData = (isSilent = false) => {
+    setRefreshCounter(prev => prev + 1);
+  };
 
-    let caughtRateLimit = false;
-
-    try {
-      const [predsData, macroData, assetsData, scannerData] = await Promise.all([
-        getAllPredictions().catch(err => {
-          console.warn('Dashboard predictions sync issues:', err.message || err);
-          const msg = (err.message || String(err)).toLowerCase();
-          if (msg.includes('rate') || msg.includes('429') || msg.includes('quota') || msg.includes('exceeded')) {
-            caughtRateLimit = true;
-          }
-          return null;
-        }),
-        getMacro().catch(err => {
-          console.warn('Dashboard macro sync issues:', err.message || err);
-          const msg = (err.message || String(err)).toLowerCase();
-          if (msg.includes('rate') || msg.includes('429') || msg.includes('quota') || msg.includes('exceeded')) {
-            caughtRateLimit = true;
-          }
-          return null;
-        }),
-        getAssets().catch(err => {
-          console.warn('Dashboard assets list sync issues:', err.message || err);
-          const msg = (err.message || String(err)).toLowerCase();
-          if (msg.includes('rate') || msg.includes('429') || msg.includes('quota') || msg.includes('exceeded')) {
-            caughtRateLimit = true;
-          }
-          return null;
-        }),
-        getSwingScannerSetups().catch(err => {
-          console.warn('Dashboard swing setups sync issues:', err.message || err);
-          const msg = (err.message || String(err)).toLowerCase();
-          if (msg.includes('rate') || msg.includes('429') || msg.includes('quota') || msg.includes('exceeded')) {
-            caughtRateLimit = true;
-          }
-          return null;
-        })
-      ]);
-
-      if (caughtRateLimit) {
-        setCongestionNotice(true);
-      }
-
-      // Check if we retrieved anything and cache it
-      if (predsData && predsData.length > 0) {
-        setPredictions(predsData);
-        try { localStorage.setItem('prism_preds', JSON.stringify(predsData)); } catch {}
-      }
-      if (macroData) {
-        setMacro(macroData);
-        try { localStorage.setItem('prism_macro', JSON.stringify(macroData)); } catch {}
-      }
-      if (assetsData && assetsData.length > 0) {
-        setAssets(assetsData);
-        try { localStorage.setItem('prism_assets', JSON.stringify(assetsData)); } catch {}
-      }
-      if (scannerData && scannerData.length > 0) {
-        setSwingSetups(scannerData || []);
-        try { localStorage.setItem('prism_swing', JSON.stringify(scannerData)); } catch {}
-      }
-
-      // Check if now we have absolutely nothing (no local data, and network failed)
-      const hasAnyPredictions = (predsData && predsData.length > 0) || (predictions && predictions.length > 0);
-      const hasAnyMacro = macroData || macro;
-      const hasAnyAssets = (assetsData && assetsData.length > 0) || (assets && assets.length > 0);
-
-      if (!hasAnyPredictions && !hasAnyMacro && !hasAnyAssets) {
-        throw new Error('All primary market intelligence streams offline. Rate limit quota exceeded. Please try again soon.');
-      }
-
-      const activeScannerData = scannerData || swingSetups;
-      // Select first setup as calculation default if none selected or if we refreshed
-      if (activeScannerData && activeScannerData.length > 0 && (!selectedCalcSetup || scannerData)) {
-        setSelectedCalcSetup(activeScannerData[0]);
-        const calcPriceVal = activeScannerData[0].lastPrice ?? 100;
-        const calcSLVal = activeScannerData[0].stopLoss ?? (calcPriceVal * 0.95);
-        setCalculatorCustomPrice(calcPriceVal.toFixed(2));
-        const dynamicSLPct = ((calcPriceVal - calcSLVal) / calcPriceVal * 100);
-        setCalculatorCustomSLPct(Math.max(1, Number((dynamicSLPct || 3.5).toFixed(1))).toString());
-      }
-      
-      const targetPreds = predsData || predictions;
-      const targetAssets = assetsData || assets;
-      if (generateAlertForInterestedSymbols && targetPreds.length > 0 && targetAssets.length > 0) {
-        await generateAlertForInterestedSymbols(targetPreds, targetAssets).catch(() => {});
-      }
-    } catch (e: any) {
-      console.error('Error fetching dashboard', e);
-      setError(e.message || 'Failed to sync live predictions.');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }
-
+  // 1. Predictions loader
   useEffect(() => {
-    loadData();
+    const controller = new AbortController();
+    async function load() {
+      setPredictionsLoading(true);
+      setPredictionsError(null);
+      try {
+        const data = await fetchWithRetry('/api/predict-all', controller.signal);
+        if (data && data.length > 0) {
+          setPredictions(data);
+          try { localStorage.setItem('prism_preds', JSON.stringify(data)); } catch {}
+        }
+      } catch (err: any) {
+        if (err.name === 'AbortError') return;
+        console.warn('Dashboard predictions sync issues:', err.message || err);
+        setPredictionsError(err.message || String(err));
+        setCongestionNotice(true);
+      } finally {
+        setPredictionsLoading(false);
+      }
+    }
+    load();
+    return () => controller.abort();
+  }, [refreshCounter]);
+
+  // 2. Macro loader
+  useEffect(() => {
+    const controller = new AbortController();
+    async function load() {
+      setMacroLoading(true);
+      setMacroError(null);
+      try {
+        const data = await fetchWithRetry('/api/macro', controller.signal);
+        if (data) {
+          setMacro(data);
+          try { localStorage.setItem('prism_macro', JSON.stringify(data)); } catch {}
+        }
+      } catch (err: any) {
+        if (err.name === 'AbortError') return;
+        console.warn('Dashboard macro sync issues:', err.message || err);
+        setMacroError(err.message || String(err));
+        setCongestionNotice(true);
+      } finally {
+        setMacroLoading(false);
+      }
+    }
+    load();
+    return () => controller.abort();
+  }, [refreshCounter]);
+
+  // 3. Assets loader
+  useEffect(() => {
+    const controller = new AbortController();
+    async function load() {
+      setAssetsLoading(true);
+      setAssetsError(null);
+      try {
+        const data = await fetchWithRetry('/api/assets', controller.signal);
+        if (data && data.length > 0) {
+          setAssets(data);
+          try { localStorage.setItem('prism_assets', JSON.stringify(data)); } catch {}
+        }
+      } catch (err: any) {
+        if (err.name === 'AbortError') return;
+        console.warn('Dashboard assets sync issues:', err.message || err);
+        setAssetsError(err.message || String(err));
+        setCongestionNotice(true);
+      } finally {
+        setAssetsLoading(false);
+      }
+    }
+    load();
+    return () => controller.abort();
+  }, [refreshCounter]);
+
+  // 4. Swing Setups loader (Scanner)
+  useEffect(() => {
+    const controller = new AbortController();
+    async function load() {
+      setSwingSetupsLoading(true);
+      setSwingSetupsError(null);
+      try {
+        const data = await fetchWithRetry('/api/swing-scanner', controller.signal);
+        if (data && data.length > 0) {
+          setSwingSetups(data);
+          try { localStorage.setItem('prism_swing', JSON.stringify(data)); } catch {}
+
+          // Select first setup as calculation default if none selected or refreshed
+          if (!selectedCalcSetup || refreshCounter > 0) {
+            setSelectedCalcSetup(data[0]);
+            const calcPriceVal = data[0].lastPrice ?? 100;
+            const calcSLVal = data[0].stopLoss ?? (calcPriceVal * 0.95);
+            setCalculatorCustomPrice(calcPriceVal.toFixed(2));
+            const dynamicSLPct = ((calcPriceVal - calcSLVal) / calcPriceVal * 100);
+            setCalculatorCustomSLPct(Math.max(1, Number((dynamicSLPct || 3.5).toFixed(1))).toString());
+          }
+        }
+      } catch (err: any) {
+        if (err.name === 'AbortError') return;
+        console.warn('Dashboard swing setups sync issues:', err.message || err);
+        setSwingSetupsError(err.message || String(err));
+        setCongestionNotice(true);
+      } finally {
+        setSwingSetupsLoading(false);
+      }
+    }
+    load();
+    return () => controller.abort();
+  }, [refreshCounter]);
+
+  // 5. Morning Briefing loader (Protected, slow, loaded independently via authFetch + retry)
+  useEffect(() => {
+    if (!user) return;
+    const controller = new AbortController();
+    async function load() {
+      setMorningBriefingLoading(true);
+      setMorningBriefingError(null);
+      try {
+        const data = await authFetch('/api/gemini/morning-briefing?asset=NIFTY', controller.signal);
+        setMorningBriefing(data);
+      } catch (err: any) {
+        if (err.name === 'AbortError') return;
+        console.warn('Morning briefing async issues:', err.message || err);
+        setMorningBriefingError(err.message || String(err));
+      } finally {
+        setMorningBriefingLoading(false);
+      }
+    }
+    load();
+    return () => controller.abort();
+  }, [user, refreshCounter]);
+
+  // 6. FII/DII Activities loader (loaded independently, isolated state)
+  useEffect(() => {
+    const controller = new AbortController();
+    async function load() {
+      setFiidiiLoading(true);
+      setFiidiiError(null);
+      try {
+        await fetchWithRetry('/api/flows/fiidii', controller.signal);
+      } catch (err: any) {
+        if (err.name === 'AbortError') return;
+        console.warn('Dashboard FII/DII sync issues:', err.message || err);
+        setFiidiiError(err.message || String(err));
+      } finally {
+        setFiidiiLoading(false);
+      }
+    }
+    load();
+    return () => controller.abort();
+  }, [refreshCounter]);
+
+  // Auto-sync notifications on updates
+  useEffect(() => {
+    if (generateAlertForInterestedSymbols && predictions.length > 0 && assets.length > 0 && !predictionsLoading && !assetsLoading) {
+      generateAlertForInterestedSymbols(predictions, assets).catch(() => {});
+    }
+  }, [predictions, assets, predictionsLoading, assetsLoading, generateAlertForInterestedSymbols]);
+
+  // 5 Minutes passive auto-sync
+  useEffect(() => {
     const interval = setInterval(() => {
       loadData(true);
     }, 5 * 60 * 1000);
@@ -263,31 +338,6 @@ export function Dashboard() {
     return (found && found.last_price !== null && found.last_price !== undefined) ? Number(found.last_price) : null;
   };
 
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
-        <RefreshCw size={36} className="text-[#D4A843] animate-spin" />
-        <p className="font-data text-xs text-[#8892A4] animate-pulse uppercase tracking-widest">Loading Workspace Data...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[45vh] max-w-md mx-auto p-8 rounded-2xl bg-[#0D1018] border border-[#E05252]/20 shadow-xl">
-        <AlertCircle size={44} className="text-[#E05252] mb-3" />
-        <h3 className="text-sm font-data text-white mb-2 uppercase tracking-wider">Feeds Offline</h3>
-        <p className="text-[#8892A4] text-xs text-center font-body mb-5">{error}</p>
-        <button 
-          onClick={() => loadData()}
-          className="px-4 py-2 bg-[#E05252]/10 text-[#E05252] border border-[#E05252]/30 rounded-lg hover:bg-[#E05252]/20 transition-all font-data text-[11px] tracking-wider uppercase"
-        >
-          Reconnect Feed
-        </button>
-      </div>
-    );
-  }
-
   const formatCompactRupee = (value: number) => {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
@@ -300,6 +350,8 @@ export function Dashboard() {
   const averageConfidence = predictions.length > 0
     ? (predictions.reduce((acc, p) => acc + p.confidence, 0) / predictions.length * 100).toFixed(0)
     : '88';
+
+  const refreshing = predictionsLoading || assetsLoading || swingSetupsLoading || macroLoading;
 
   const renderMacroItem = (
     label: string, 
@@ -420,7 +472,7 @@ export function Dashboard() {
           </div>
 
           <button 
-            onClick={() => loadData(true)} 
+            onClick={() => loadData(false)} 
             disabled={refreshing}
             className="flex items-center gap-2 px-4 py-2.5 bg-[rgba(255,255,255,0.032)] hover:bg-[rgba(255,255,255,0.065)] text-[#E8C070] rounded-xl border border-[#D4A843]/20 text-[11px] font-data tracking-wide uppercase transition-all shrink-0 cursor-pointer"
           >
@@ -429,9 +481,8 @@ export function Dashboard() {
           </button>
         </div>
 
-        {/* Quick Stats Grid Row: 4 Glass Cards */}
+        {/* Quick Stats Grid Row */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6 pt-5 border-t border-[rgba(255,255,255,0.04)]">
-          {/* Card 1: Today's setups */}
           <div className="p-4 bg-white/[0.01] border border-white/[0.03] rounded-xl">
             <span className="font-data text-[9px] text-[#4A5568] uppercase block tracking-wider font-semibold">Tracked Setups</span>
             <span className="font-data text-2xl font-bold text-[#D4A843] mt-1.5 block">
@@ -440,7 +491,6 @@ export function Dashboard() {
             <span className="text-[10px] text-[#8892A4] mt-1 block font-body">Consensus evaluated</span>
           </div>
 
-          {/* Card 2: Capital at risk */}
           <div className="p-4 bg-white/[0.01] border border-white/[0.03] rounded-xl">
             <span className="font-data text-[9px] text-[#4A5568] uppercase block tracking-wider font-semibold">Max trade Risk</span>
             <span className="font-data text-2xl font-bold text-[#E05252] mt-1.5 block">
@@ -449,7 +499,6 @@ export function Dashboard() {
             <span className="text-[10px] text-[#8892A4] mt-1 block font-body">Cap @ risk ({calcRiskPct}%)</span>
           </div>
 
-          {/* Card 3: System accuracy */}
           <div className="p-4 bg-white/[0.01] border border-white/[0.03] rounded-xl">
             <span className="font-data text-[9px] text-[#4A5568] uppercase block tracking-wider font-semibold">Calculated Capital</span>
             <span className="font-data text-2xl font-bold text-[#F0F4FF] mt-1.5 block">
@@ -458,7 +507,6 @@ export function Dashboard() {
             <span className="text-[10px] text-[#8892A4] mt-1 block font-body">Assumed liquidity pool</span>
           </div>
 
-          {/* Card 4: Watchlist */}
           <div className="p-4 bg-white/[0.01] border border-white/[0.03] rounded-xl">
             <span className="font-data text-[9px] text-[#4A5568] uppercase block tracking-wider font-semibold">Accurate Conviction</span>
             <span className="font-data text-2xl font-bold text-[#34A77A] mt-1.5 block">
@@ -469,9 +517,9 @@ export function Dashboard() {
         </div>
       </div>
 
-      {/* SWING SCANNER + calculator side-by-side (Zone 2 Glassmorphism) */}
+      {/* SWING SCANNER + calculator side-by-side */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-        {/* Setups List: 7 Columns */}
+        {/* Setups List */}
         <div className="lg:col-span-7 glass-card p-5 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between border-b border-[rgba(255,255,255,0.04)] pb-3.5 mb-4">
@@ -487,81 +535,86 @@ export function Dashboard() {
               </span>
             </div>
 
-            <div className="space-y-2.5">
-              {swingSetups.slice(0, 5).map((setup, idx) => {
-                const isSelected = selectedCalcSetup?.symbol === setup.symbol;
-                const activePriceVal = setup.lastPrice ?? 100;
-                const activeSLVal = setup.stopLoss ?? (activePriceVal * 0.95);
-                const slPct = ((activePriceVal - activeSLVal) / activePriceVal * 100);
+            {swingSetupsLoading ? (
+              <SectionSkeleton />
+            ) : swingSetupsError && swingSetups.length === 0 ? (
+              <SectionError message="Active swing setups temporarily unavailable" />
+            ) : (
+              <div className="space-y-2.5">
+                {swingSetups.slice(0, 5).map((setup, idx) => {
+                  const isSelected = selectedCalcSetup?.symbol === setup.symbol;
+                  const activePriceVal = setup.lastPrice ?? 100;
+                  const activeSLVal = setup.stopLoss ?? (activePriceVal * 0.95);
+                  const slPct = ((activePriceVal - activeSLVal) / activePriceVal * 100);
 
-                return (
-                  <div 
-                    key={setup.symbol}
-                    onClick={() => {
-                      setSelectedCalcSetup(setup);
-                      setCalculatorCustomPrice(activePriceVal.toFixed(2));
-                      setCalculatorCustomSLPct(Math.max(1, Number((slPct || 3.5).toFixed(1))).toString());
-                    }}
-                    className={`p-3.5 rounded-xl border transition-all duration-150 cursor-pointer flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 ${
-                      isSelected 
-                        ? 'bg-white/[0.04] border-[#D4A843]/50 shadow-md shadow-[#D4A843]/5' 
-                        : 'bg-transparent border-[rgba(255,255,255,0.05)] hover:border-[rgba(255,255,255,0.1)] hover:bg-white/[0.02]'
-                    }`}
-                  >
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] font-data text-[#4A5568]">#{idx + 1}</span>
-                        <h4 className="font-display font-semibold text-xs tracking-wide text-white">{setup.tickerName}</h4>
-                        <span className="text-[8px] px-1 py-0.1 bg-[#D4A843]/10 text-[#E8C070] border border-[#D4A843]/20 rounded font-data">
-                          SCORE {setup.setupScore}
-                        </span>
+                  return (
+                    <div 
+                      key={setup.symbol}
+                      onClick={() => {
+                        setSelectedCalcSetup(setup);
+                        setCalculatorCustomPrice(activePriceVal.toFixed(2));
+                        setCalculatorCustomSLPct(Math.max(1, Number((slPct || 3.5).toFixed(1))).toString());
+                      }}
+                      className={`p-3.5 rounded-xl border transition-all duration-150 cursor-pointer flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 ${
+                        isSelected 
+                          ? 'bg-white/[0.04] border-[#D4A843]/50 shadow-md shadow-[#D4A843]/5' 
+                          : 'bg-transparent border-[rgba(255,255,255,0.05)] hover:border-[rgba(255,255,255,0.1)] hover:bg-white/[0.02]'
+                      }`}
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] font-data text-[#4A5568]">#{idx + 1}</span>
+                          <h4 className="font-display font-semibold text-xs tracking-wide text-white">{setup.tickerName}</h4>
+                          <span className="text-[8px] px-1 py-0.1 bg-[#D4A843]/10 text-[#E8C070] border border-[#D4A843]/20 rounded font-data">
+                            SCORE {setup.setupScore}
+                          </span>
+                        </div>
+                        
+                        <div className="flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-[#8892A4] font-data">
+                          <span>RSI <strong className="text-white">{setup.rsi?.toFixed(1) || '35.0'}</strong></span>
+                          <span>ADX <strong className="text-white">{setup.adx?.toFixed(1) || '24.1'}</strong></span>
+                          <span>Vol <strong className="text-white">{setup.volumeRatio?.toFixed(1) || '2.1'}x</strong></span>
+                          <span className={setup.isSqueezed ? 'text-[#D4A843] font-bold' : 'text-[#4A5568]'}>
+                            {setup.isSqueezed ? '★ Squeeze' : 'Normal BB'}
+                          </span>
+                        </div>
                       </div>
-                      
-                      <div className="flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-[#8892A4] font-data">
-                        <span>RSI <strong className="text-white">{setup.rsi?.toFixed(1) || '35.0'}</strong></span>
-                        <span>ADX <strong className="text-white">{setup.adx?.toFixed(1) || '24.1'}</strong></span>
-                        <span>Vol <strong className="text-white">{setup.volumeRatio?.toFixed(1) || '2.1'}x</strong></span>
-                        <span className={setup.isSqueezed ? 'text-[#D4A843] font-bold' : 'text-[#4A5568]'}>
-                          {setup.isSqueezed ? '★ Squeeze' : 'Normal BB'}
-                        </span>
+
+                      <div className="flex items-center justify-between sm:justify-end gap-3.5 w-full sm:w-auto border-t sm:border-t-0 border-[rgba(255,255,255,0.04)] pt-2 sm:pt-0">
+                        <div className="text-left sm:text-right">
+                          <span className="text-[8.5px] text-[#4A5568] font-data block uppercase">LAST</span>
+                          <span className="text-xs font-data font-bold text-white">₹{setup.lastPrice?.toFixed(2)}</span>
+                        </div>
+                        <Link 
+                          to={`/asset/${setup.symbol}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="p-1 px-2.5 bg-[#0D1018] hover:bg-white/[0.04] text-[#8892A4] hover:text-white rounded border border-[rgba(255,255,255,0.08)] text-[9.5px] font-data tracking-wider uppercase transition-all"
+                        >
+                          Analyze &rarr;
+                        </Link>
                       </div>
                     </div>
+                  );
+                })}
 
-                    <div className="flex items-center justify-between sm:justify-end gap-3.5 w-full sm:w-auto border-t sm:border-t-0 border-[rgba(255,255,255,0.04)] pt-2 sm:pt-0">
-                      <div className="text-left sm:text-right">
-                        <span className="text-[8.5px] text-[#4A5568] font-data block uppercase">LAST</span>
-                        <span className="text-xs font-data font-bold text-white">₹{setup.lastPrice?.toFixed(2)}</span>
-                      </div>
-                      <Link 
-                        to={`/asset/${setup.symbol}`}
-                        onClick={(e) => e.stopPropagation()}
-                        className="p-1 px-2.5 bg-[#0D1018] hover:bg-white/[0.04] text-[#8892A4] hover:text-white rounded border border-[rgba(255,255,255,0.08)] text-[9.5px] font-data tracking-wider uppercase transition-all"
-                      >
-                        Analyze &rarr;
-                      </Link>
-                    </div>
+                {swingSetups.length === 0 && (
+                  <div className="text-center py-10 font-data text-[11px] text-[#4A5568] uppercase tracking-wider">
+                    No active swing setups found — scanner refreshes every session.
                   </div>
-                );
-              })}
-
-              {swingSetups.length === 0 && (
-                <div className="text-center py-10 font-data text-[11px] text-[#4A5568] uppercase tracking-wider">
-                  No automated setups synchronized.
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Dynamic Risk Sizer Panel: 5 Columns */}
-        <div id="risk-sizer-panel" className={`lg:col-span-5 glass-card p-5 flex flex-col justify-between transition-all duration-305 ${selectedCalcSetup ? 'ring-2 ring-[#D4A843]/40 bg-white/[0.015]' : ''}`}>
+        {/* Dynamic Risk Sizer Panel */}
+        <div id="risk-sizer-panel" className={`lg:col-span-5 glass-card p-5 flex flex-col justify-between transition-all duration-350 ${selectedCalcSetup ? 'ring-2 ring-[#D4A843]/40 bg-white/[0.015]' : ''}`}>
           <div className="space-y-4">
             <div className="border-b border-[rgba(255,255,255,0.04)] pb-3">
               <span className="text-[10px] font-data text-[#D4A843] tracking-widest uppercase block">ATR POSITION SIZER</span>
               <h3 className="font-display font-medium text-xs text-[#8892A4] mt-0.5">Downside Exposure Safeguards</h3>
             </div>
 
-            {/* Presets Row */}
             <div className="space-y-3.5">
               <div>
                 <label className="text-[9.5px] text-[#8892A4] font-data tracking-wider uppercase block mb-1">Trade Capital Pool (INR)</label>
@@ -573,7 +626,6 @@ export function Dashboard() {
                   placeholder="Allocate overall size..."
                 />
                 
-                {/* Dynamically functional Capital Presets Buttons */}
                 <div className="flex gap-1.5 mt-1.5">
                   {[10000, 25000, 50000, 100000].map(amt => (
                     <button
@@ -682,92 +734,97 @@ export function Dashboard() {
         </div>
       </div>
 
-      {/* ETF PREVIEW SECTION (Refined Gold Glasscards) */}
+      {/* ETF PREVIEW SECTION */}
       <section className="space-y-4">
         <div className="flex items-center gap-2">
           <Coins className="text-[#D4A843]" size={15} />
           <h3 className="font-display font-medium text-base text-[#F0F4FF] tracking-tight">Consensus ETFs</h3>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {etfPredictions.map(pred => {
-            const isGold = pred.symbol.toUpperCase().includes('GOLD');
-            const goldColorStyle = isGold 
-              ? 'border-[#D4A843]/30 shadow-[#D4A843]/5' 
-              : 'border-[rgba(255,255,255,0.08)]';
-            const price = getPrice(pred.symbol);
+        {predictionsLoading || assetsLoading ? (
+          <SectionSkeleton />
+        ) : predictionsError && predictions.length === 0 ? (
+          <SectionError message="Consensus predictions temporarily unavailable" />
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {etfPredictions.map(pred => {
+              const isGold = pred.symbol.toUpperCase().includes('GOLD');
+              const goldColorStyle = isGold 
+                ? 'border-[#D4A843]/30 shadow-[#D4A843]/5' 
+                : 'border-[rgba(255,255,255,0.08)]';
+              const price = getPrice(pred.symbol);
+              const isSelected = selectedCalcSetup?.symbol === pred.symbol;
 
-            const isSelected = selectedCalcSetup?.symbol === pred.symbol;
-
-            return (
-              <div 
-                key={pred.symbol} 
-                onClick={() => handleAssetClick(pred.symbol, price || 100, 3.5)}
-                className={`glass-card p-6 flex flex-col justify-between relative overflow-hidden h-full cursor-pointer transition-all duration-300 ${goldColorStyle} ${
-                  isSelected 
-                    ? 'ring-2 ring-[#D4A843]/60 bg-white/[0.04] shadow-md shadow-[#D4A843]/5' 
-                    : ''
-                }`}
-              >
-                <div>
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <span className="text-[9px] font-data uppercase border border-[rgba(255,255,255,0.06)] bg-white/[0.02] px-2 py-0.5 rounded text-[#8892A4]">
-                        NIPPON ETF index
-                      </span>
-                      <h4 className="text-xl font-display font-semibold tracking-wide text-white mt-2">
-                        {pred.symbol.split('.')[0]}
-                      </h4>
-                      <p className="text-[11px] text-[#8892A4] mt-0.5 font-body">
-                        {isGold ? 'Nippon India Gold Exchange Traded Fund' : 'Nippon India Silver Exchange Traded Fund'}
-                      </p>
+              return (
+                <div 
+                  key={pred.symbol} 
+                  onClick={() => handleAssetClick(pred.symbol, price || 100, 3.5)}
+                  className={`glass-card p-6 flex flex-col justify-between relative overflow-hidden h-full cursor-pointer transition-all duration-300 ${goldColorStyle} ${
+                    isSelected 
+                      ? 'ring-2 ring-[#D4A843]/60 bg-white/[0.04] shadow-md shadow-[#D4A843]/5' 
+                      : ''
+                  }`}
+                >
+                  <div>
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <span className="text-[9px] font-data uppercase border border-[rgba(255,255,255,0.06)] bg-white/[0.02] px-2 py-0.5 rounded text-[#8892A4]">
+                          NIPPON ETF index
+                        </span>
+                        <h4 className="text-xl font-display font-semibold tracking-wide text-white mt-2">
+                          {pred.symbol.split('.')[0]}
+                        </h4>
+                        <p className="text-[11px] text-[#8892A4] mt-0.5 font-body">
+                          {isGold ? 'Nippon India Gold Exchange Traded Fund' : 'Nippon India Silver Exchange Traded Fund'}
+                        </p>
+                      </div>
+                      <SignalBadge signal={pred.signal} size="sm" />
                     </div>
-                    <SignalBadge signal={pred.signal} size="sm" />
+
+                    {typeof price === 'number' && !isNaN(price) && (
+                      <div className="mb-4">
+                        <span className="text-[9px] text-[#4A5568] font-data block">LAST REFRESH</span>
+                        <span className="text-2xl font-data text-white font-bold">₹{price.toFixed(2)}</span>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 py-4 border-t border-[rgba(255,255,255,0.04)]">
+                      <div>
+                        <ConfidenceBar confidence={pred.confidence * 100} label="System Consensus Accuracy" />
+                      </div>
+                      <div className="text-left">
+                        <div className="text-[9.5px] text-[#4A5568] font-data tracking-wider uppercase mb-1.5">Algorithmic Rationale</div>
+                        <ul className="space-y-1">
+                          {pred.key_reasons.slice(0, 2).map((reason, i) => (
+                            <li key={i} className="text-[11px] text-[#8892A4] leading-normal flex items-start gap-1 font-body">
+                              <span className="text-[#D4A843]">•</span>
+                              <span className="line-clamp-2">{reason}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
                   </div>
 
-                  {typeof price === 'number' && !isNaN(price) && (
-                    <div className="mb-4">
-                      <span className="text-[9px] text-[#4A5568] font-data block">LAST REFRESH</span>
-                      <span className="text-2xl font-data text-white font-bold">₹{price.toFixed(2)}</span>
+                  <div className="flex items-center justify-between pt-3.5 border-t border-[rgba(255,255,255,0.04)] mt-4">
+                    <div className="text-[10px] text-[#4A5568] font-data">
+                      TIMELINE: <span className="text-slate-300 font-bold">{pred.timeframe}</span>
                     </div>
-                  )}
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 py-4 border-t border-[rgba(255,255,255,0.04)]">
-                    <div>
-                      <ConfidenceBar confidence={pred.confidence * 100} label="System Consensus Accuracy" />
-                    </div>
-                    <div className="text-left">
-                      <div className="text-[9.5px] text-[#4A5568] font-data tracking-wider uppercase mb-1.5">Algorithmic Rationale</div>
-                      <ul className="space-y-1">
-                        {pred.key_reasons.slice(0, 2).map((reason, i) => (
-                          <li key={i} className="text-[11px] text-[#8892A4] leading-normal flex items-start gap-1 font-body">
-                            <span className="text-[#D4A843]">•</span>
-                            <span className="line-clamp-2">{reason}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                    <Link 
+                      to={`/asset/${pred.symbol}`}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#0D1018] hover:bg-white/[0.04] text-[#8892A4] hover:text-white rounded border border-[rgba(255,255,255,0.08)] text-[10px] font-data tracking-wider uppercase transition-all"
+                    >
+                      VIEW INSIGHTS
+                    </Link>
                   </div>
                 </div>
-
-                <div className="flex items-center justify-between pt-3.5 border-t border-[rgba(255,255,255,0.04)] mt-4">
-                  <div className="text-[10px] text-[#4A5568] font-data">
-                    TIMELINE: <span className="text-slate-300 font-bold">{pred.timeframe}</span>
-                  </div>
-                  <Link 
-                    to={`/asset/${pred.symbol}`}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#0D1018] hover:bg-white/[0.04] text-[#8892A4] hover:text-white rounded border border-[rgba(255,255,255,0.08)] text-[10px] font-data tracking-wider uppercase transition-all"
-                  >
-                    VIEW INSIGHTS
-                  </Link>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </section>
 
-      {/* TRACKED EQUITIES (Zone 2 Refined glass cards with sector tags) */}
+      {/* TRACKED EQUITIES */}
       <section className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[rgba(255,255,255,0.04)] pb-3">
           <div className="flex items-center gap-2">
@@ -775,7 +832,6 @@ export function Dashboard() {
             <h3 className="font-display font-medium text-base text-[#F0F4FF] tracking-tight">Automated Equity scanner</h3>
           </div>
 
-          {/* Sizing Tabs */}
           <div className="flex items-center gap-1 bg-white/[0.01] p-1 rounded-xl border border-white/[0.04] self-start sm:self-auto font-data text-[10px]">
             <button
               onClick={() => setSelectedStockTab('ALL')}
@@ -810,7 +866,11 @@ export function Dashboard() {
           </div>
         </div>
         
-        {stockPredictions.length === 0 ? (
+        {predictionsLoading || assetsLoading ? (
+          <SectionSkeleton />
+        ) : predictionsError && predictions.length === 0 ? (
+          <SectionError message="Stock predictions temporarily unavailable" />
+        ) : stockPredictions.length === 0 ? (
           <div className="text-center py-10 glass-card">
             <p className="text-[#8892A4] text-xs font-data uppercase">No active setups compiled in this scanner segment yet.</p>
           </div>
@@ -819,7 +879,6 @@ export function Dashboard() {
             {stockPredictions.map(pred => {
               const price = getPrice(pred.symbol);
               const info = getStockInfo(pred.symbol);
-              
               const isSelected = selectedCalcSetup?.symbol === pred.symbol;
 
               return (
@@ -884,8 +943,16 @@ export function Dashboard() {
         )}
       </section>
 
-      {/* ZONE 3: REFINED DARK SYSTEM DATAGRID - MACRO INDICATORS */}
-      {macro && (
+      {/* MACRO INDICATORS */}
+      {macroLoading ? (
+        <section className="bg-[#0D1018] border border-[rgba(255,255,255,0.05)] rounded-2xl p-6 shadow-2xl relative overflow-hidden">
+          <SectionSkeleton />
+        </section>
+      ) : macroError && !macro ? (
+        <section className="bg-[#0D1018] border border-[rgba(255,255,255,0.05)] rounded-2xl p-6 shadow-2xl relative overflow-hidden">
+          <SectionError message="Macro indicators temporarily unavailable" />
+        </section>
+      ) : macro && (
         <section className="bg-[#0D1018] border border-[rgba(255,255,255,0.05)] rounded-2xl p-6 shadow-2xl relative overflow-hidden">
           <div className="flex items-center gap-2 border-b border-[rgba(255,255,255,0.04)] pb-4 mb-5">
             <Globe className="text-[#D4A843]" size={15} />

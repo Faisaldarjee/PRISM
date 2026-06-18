@@ -9,6 +9,10 @@ import * as dotenv from 'dotenv';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import { spawn } from 'child_process';
 import cron from 'node-cron';
+import { getAuth } from 'firebase-admin/auth';
+import { initializeFirebaseAdmin } from './src/services/firebaseAdminHelper';
+import rateLimit from 'express-rate-limit';
+import compression from 'compression';
 
 import fs from 'fs';
 import { scanNifty500ForSwingSetups, getCachedSwingSetups, isCacheValid } from './src/services/bulkScanner';
@@ -46,8 +50,30 @@ import { canCallGemini, trackGeminiCall, getGeminiUsageCount, isGeminiSuspended 
 // Load env vars
 dotenv.config();
 
+async function checkAuth(req: any, res: any, next: any) {
+  try {
+    initializeFirebaseAdmin();
+  } catch (err: any) {
+    console.error('[checkAuth] Firebase admin initialization failed:', err.message);
+  }
+  
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Authentication required.' });
+  }
+  try {
+    const token = authHeader.split('Bearer ')[1];
+    const decoded = await getAuth().verifyIdToken(token);
+    req.user = decoded;
+    next();
+  } catch {
+    return res.status(403).json({ error: 'Invalid or expired token.' });
+  }
+}
+
 async function startServer() {
   const app = express();
+  app.set('trust proxy', 1);
   const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
   // Run initial eager DB population in background
@@ -129,31 +155,64 @@ async function startServer() {
     timezone: 'Asia/Kolkata'
   });
 
+  // Gzip compression (FIX 5)
+  app.use(compression());
+
   // Basic security and logging
   app.use(helmet({
     contentSecurityPolicy: false, // Disable for Vite dev
   }));
 
-  // Local-friendly CORS config
+  // Rate Limiting (FIX 2)
+  const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: 'Too many requests, please try again later.' }
+  });
+
+  const strictLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 10,
+    message: { error: 'Rate limit exceeded for AI endpoints.' }
+  });
+
+  app.use('/api/', apiLimiter);
+  // Apply strict limiter to Gemini endpoints specifically
+  app.use('/api/gemini/', strictLimiter);
+
+  // CORS Lockdown (FIX 3)
   const allowedOrigins = [
-    'http://localhost:5173',
-    'http://localhost:3000',
+    'https://prismx.co.in',
+    'https://www.prismx.co.in',
     process.env.APP_URL
   ].filter(Boolean) as string[];
 
   app.use(cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin or in development mode
-      if (!origin || process.env.NODE_ENV !== 'production' || allowedOrigins.includes(origin)) {
-        return callback(null, true);
+      if (!origin || 
+          allowedOrigins.includes(origin) || 
+          process.env.NODE_ENV !== 'production') {
+        callback(null, true);
+      } else {
+        callback(new Error('Blocked by CORS policy'));
       }
-      return callback(null, true); // Permissive for flexibility
     },
     credentials: true
   }));
 
   app.use(morgan('dev'));
   app.use(express.json());
+
+  // Health endpoint (FIX 4)
+  app.get('/api/health', (req, res) => {
+    res.json({ 
+      status: 'ok', 
+      timestamp: new Date().toISOString(),
+      version: process.env.npm_package_version || '1.0.0'
+    });
+  });
 
   // Helper to safely strip quotes from env variables (which are sometimes injected with literal quotes)
   const cleanEnvVal = (val: string | undefined): string => {
@@ -514,7 +573,7 @@ async function startServer() {
     }
   });
 
-  app.get('/api/predict-all', async (req, res) => {
+  app.get('/api/predict-all', checkAuth, async (req, res) => {
     try {
       const predictions = await getAllPredictionsSuite();
       res.json(predictions);
@@ -524,7 +583,7 @@ async function startServer() {
     }
   });
 
-  app.get('/api/predict/:symbol', async (req, res) => {
+  app.get('/api/predict/:symbol', checkAuth, async (req, res) => {
     try {
       const forceRefresh = req.query.refresh === 'true';
       const prediction = await compilePrediction(req.params.symbol, forceRefresh);
@@ -766,53 +825,57 @@ async function startServer() {
       }
 
       const symbols = await getTopStocksFromSector(sectorKey, 5);
-      const setups: any[] = [];
 
-      for (const sym of symbols) {
+      const stockJobs = symbols.map(async (sym) => {
         try {
           const prediction = await compilePrediction(sym);
           const prices = await getPricesHistory(sym, 100);
-          if (prices.length < 30) continue;
-
+          if (prices.length < 30) return null;
           const technicals = TechnicalAgent.analyze(prices);
-          const lastCandle = prices[prices.length - 1];
-          const prevCandle = prices[prices.length - 2];
-          const changePercent = prevCandle ? ((lastCandle.close - prevCandle.close) / prevCandle.close) * 100 : 0;
-
-          setups.push({
-            symbol: sym,
-            tickerName: sym.replace('.NS', ''),
-            rsi: Math.round(technicals.rsi),
-            adx: Math.round(technicals.adx),
-            atr: technicals.atr,
-            volumeRatio: technicals.volumeRatio,
-            isSqueezed: technicals.bbSqueeze?.isSqueezed || false,
-            bbWidth: technicals.bbSqueeze?.width || 0.05,
-            volumeConfirmed: technicals.volumeConfirmed,
-            score: prediction.confidence,
-            setupScore: prediction.confidence,
-            lastPrice: lastCandle.close,
-            changePercent,
-            stopLoss: prediction.trade_plan?.stop_loss || prediction.stop_loss,
-            target1: prediction.trade_plan?.target_1 || prediction.target_price,
-            target2: prediction.trade_plan?.target_2 || (prediction.target_price * 1.05),
-            trade_plan: prediction.trade_plan,
-            detected_patterns: prediction.detected_patterns || [],
-            markers: prediction.markers || [],
-            hold_time_recommendation: prediction.hold_time_recommendation,
-            sector: sectorDef.name,
-            signal: prediction.signal || 'HOLD',
-            support_levels: prediction.support_levels || [],
-            resistance_levels: prediction.resistance_levels || [],
-            supportLevels: prediction.support_levels || [],
-            resistanceLevels: prediction.resistance_levels || [],
-            patterns: prediction.detected_patterns || [],
-            intelligenceContext: prediction.intelligenceContext
-          });
-        } catch (e: any) {
-          console.error(`Error processing stock ${sym} in sector ${sectorKey}:`, e);
+          return { symbol: sym, prediction, prices, technicals };
+        } catch (e) {
+          return null;
         }
-      }
+      });
+      const results = (await Promise.all(stockJobs)).filter(Boolean) as any[];
+
+      const setups = results.map((item: any) => {
+        const { symbol: sym, prediction, prices, technicals } = item;
+        const lastCandle = prices[prices.length - 1];
+        const prevCandle = prices[prices.length - 2];
+        const changePercent = prevCandle ? ((lastCandle.close - prevCandle.close) / prevCandle.close) * 100 : 0;
+
+        return {
+          symbol: sym,
+          tickerName: sym.replace('.NS', ''),
+          rsi: Math.round(technicals.rsi),
+          adx: Math.round(technicals.adx),
+          atr: technicals.atr,
+          volumeRatio: technicals.volumeRatio,
+          isSqueezed: technicals.bbSqueeze?.isSqueezed || false,
+          bbWidth: technicals.bbSqueeze?.width || 0.05,
+          volumeConfirmed: technicals.volumeConfirmed,
+          score: prediction.confidence,
+          setupScore: prediction.confidence,
+          lastPrice: lastCandle.close,
+          changePercent,
+          stopLoss: prediction.trade_plan?.stop_loss || prediction.stop_loss,
+          target1: prediction.trade_plan?.target_1 || prediction.target_price,
+          target2: prediction.trade_plan?.target_2 || (prediction.target_price * 1.05),
+          trade_plan: prediction.trade_plan,
+          detected_patterns: prediction.detected_patterns || [],
+          markers: prediction.markers || [],
+          hold_time_recommendation: prediction.hold_time_recommendation,
+          sector: sectorDef.name,
+          signal: prediction.signal || 'HOLD',
+          support_levels: prediction.support_levels || [],
+          resistance_levels: prediction.resistance_levels || [],
+          supportLevels: prediction.support_levels || [],
+          resistanceLevels: prediction.resistance_levels || [],
+          patterns: prediction.detected_patterns || [],
+          intelligenceContext: prediction.intelligenceContext
+        };
+      });
 
       res.json(setups);
     } catch (error: any) {
@@ -927,7 +990,7 @@ async function startServer() {
   });
 
   // GEMINI POWERED ENDPOINTS
-  app.get('/api/gemini/morning-briefing', async (req, res) => {
+  app.get('/api/gemini/morning-briefing', checkAuth, async (req, res) => {
     try {
       const asset = (req.query.asset as string) || 'GOLDBEES.NS';
       const brief = await getGeminiMorningBriefing(asset);
@@ -938,7 +1001,7 @@ async function startServer() {
     }
   });
 
-  app.get('/api/gemini/swing-card/:symbol', async (req, res) => {
+  app.get('/api/gemini/swing-card/:symbol', checkAuth, async (req, res) => {
     try {
       const card = await getGeminiSwingCard(req.params.symbol);
       res.json(card);
@@ -948,7 +1011,7 @@ async function startServer() {
     }
   });
 
-  app.get('/api/gemini/explain-signal', async (req, res) => {
+  app.get('/api/gemini/explain-signal', checkAuth, async (req, res) => {
     try {
       const symbol = (req.query.symbol as string) || 'GOLDBEES.NS';
       const signal = (req.query.signal as string) || 'HOLD';
@@ -960,7 +1023,7 @@ async function startServer() {
     }
   });
 
-  app.get('/api/gemini/weekly-report', async (req, res) => {
+  app.get('/api/gemini/weekly-report', checkAuth, async (req, res) => {
     try {
       const report = await getGeminiWeeklyReportPlan();
       res.json(report);
@@ -980,7 +1043,7 @@ async function startServer() {
     }
   });
 
-  app.post('/api/retrain/:symbol', async (req, res) => {
+  app.post('/api/retrain/:symbol', checkAuth, async (req, res) => {
     try {
       res.json({
         status: "started",

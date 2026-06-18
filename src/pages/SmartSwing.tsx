@@ -1,6 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { LiveChart } from '../components/charts/LiveChart';
 import { 
+  fetchWithRetry, 
+  SectionSkeleton, 
+  SectionError 
+} from '../utils/apiHelpers';
+import { 
   Cpu, 
   Clock, 
   Target, 
@@ -120,6 +125,10 @@ export function SmartSwing() {
   const [watchlist, setWatchlist] = useState<Record<string, boolean>>({});
   const [lastSharedStock, setLastSharedStock] = useState<string | null>(null);
 
+  // AbortController refs to avoid race conditions
+  const sectorsControllerRef = useRef<AbortController | null>(null);
+  const setupsControllerRef = useRef<AbortController | null>(null);
+
   // Scroll Helper
   const scrollToSection = (id: string) => {
     const el = document.getElementById(id);
@@ -128,17 +137,21 @@ export function SmartSwing() {
     }
   };
 
-  // Fetch Sectors Overview
+  // Fetch Sectors Overview independently
   const fetchSectors = async () => {
+    if (sectorsControllerRef.current) {
+      sectorsControllerRef.current.abort();
+    }
+    sectorsControllerRef.current = new AbortController();
+
     setLoadingSectors(true);
     setErrorSectors(null);
     try {
-      const res = await fetch('/api/sectors');
-      if (!res.ok) throw new Error('Failed to retrieve sectors data');
-      const data = await res.json();
+      const data = await fetchWithRetry('/api/sectors', sectorsControllerRef.current.signal);
       setSectors(data);
       setCachedTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
     } catch (err: any) {
+      if (err.name === 'AbortError') return;
       console.error(err);
       setErrorSectors(err.message || 'Error conducting sectors evaluation');
     } finally {
@@ -148,22 +161,25 @@ export function SmartSwing() {
 
   // Fetch Opportunities Setups (Filtered/Overall)
   const fetchOpportunities = async (sectorKey?: string) => {
+    if (setupsControllerRef.current) {
+      setupsControllerRef.current.abort();
+    }
+    setupsControllerRef.current = new AbortController();
+
     setLoadingSetups(true);
     setErrorSetups(null);
     try {
       const url = sectorKey ? `/api/sectors/${sectorKey}/stocks` : '/api/swing-scanner';
-      const res = await fetch(url);
-      if (!res.ok) throw new Error('Scanner failed to fetch swing candidate metrics');
-      const data = await res.json();
+      const data = await fetchWithRetry(url, setupsControllerRef.current.signal);
       setSetups(data);
 
-      // Auto-select first setup for immediate Deep Dive view if available
       if (data && data.length > 0) {
         setDeepDiveStock(data[0]);
       } else {
         setDeepDiveStock(null);
       }
     } catch (err: any) {
+      if (err.name === 'AbortError') return;
       console.error(err);
       setErrorSetups(err.message || 'Scanner was unable to complete stock processing');
     } finally {
@@ -171,16 +187,93 @@ export function SmartSwing() {
     }
   };
 
-  // On first mount, get sector list and overall opportunities
+  // Parallel fetching on refresh
+  const handleRefresh = async () => {
+    if (sectorsControllerRef.current) sectorsControllerRef.current.abort();
+    if (setupsControllerRef.current) setupsControllerRef.current.abort();
+
+    const secCtrl = new AbortController();
+    const setCtrl = new AbortController();
+    sectorsControllerRef.current = secCtrl;
+    setupsControllerRef.current = setCtrl;
+
+    setLoadingSectors(true);
+    setLoadingSetups(true);
+    setErrorSectors(null);
+    setErrorSetups(null);
+
+    try {
+      const url = selectedSector?.sector ? `/api/sectors/${selectedSector.sector}/stocks` : '/api/swing-scanner';
+      const [sectorsData, setupsData] = await Promise.all([
+        fetchWithRetry('/api/sectors', secCtrl.signal),
+        fetchWithRetry(url, setCtrl.signal)
+      ]);
+
+      setSectors(sectorsData);
+      setCachedTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+
+      setSetups(setupsData);
+      if (setupsData && setupsData.length > 0) {
+        setDeepDiveStock(setupsData[0]);
+      } else {
+        setDeepDiveStock(null);
+      }
+    } catch (err: any) {
+      if (err.name === 'AbortError') return;
+      console.error('Refresh parallel loading failed:', err);
+      setErrorSectors(err.message || 'Error conducting sectors evaluation');
+      setErrorSetups(err.message || 'Scanner was unable to complete stock processing');
+    } finally {
+      setLoadingSectors(false);
+      setLoadingSetups(false);
+    }
+  };
+
+  // Direct parallel bootstrap on Mount
   useEffect(() => {
-    fetchSectors();
-    fetchOpportunities();
+    const controller = new AbortController();
+    async function loadAll() {
+      setLoadingSectors(true);
+      setLoadingSetups(true);
+      setErrorSectors(null);
+      setErrorSetups(null);
+      try {
+        const [sectorsData, setupsData] = await Promise.all([
+          fetchWithRetry('/api/sectors', controller.signal),
+          fetchWithRetry('/api/swing-scanner', controller.signal)
+        ]);
+        
+        setSectors(sectorsData);
+        setCachedTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+        
+        setSetups(setupsData);
+        if (setupsData && setupsData.length > 0) {
+          setDeepDiveStock(setupsData[0]);
+        } else {
+          setDeepDiveStock(null);
+        }
+      } catch (err: any) {
+        if (err.name === 'AbortError') return;
+        console.error('Initial parallel load failed:', err);
+        setErrorSectors(err.message || 'Error conducting sectors evaluation');
+        setErrorSetups(err.message || 'Scanner was unable to complete stock processing');
+      } finally {
+        setLoadingSectors(false);
+        setLoadingSetups(false);
+      }
+    }
+    loadAll();
+    
+    return () => {
+      controller.abort();
+      if (sectorsControllerRef.current) sectorsControllerRef.current.abort();
+      if (setupsControllerRef.current) setupsControllerRef.current.abort();
+    };
   }, []);
 
   // Handle Sector Tile Click
   const handleSectorSelect = (sector: SectorMomentum) => {
     if (selectedSector?.sector === sector.sector) {
-      // Toggle / Reset filter when clicked again
       setSelectedSector(null);
       fetchOpportunities();
     } else {
@@ -261,10 +354,7 @@ export function SmartSwing() {
             </span>
           )}
           <button
-            onClick={() => {
-              fetchSectors();
-              fetchOpportunities(selectedSector?.sector);
-            }}
+            onClick={handleRefresh}
             id="refresh-swing-btn"
             className="flex items-center gap-2 px-3 py-1.5 bg-white/[0.02] border border-white/[0.06] text-xs font-data text-slate-300 rounded-xl hover:text-white hover:bg-white/[0.05] transition-all cursor-pointer"
           >
@@ -289,9 +379,7 @@ export function SmartSwing() {
         </div>
 
         {errorSectors && (
-          <div className="bg-rose-500/5 text-rose-400 border border-rose-500/20 p-4 rounded-xl text-xs font-mono leading-relaxed">
-            ⚠️ {errorSectors}. Double check database schema details or sync process in progress.
-          </div>
+          <SectionError message={`${errorSectors}. Double check database schema details or sync process in progress.`} />
         )}
 
         {loadingSectors ? (
@@ -417,9 +505,7 @@ export function SmartSwing() {
         </div>
 
         {errorSetups && (
-          <div className="bg-rose-500/5 text-rose-400 border border-rose-500/20 p-4 rounded-xl text-xs font-mono">
-            ⚠️ {errorSetups}. Please trigger a scan manually using the Scanner Refresh button in the header.
-          </div>
+          <SectionError message={`${errorSetups}. Please trigger a scan manually using the Scanner Refresh button in the header.`} />
         )}
 
         {loadingSetups ? (
@@ -444,7 +530,7 @@ export function SmartSwing() {
                 No active swing setups in {selectedSector ? selectedSector.name : 'the market'} right now.
               </p>
               <p className="text-[11.5px] text-gray-500 font-body leading-relaxed max-w-sm mt-1">
-                Prices may be consolidating inside extremely volatile bounds. Try selecting a different sector or checking back after next market scan.
+                Prices may be consolidating inside extremely volatile bounds. No active swing setups found — scanner refreshes every session.
               </p>
             </div>
             {selectedSector && (

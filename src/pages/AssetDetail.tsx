@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { getAuth } from 'firebase/auth';
 import { 
   getPrediction, 
   getHistory, 
@@ -74,6 +75,45 @@ const getSentimentColorStyle = (label: string | undefined | null) => {
   return 'bg-zinc-500/10 text-zinc-400 border border-zinc-500/20';
 };
 
+const API_BASE = window.location.port === '5173' ? 'http://localhost:3000' : '';
+
+async function authFetch(url: string, signal?: AbortSignal) {
+  const token = await getAuth().currentUser?.getIdToken();
+  return fetch(url, {
+    signal,
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  }).then(r => r.json());
+}
+
+async function fetchWithRetry(
+  url: string, 
+  signal: AbortSignal, 
+  retries = 2
+): Promise<any> {
+  for (let i = 0; i <= retries; i++) {
+    try {
+      const isProtected = url.includes('/api/predict') || url.includes('/api/gemini');
+      const token = isProtected ? await getAuth().currentUser?.getIdToken() : null;
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json'
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      const res = await fetch(url, { signal, headers });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return await res.json();
+    } catch (err: any) {
+      if (err.name === 'AbortError') throw err;
+      if (i === retries) throw err;
+      await new Promise(r => setTimeout(r, 1000 * (i + 1))); // 1s, 2s backoff
+    }
+  }
+}
+
 export function AssetDetail() {
   const { symbol } = useParams<{ symbol: string }>();
   const resolvedSymbol = symbol || 'GOLDBEES.NS';
@@ -94,6 +134,17 @@ export function AssetDetail() {
   const [retrainSuccess, setRetrainSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const [predictionLoading, setPredictionLoading] = useState(true);
+  const [predictionError, setPredictionError] = useState(false);
+  const [historyLoading, setHistoryLoading] = useState(true);
+  const [historyError, setHistoryError] = useState(false);
+  const [sentimentLoading, setSentimentLoading] = useState(true);
+  const [sentimentError, setSentimentError] = useState(false);
+  const [sipLoading, setSipLoading] = useState(false);
+  const [sipError, setSipError] = useState(false);
+  const [fundamentalsLoading, setFundamentalsLoading] = useState(true);
+  const [fundamentalsError, setFundamentalsError] = useState(false);
+
   const isNifty50 = resolvedSymbol.toUpperCase() === '^NSEI' || 
                     resolvedSymbol.toUpperCase() === 'NIFTY' || 
                     resolvedSymbol.toUpperCase() === 'NIFTY 50' ||
@@ -103,54 +154,148 @@ export function AssetDetail() {
                 resolvedSymbol.toUpperCase() === 'GOLDBEES.NS' || 
                 resolvedSymbol.toUpperCase() === 'SILVERBEES.NS';
 
+  const loadControllerRef = React.useRef<AbortController | null>(null);
+
   async function loadDetails(isRefresh = false) {
+    if (loadControllerRef.current) {
+      loadControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    loadControllerRef.current = controller;
+
     setLoading(true);
     setError(null);
     setRetrainSuccess(null);
+
+    setPredictionLoading(true);
+    setPredictionError(false);
+    setHistoryLoading(true);
+    setHistoryError(false);
+    setSentimentLoading(true);
+    setSentimentError(false);
+    setFundamentalsLoading(true);
+    setFundamentalsError(false);
+    setSipLoading(isEtf);
+    setSipError(false);
+
     try {
-      const [predData, histData, sentData, fundData] = await Promise.all([
-        getPrediction(resolvedSymbol, isRefresh),
-        getHistory(resolvedSymbol, 252),
-        getSentiment(resolvedSymbol),
-        getFundamentals(resolvedSymbol).catch(err => {
-          console.warn('Fundamentals omitted: ', err);
-          return null;
-        })
+      await Promise.all([
+        // 1. Prediction (With fetchWithRetry, supports refresh parameter, includes token)
+        (async () => {
+          try {
+            const data = await fetchWithRetry(`${API_BASE}/api/predict/${resolvedSymbol}?refresh=${isRefresh}`, controller.signal);
+            setPrediction(data);
+          } catch (err: any) {
+            if (err.name === 'AbortError') return;
+            console.error('Prediction fetch error:', err);
+            setPredictionError(true);
+            setError(err.message || 'Unified detail stream failed to fetch.');
+          } finally {
+            setPredictionLoading(false);
+          }
+        })(),
+
+        // 2. History
+        (async () => {
+          try {
+            const res = await fetch(`${API_BASE}/api/history/${resolvedSymbol}?limit=252`, { signal: controller.signal });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+            setHistory(data);
+          } catch (err: any) {
+            if (err.name === 'AbortError') return;
+            console.error('History fetch error:', err);
+            setHistoryError(true);
+            setError(err.message || 'Unified detail stream failed to fetch.');
+          } finally {
+            setHistoryLoading(false);
+          }
+        })(),
+
+        // 3. Sentiment
+        (async () => {
+          try {
+            const res = await fetch(`${API_BASE}/api/sentiment/${resolvedSymbol}`, { signal: controller.signal });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+            setSentiment(data);
+          } catch (err: any) {
+            if (err.name === 'AbortError') return;
+            console.error('Sentiment fetch error:', err);
+            setSentimentError(true);
+          } finally {
+            setSentimentLoading(false);
+          }
+        })(),
+
+        // 4. Fundamentals
+        (async () => {
+          try {
+            const res = await fetch(`${API_BASE}/api/fundamentals/${resolvedSymbol}`, { signal: controller.signal });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+            setFundamentals(data);
+          } catch (err: any) {
+            if (err.name === 'AbortError') return;
+            console.error('Fundamentals fetch error:', err);
+            setFundamentalsError(true);
+          } finally {
+            setFundamentalsLoading(false);
+          }
+        })(),
+
+        // 5. SIP (if ETF)
+        (async () => {
+          if (!isEtf) {
+            setSip(null);
+            setSipLoading(false);
+            return;
+          }
+          try {
+            const res = await fetch(`${API_BASE}/api/sip/${resolvedSymbol}`, { signal: controller.signal });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+            setSip(data);
+          } catch (err: any) {
+            if (err.name === 'AbortError') return;
+            console.error('SIP fetch error:', err);
+            setSipError(true);
+          } finally {
+            setSipLoading(false);
+          }
+        })()
       ]);
-
-      setPrediction(predData);
-      setHistory(histData);
-      setSentiment(sentData);
-      setFundamentals(fundData);
-
-      if (isEtf) {
-        try {
-          const sipData = await getSip(resolvedSymbol);
-          setSip(sipData);
-        } catch (sipError) {
-          console.warn('SIP metrics omitted:', sipError);
-          setSip(null);
-        }
-      } else {
-        setSip(null);
-      }
     } catch (e: any) {
       console.error('Error loading detail streams:', e);
-      setError(e.message || 'Unified detail stream failed to fetch.');
     } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => {
-    loadDetails();
+    loadDetails(false);
+    return () => {
+      if (loadControllerRef.current) {
+        loadControllerRef.current.abort();
+      }
+    };
   }, [resolvedSymbol]);
 
   async function handleRetraining() {
     setRetraining(true);
     setRetrainSuccess(null);
     try {
-      const res = await triggerRetraining(resolvedSymbol);
+      const token = await getAuth().currentUser?.getIdToken();
+      const res = await fetch(`${API_BASE}/api/retrain/${resolvedSymbol}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      }).then(r => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      });
       setRetrainSuccess(`Retraining scheduled: ${res.message}. The model parameters will re-optimize in background.`);
     } catch (e: any) {
       console.error('Retraining failed:', e);
@@ -1028,7 +1173,15 @@ export function AssetDetail() {
                 <h4 className="font-display font-semibold text-sm text-[#F0F4FF]">Dynamic SIP Timing Metric</h4>
               </div>
 
-              {sip ? (
+              {sipLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="w-5 h-5 border-2 border-[#D4A843]/30 border-t-[#D4A843] rounded-full animate-spin" />
+                </div>
+              ) : sipError ? (
+                <div className="text-[#8892A4] text-sm text-center py-6 font-data uppercase">
+                  SIP metrics temporarily unavailable
+                </div>
+              ) : sip ? (
                 <div className="space-y-4 font-data">
                   <div>
                     <span className="text-[9px] text-[#4A5568] uppercase tracking-wider block">Timing Directive</span>
@@ -1090,7 +1243,15 @@ export function AssetDetail() {
           </div>
         </div>
 
-        {fundamentals ? (
+        {fundamentalsLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="w-5 h-5 border-2 border-[#D4A843]/30 border-t-[#D4A843] rounded-full animate-spin" />
+          </div>
+        ) : fundamentalsError ? (
+          <div className="text-[#8892A4] text-sm text-center py-6 font-data uppercase">
+            Fundamental metrics temporarily unavailable
+          </div>
+        ) : fundamentals ? (
           <div className="font-data text-xs">
             {fundamentals.type === 'ETF' ? (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -1184,7 +1345,15 @@ export function AssetDetail() {
       </section>
 
       {/* FINBERT NATURAL LANGUAGE HEADSETS */}
-      {sentiment && (
+      {sentimentLoading ? (
+        <div className="flex items-center justify-center py-12 glass-card">
+          <div className="w-5 h-5 border-2 border-[#D4A843]/30 border-t-[#D4A843] rounded-full animate-spin" />
+        </div>
+      ) : sentimentError ? (
+        <div className="glass-card p-5 text-[#8892A4] text-xs uppercase tracking-wider text-center py-8 font-data">
+          Sentiment data temporarily unavailable
+        </div>
+      ) : sentiment && (
         <section className="glass-card p-5 space-y-4">
           <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 border-b border-white/[0.04] pb-3.5">
             <div className="font-sans">

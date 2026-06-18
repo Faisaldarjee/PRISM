@@ -1,11 +1,9 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { 
-  getSip, 
-  getHistory, 
-  getAssets, 
-  getAllPredictions,
-  getGlobalMacro
-} from '../api';
+  fetchWithRetry, 
+  SectionSkeleton, 
+  SectionError 
+} from '../utils/apiHelpers';
 import { SipData, HistoryBar, Asset, Prediction } from '../types';
 import { 
   LineChart, 
@@ -59,9 +57,6 @@ export function calculateXIRR(cashFlows: { date: Date; amount: number }[]): numb
     let fDerivative = 0;
 
     for (const flow of flows) {
-      // cash flow formula discount factor: (1 + r)^t
-      // f(r) = Sum( Ci / (1 + r)^t )
-      // f'(r) = Sum( -t * Ci * (1 + r)^(-t - 1) )
       const df = Math.pow(1 + r, flow.t);
       if (df === 0) continue;
       fValue += flow.amount / df;
@@ -102,7 +97,15 @@ export function SipTracker() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Strategy A inputs (Smart SIP and compound projection)
+  // Isolated History states to prevent blank-outs on fetch failures
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyError, setHistoryError] = useState<string | null>(null);
+
+  // Sliders visual state for zero-latency interactions
+  const [sliderRate, setSliderRate] = useState<number>(12);
+  const [sliderDuration, setSliderDuration] = useState<number>(10);
+
+  // Strategy inputs (debounced, used for CPU heavy projections)
   const [monthlyBudget, setMonthlyBudget] = useState<number>(5000);
   const [expectedRate, setExpectedRate] = useState<number>(12); // Expected return range 8% to 25%
   const [durationYears, setDurationYears] = useState<number>(10); // Time period 1 to 20 years
@@ -115,21 +118,37 @@ export function SipTracker() {
   const [swingCapital, setSwingCapital] = useState<number>(50000);
   const [riskPercent, setRiskPercent] = useState<number>(2);
 
-  // Load overall market data and asset catalog
-  async function loadAllHubData() {
+  // Debouncing expected rate
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setExpectedRate(sliderRate);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [sliderRate]);
+
+  // Debouncing duration years
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDurationYears(sliderDuration);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [sliderDuration]);
+
+  // Load overall market data and asset catalog (highly parallelized)
+  async function loadAllHubData(signal?: AbortSignal) {
     setLoading(true);
     setError(null);
     try {
       const [assetsList, allPreds, macroRaw] = await Promise.all([
-        getAssets().catch(err => {
+        fetchWithRetry('/api/assets', signal).catch(err => {
           console.warn('SipTracker assets list load issue:', err.message || err);
           return null;
         }),
-        getAllPredictions().catch(err => {
+        fetchWithRetry('/api/predict-all', signal).catch(err => {
           console.warn('SipTracker predictions load issue:', err.message || err);
           return null;
         }),
-        getGlobalMacro().catch(() => null)
+        fetchWithRetry('/api/macro/global', signal).catch(() => null)
       ]);
 
       let resAssets = assetsList;
@@ -164,6 +183,7 @@ export function SipTracker() {
         setSelectedAsset(resAssets[0].symbol);
       }
     } catch (e: any) {
+      if (signal?.aborted) return;
       console.error('Error loading hub data:', e);
       setError(e.message || 'Strategy center failed to synchronize.');
     } finally {
@@ -172,29 +192,47 @@ export function SipTracker() {
   }
 
   useEffect(() => {
-    loadAllHubData();
+    const controller = new AbortController();
+    loadAllHubData(controller.signal);
+    return () => controller.abort();
   }, []);
 
-  // Sync selected asset history details
+  // Sync selected asset history details (decoupled from page load)
   useEffect(() => {
+    if (!selectedAsset) return;
+    const controller = new AbortController();
+
     async function loadSelectedAssetSpecifics() {
-      if (!selectedAsset) return;
+      setHistoryLoading(true);
+      setHistoryError(null);
       try {
         const pred = predictions.find(p => p.symbol === selectedAsset) || null;
         setSelectedPrediction(pred);
 
         // Fetch up to 1500 historical candle points to support dynamic historical queries
         const [hist, sipData] = await Promise.all([
-          getHistory(selectedAsset, 1500).catch(() => []),
-          getSip(selectedAsset).catch(() => null)
+          fetchWithRetry(`/api/history/${selectedAsset}?limit=1500`, controller.signal).catch(err => {
+            console.warn('History load failed, isolating error:', err);
+            setHistoryError('Historical chart data is temporarily unavailable.');
+            return []; // Empty fallback so parsing won't crash
+          }),
+          fetchWithRetry(`/api/sip/${selectedAsset}`, controller.signal).catch(err => {
+            console.warn('SIP details load failed:', err);
+            return null;
+          })
         ]);
+
         setSelectedHistory(hist);
         setSip(sipData);
       } catch (e) {
-        console.warn('Could not fetch specifics:', selectedAsset);
+        console.warn('Could not fetch specifics:', selectedAsset, e);
+      } finally {
+        setHistoryLoading(false);
       }
     }
+
     loadSelectedAssetSpecifics();
+    return () => controller.abort();
   }, [selectedAsset, predictions]);
 
   // Real-time Technical Metrics (computed from Yahoo Finance cached candles)
@@ -263,18 +301,16 @@ export function SipTracker() {
 
   // Compute calculated macro indicators
   const calculatedMacro = useMemo(() => {
-    // Defaults if live API data is absent
     const usdinrRate = liveMacro?.usdinr?.rate || 83.45;
     const goldSpotUSD = liveMacro?.gold?.price || 2360;
     const silverSpotUSD = liveMacro?.silver?.price || 29.80;
     const vixValue = liveMacro?.indiaVix?.value || 15.60;
     const vixLevel = liveMacro?.indiaVix?.level || 'MEDIUM';
 
-    // Parity formulas
-    // Gold spot is USD/troy oz. 1 troy oz = 31.1034768 grams. Price per 10g in INR:
+    // Gold spot converted per 10g in INR
     const goldINR = (goldSpotUSD * usdinrRate / 31.1) * 10;
     
-    // Silver spot converted to INR per 1 kg (1000 grams):
+    // Silver spot converted to INR per 1 kg (1000 grams)
     const silverINR = (silverSpotUSD * usdinrRate / 31.1) * 1000;
 
     return {
@@ -336,12 +372,10 @@ export function SipTracker() {
     const points: any[] = [];
 
     for (let month = 1; month <= n; month++) {
-      // Standard SIP allocation
       balanceStd = (balanceStd + monthlyBudget) * (1 + r);
       investedStd += monthlyBudget;
 
-      // Smart SIP allocation using a cyclical simulated oscillating RSI
-      // Oscillates beautifully from 30 to 70 over 12-month waves
+      // Smart SIP allocation using highly robust oscillating RSI waves
       const simRsi = 50 + 18 * Math.sin(month / 3.0);
       let smartContribution = monthlyBudget;
       if (simRsi < 40) {
@@ -353,7 +387,6 @@ export function SipTracker() {
       balanceSmart = (balanceSmart + smartContribution) * (1 + r);
       investedSmart += smartContribution;
 
-      // Filter points to keep the chart clean (show annual records)
       if (month % 12 === 0 || month === n || month === 1) {
         points.push({
           year: `Yr ${Math.round(month / 12)}`,
@@ -384,11 +417,9 @@ export function SipTracker() {
     // Sort chronological ascending
     const sortedHist = [...selectedHistory].sort((a, b) => new Date(a.date.split(' ')[0]).getTime() - new Date(b.date.split(' ')[0]).getTime());
     
-    // Filter starting from designated SIP start date
     const filteredHist = sortedHist.filter(h => new Date(h.date.split(' ')[0]) >= new Date(sipStartDate));
     if (filteredHist.length < 5) return null;
 
-    // Build unique Year-Month buckets to purchase once as close as possible to month's opening
     const monthlyInputs: typeof filteredHist = [];
     const seenYm = new Set<string>();
     
@@ -425,35 +456,32 @@ export function SipTracker() {
     const latestPrice = latestBar.close;
     const currentPortfolioValue = totalUnits * latestPrice;
     
-    // Append positive cash flow matching modern portfolio evaluation
     cashFlows.push({ date: new Date(latestBar.date.split(' ')[0]), amount: currentPortfolioValue });
 
     const absoluteReturnRupees = currentPortfolioValue - totalInvested;
     const absoluteReturnPercent = totalInvested > 0 ? (absoluteReturnRupees / totalInvested) * 100 : 0;
 
-    // Calculate real XIRR via Newton Raphson
     const rawXIRR = calculateXIRR(cashFlows);
     const xirrPercent = rawXIRR * 100;
 
-    // Lump sum comparison
     const initialAssetCost = monthlyInputs[0].close;
     const lumpUnits = totalInvested / initialAssetCost;
     const lumpValueToday = lumpUnits * latestPrice;
 
-    // Best and Worst months of asset during investment timeline
     const monthlyClosingPrices = new Map<string, number>();
     for (const bar of filteredHist) {
       const ym = bar.date.substring(0, 7);
-      monthlyClosingPrices.set(ym, bar.close); // update daily to capture the final close
+      monthlyClosingPrices.set(ym, bar.close);
     }
     const closes = Array.from(monthlyClosingPrices.values());
     let worstMonth = 0;
     let bestMonth = 0;
     
     for (let i = 1; i < closes.length; i++) {
-      const pctChange = ((closes[i] - closes[i - 1]) / closes[i - 1]) * 100;
-      if (pctChange > bestMonth) bestMonth = pctChange;
-      if (pctChange < worstMonth) worstMonth = pctChange;
+      const pctChange = ((closes[i] - closes[i - 1]) / closes[i - 1]) * 105;
+      const parsedPctChange = isNaN(pctChange) ? 0 : pctChange;
+      if (parsedPctChange > bestMonth) bestMonth = parsedPctChange;
+      if (parsedPctChange < worstMonth) worstMonth = parsedPctChange;
     }
 
     return {
@@ -469,7 +497,6 @@ export function SipTracker() {
     };
   }, [selectedHistory, sipStartDate, performanceAmount]);
 
-  // Preserved position sizing and Average True Range (ATR) swing logic
   const atrMetrics = useMemo(() => {
     const currentPrice = techMetrics.lastPrice || 100;
     if (!selectedHistory || selectedHistory.length < 15) {
@@ -492,7 +519,6 @@ export function SipTracker() {
       };
     }
 
-    // Compute standard daily True Ranges (TR)
     const trs: number[] = [];
     for (let i = 1; i < selectedHistory.length; i++) {
       const today = selectedHistory[i];
@@ -505,11 +531,9 @@ export function SipTracker() {
       trs.push(tr);
     }
 
-    // Simple ATR computation wrapper
     const last14Trs = trs.slice(-14);
     const atr = last14Trs.reduce((a, b) => a + b, 0) / Math.max(1, last14Trs.length);
 
-    // Stop Loss and Targets
     const stopLoss = currentPrice - 2 * atr;
     const target1 = currentPrice + 3 * atr;
     const target2 = currentPrice + 5 * atr;
@@ -529,15 +553,6 @@ export function SipTracker() {
       riskRewardRatio: 1.5
     };
   }, [selectedHistory, techMetrics.lastPrice, swingCapital, riskPercent]);
-
-  if (loading) {
-    return (
-      <div id="sip-loading" className="flex flex-col items-center justify-center min-h-[50vh] gap-3">
-        <RefreshCw size={36} className="text-[#D4A843] animate-spin" />
-        <p className="font-data text-xs text-[#8892A4] animate-pulse uppercase tracking-widest font-semibold font-mono">SYNCHRONIZING_DECISION_MANDATES...</p>
-      </div>
-    );
-  }
 
   return (
     <div id="sip-tracker-premium" className="space-y-6">
@@ -671,7 +686,7 @@ export function SipTracker() {
           <div className="mt-4 pt-3.5 border-t border-white/[0.04] flex items-center justify-between">
             <span className="text-[9px] text-[#8892A4] font-mono uppercase font-bold">RSI ALLOCATOR VALUE:</span>
             <span className={`px-3 py-1 font-mono text-[10px] rounded-lg uppercase font-bold border ${
-              sipCondition === 'OVERBOUGHT' ? 'bg-amber-500/10 text-amber-450 border-amber-500/30' : 
+              sipCondition === 'OVERBOUGHT' ? 'bg-amber-500/10 text-amber-505 border-amber-500/30' : 
               sipCondition === 'OVERSOLD' ? 'bg-emerald-500/10 text-emerald-450 border-emerald-500/30' : 
               'bg-blue-500/5 text-slate-300 border-white/[0.08]'
             }`}>
@@ -697,7 +712,7 @@ export function SipTracker() {
           <div className="space-y-4">
             <div className="border-b border-white/[0.04] pb-2.5">
               <span className="text-[9px] font-mono text-[#D4A843] uppercase tracking-widest block font-bold">SMART TRANCHE MODIFIER</span>
-              <h4 className="font-display font-semibold text-sm text-[F0F4FF] mt-0.5">Dynamic Budget Allotment</h4>
+              <h4 className="font-display font-semibold text-sm text-[#F0F4FF] mt-0.5">Dynamic Budget Allotment</h4>
             </div>
 
             <div className="space-y-3.5 font-mono text-xs">
@@ -750,12 +765,12 @@ export function SipTracker() {
           </div>
         </div>
 
-        {/* column 2: Dynamic Compounding simulator */}
+        {/* column 2: Dynamic Compounding simulator to sliders */}
         <div id="compounding-simulator" className="xl:col-span-8 bg-black/40 border border-[#D4A843]/15 p-5 rounded-xl space-y-4">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-white/[0.04] pb-2.5">
             <div>
               <span className="text-[9px] font-mono font-bold text-[#D4A843] uppercase tracking-widest block">CAGR Simulator</span>
-              <h4 className="font-display font-semibold text-sm text-[F0F4FF] mt-0.5">SIP Dynamic Compounding Curve Projections</h4>
+              <h4 className="font-display font-semibold text-sm text-[#F0F4FF] mt-0.5">SIP Dynamic Compounding Curve Projections</h4>
             </div>
             <div className="font-mono text-right text-[10px] text-amber-400 bg-amber-500/5 px-2 py-0.5 rounded border border-amber-500/10">
               Smart SIP earns ₹{compoundProjectionData.difference.toLocaleString('en-IN')} more!
@@ -766,15 +781,15 @@ export function SipTracker() {
             <div className="space-y-1">
               <div className="flex justify-between text-[11px] font-mono">
                 <span className="text-[#8892A4]">EXPECTED ANNUAL RETURN (%):</span>
-                <span className="text-[#E8C070] font-bold">{expectedRate}%</span>
+                <span className="text-[#E8C070] font-bold">{sliderRate}%</span>
               </div>
               <input 
                 id="rate-slider"
                 type="range" 
                 min="8" 
                 max="25" 
-                value={expectedRate} 
-                onChange={(e) => setExpectedRate(Number(e.target.value))}
+                value={sliderRate} 
+                onChange={(e) => setSliderRate(Number(e.target.value))}
                 className="w-full accent-[#D4A843] cursor-pointer bg-white/10 h-1 rounded-lg"
               />
             </div>
@@ -782,15 +797,15 @@ export function SipTracker() {
             <div className="space-y-1">
               <div className="flex justify-between text-[11px] font-mono">
                 <span className="text-[#8892A4]">TIME PERIOD:</span>
-                <span className="text-[#E8C070] font-bold">{durationYears} Years</span>
+                <span className="text-[#E8C070] font-bold">{sliderDuration} Years</span>
               </div>
               <input 
                 id="duration-slider"
                 type="range" 
                 min="1" 
                 max="20" 
-                value={durationYears} 
-                onChange={(e) => setDurationYears(Number(e.target.value))}
+                value={sliderDuration} 
+                onChange={(e) => setSliderDuration(Number(e.target.value))}
                 className="w-full accent-[#D4A843] cursor-pointer bg-white/10 h-1 rounded-lg"
               />
             </div>
@@ -827,7 +842,7 @@ export function SipTracker() {
 
       </div>
 
-      {/* SIP PERFORMANCE TRACKER (NEW COMPONENT) */}
+      {/* SIP PERFORMANCE TRACKER */}
       <h3 id="section-tracker-title" className="text-sm font-mono font-bold uppercase text-[#E8C070] tracking-widest border-b border-white/[0.05] pb-2 flex items-center gap-2 mt-2">
         <Activity size={14} className="text-[#D4A843]" />
         SIP Performance Tracker (Real historical comparison)
@@ -839,7 +854,7 @@ export function SipTracker() {
         <div id="performance-inputs-card" className="lg:col-span-4 bg-black/40 border border-[#D4A843]/15 p-5 rounded-xl space-y-4">
           <div className="border-b border-white/[0.04] pb-2">
             <span className="text-[9px] font-mono font-bold text-[#D4A843] uppercase tracking-widest block">PORTFOLIO CALIBRATION</span>
-            <h4 className="font-display font-semibold text-sm text-[F0F4FF] mt-0.5">Historical Simulation Parameters</h4>
+            <h4 className="font-display font-semibold text-sm text-[#F0F4FF] mt-0.5">Historical Simulation Parameters</h4>
           </div>
 
           <div className="space-y-3.5 font-mono text-xs">
@@ -873,14 +888,18 @@ export function SipTracker() {
           </div>
         </div>
 
-        {/* Real historical output metrics */}
+        {/* Real historical output metrics with isolated error boundaries */}
         <div id="performance-metrics-card" className="lg:col-span-8 bg-black/40 border border-[#D4A843]/15 p-5 rounded-xl flex flex-col justify-between">
-          {performanceMetrics ? (
+          {historyLoading ? (
+            <SectionSkeleton />
+          ) : historyError ? (
+            <SectionError message={historyError} />
+          ) : performanceMetrics ? (
             <div className="space-y-4">
               <div className="flex justify-between items-center border-b border-white/[0.04] pb-2.5">
                 <div>
                   <span className="text-[9px] font-mono font-bold text-[#D4A843] uppercase tracking-widest block">HISTORICAL AUDIT REPORT</span>
-                  <h4 className="font-display font-semibold text-sm text-[F0F4FF] mt-0.5">Realized Investment Outcomes for {selectedAsset.split('.')[0]}</h4>
+                  <h4 className="font-display font-semibold text-sm text-[#F0F4FF] mt-0.5">Realized Investment Outcomes for {selectedAsset.split('.')[0]}</h4>
                 </div>
                 {/* XIRR Badge */}
                 <div id="xirr-badge-box" className="p-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-center font-mono">
@@ -965,7 +984,7 @@ export function SipTracker() {
         <div id="swing-parameters-card" className="lg:col-span-5 bg-black/40 border border-[#D4A843]/15 p-5 rounded-xl space-y-4">
           <div className="border-b border-white/[0.04] pb-2">
             <span className="text-[9px] font-mono font-bold text-[#D4A843] uppercase tracking-widest block">SWING CAPITAL ALLOTMENT</span>
-            <h4 className="font-display font-semibold text-sm text-[F0F4FF] mt-0.5">Parameters Configuration</h4>
+            <h4 className="font-display font-semibold text-sm text-[#F0F4FF] mt-0.5">Parameters Configuration</h4>
           </div>
 
           <div className="space-y-3.5 font-mono text-xs">
@@ -1007,7 +1026,7 @@ export function SipTracker() {
           <div className="space-y-4">
             <div className="border-b border-white/[0.02] pb-2.5">
               <span className="text-[10px] font-mono text-[#D4A843] uppercase tracking-widest block font-bold">ATR POSITION SIZER RESULTS</span>
-              <h4 className="font-display font-semibold text-sm text-[F0F4FF] mt-0.5">Tactical Swing Blueprint for {selectedAsset.split('.')[0]}</h4>
+              <h4 className="font-display font-semibold text-sm text-[#F0F4FF] mt-0.5">Tactical Swing Blueprint for {selectedAsset.split('.')[0]}</h4>
             </div>
 
             <div id="directives-stats-row" className="grid grid-cols-2 gap-4">
@@ -1031,7 +1050,7 @@ export function SipTracker() {
                 <span className="text-white mt-1 block font-mono">₹{atrMetrics.stopLoss.toFixed(2)}</span>
               </div>
               <div className="bg-[#34A77A]/10 p-2 border border-[#34A77A]/20 rounded-lg">
-                <span className="text-[#34A77A] block text-[8px] uppercase font-bold font-semibold">TARGET 1 (+3 ATR)</span>
+                <span className="text-[#34A77A] block text-[8px] uppercase font-bold">TARGET 1 (+3 ATR)</span>
                 <span className="text-white mt-1 block font-mono">₹{atrMetrics.target1.toFixed(2)}</span>
               </div>
               <div className="bg-[#D4A843]/10 p-2 border border-[#D4A843]/20 rounded-lg">

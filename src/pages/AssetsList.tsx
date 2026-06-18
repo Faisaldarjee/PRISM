@@ -1,6 +1,10 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { getAssets, importAsset, searchAssets, deleteAsset } from '../api';
+import { 
+  fetchWithRetry, 
+  SectionSkeleton, 
+  SectionError 
+} from '../utils/apiHelpers';
 import { Asset } from '../types';
 import { useAuth } from '../services/AuthProvider';
 import { 
@@ -52,6 +56,61 @@ export function AssetsList() {
   const [bulkProgress, setBulkProgress] = useState<string>('');
   const [bulkSummary, setBulkSummary] = useState<string | null>(null);
 
+  // Load Registry with Isolated Quote Lookups
+  async function loadAssets(signal?: AbortSignal) {
+    setLoading(true);
+    setError(null);
+    try {
+      // 1. Fetch Assets Meta Directory via secure fallback retries
+      const data = await fetchWithRetry('/api/assets', signal);
+      if (signal?.aborted) return;
+      setAssets(data);
+
+      // 2. Query individual quotes in parallel with Promise.all
+      // Wrap each lookup in a safe, isolated try-catch so individual quote failures do not block others
+      try {
+        const quotePromises = data.map(async (asset: Asset) => {
+          try {
+            const quote = await fetchWithRetry(`/api/quote/${encodeURIComponent(asset.symbol)}`, signal);
+            return { symbol: asset.symbol, quote };
+          } catch (quoteErr) {
+            console.warn(`Quote retrieval skipped for ${asset.symbol}:`, quoteErr);
+            return { symbol: asset.symbol, quote: null };
+          }
+        });
+
+        const quotes = await Promise.all(quotePromises);
+        if (signal?.aborted) return;
+
+        // Perform atomic client-side merge into state cached collections
+        setAssets(prevAssets => {
+          return prevAssets.map(asset => {
+            const matchedQuote = quotes.find(q => q.symbol === asset.symbol);
+            if (matchedQuote && matchedQuote.quote) {
+              return {
+                ...asset,
+                last_price: matchedQuote.quote.price ?? asset.last_price,
+                change_percent: matchedQuote.quote.changePercent ?? asset.change_percent,
+                last_date: matchedQuote.quote.date ?? asset.last_date
+              };
+            }
+            return asset;
+          });
+        });
+      } catch (parallelErr) {
+        console.warn('Batch quotes retrieval error:', parallelErr);
+      }
+
+    } catch (e: any) {
+      if (signal?.aborted) return;
+      console.error('Error fetching assets pool:', e);
+      setError(e.message || 'Assets list unavailable. Ensure database tables are synchronized.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // Suggest Ticker Auto-Complete
   useEffect(() => {
     const q = importTicker.trim();
     if (!q || q.length < 2) {
@@ -62,7 +121,7 @@ export function AssetsList() {
     const delayDebounce = setTimeout(async () => {
       setSearching(true);
       try {
-        const matches = await searchAssets(q);
+        const matches = await fetch(`/api/search?q=${encodeURIComponent(q)}`).then(r => r.json());
         setSuggestions(matches.slice(0, 5));
       } catch (err) {
         console.warn('AutoComplete fetch failed:', err);
@@ -74,6 +133,7 @@ export function AssetsList() {
     return () => clearTimeout(delayDebounce);
   }, [importTicker]);
 
+  // Online Backup Matches Finder
   useEffect(() => {
     const q = searchQuery.trim();
     if (!q || q.length < 2) {
@@ -84,8 +144,8 @@ export function AssetsList() {
     const delayDebounce = setTimeout(async () => {
       setSearchingOnline(true);
       try {
-        const matches = await searchAssets(q);
-        const filtered = matches.filter(m => 
+        const matches = await fetch(`/api/search?q=${encodeURIComponent(q)}`).then(r => r.json());
+        const filtered = matches.filter((m: any) => 
           !assets.some(local => local.symbol.toLowerCase() === m.symbol.toLowerCase())
         );
         setOnlineMatches(filtered.slice(0, 4));
@@ -103,7 +163,14 @@ export function AssetsList() {
     setImporting(true);
     setImportMessage(null);
     try {
-      const outcome = await importAsset(symbol);
+      const outcome = await fetch('/api/assets/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ symbol })
+      }).then(r => r.json());
+
+      if (outcome.error) throw new Error(outcome.error);
+
       await addCustomAsset(outcome.symbol);
       setImportMessage({
         text: `Successfully registered "${outcome.symbol}" (${outcome.name}) in system database. Historical indices loaded successfully!`,
@@ -123,20 +190,6 @@ export function AssetsList() {
     }
   }
 
-  async function loadAssets() {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await getAssets();
-      setAssets(data);
-    } catch (e: any) {
-      console.error('Error fetching assets pool:', e);
-      setError(e.message || 'Assets list unavailable. Ensure database tables are synchronized.');
-    } finally {
-      setLoading(false);
-    }
-  }
-
   const handleImport = async (e: React.FormEvent) => {
     e.preventDefault();
     const query = importTicker.trim();
@@ -145,7 +198,14 @@ export function AssetsList() {
     setImporting(true);
     setImportMessage(null);
     try {
-      const outcome = await importAsset(query);
+      const outcome = await fetch('/api/assets/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ symbol: query })
+      }).then(r => r.json());
+
+      if (outcome.error) throw new Error(outcome.error);
+
       await addCustomAsset(outcome.symbol);
       if (outcome.alreadyExists) {
         setImportMessage({
@@ -184,7 +244,12 @@ export function AssetsList() {
     if (!deleteConfirmSymbol) return;
     setDeleting(true);
     try {
-      await deleteAsset(deleteConfirmSymbol);
+      const res = await fetch(`/api/assets/${encodeURIComponent(deleteConfirmSymbol)}`, {
+        method: 'DELETE'
+      }).then(r => r.json());
+
+      if (res.error) throw new Error(res.error);
+
       setImportMessage({
         text: `Successfully removed cache, analysis and indices folder records of "${deleteConfirmSymbol.split('.')[0]}".`,
         isError: false
@@ -226,7 +291,14 @@ export function AssetsList() {
       const sym = symbols[i];
       setBulkProgress(`Importing ${i + 1}/${symbols.length}: ${sym}...`);
       try {
-        const outcome = await importAsset(sym);
+        const outcome = await fetch('/api/assets/import', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ symbol: sym })
+        }).then(r => r.json());
+
+        if (outcome.error) throw new Error(outcome.error);
+
         await addCustomAsset(outcome.symbol);
         successCount++;
       } catch (err: any) {
@@ -250,9 +322,12 @@ export function AssetsList() {
   };
 
   useEffect(() => {
-    loadAssets();
+    const controller = new AbortController();
+    loadAssets(controller.signal);
+    return () => controller.abort();
   }, []);
 
+  // Client-side search and category segmentation on cached local memory assets
   const filteredAssets = useMemo(() => {
     return assets.filter(a => {
       if (selectedSegmentFilter !== 'ALL') {
@@ -300,9 +375,12 @@ export function AssetsList() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[50vh] gap-3">
-        <RefreshCw size={36} className="text-[#D4A843] animate-spin" />
-        <p className="font-data text-xs text-[#8892A4] animate-pulse uppercase tracking-widest">Fetching Market Registry...</p>
+      <div className="space-y-6" id="assets-loading-skeleton">
+        <div className="flex items-center gap-3">
+          <RefreshCw size={18} className="text-[#D4A843] animate-spin" />
+          <span className="text-xs font-mono uppercase text-[#8892A4]">Loading registered assets and live valuations...</span>
+        </div>
+        <SectionSkeleton />
       </div>
     );
   }
@@ -314,7 +392,7 @@ export function AssetsList() {
         <h3 className="text-sm font-display font-semibold text-white mb-2 font-sans">Index Synchronization Failure</h3>
         <p className="text-xs text-[#8892A4] mb-6 font-body leading-relaxed">{error}</p>
         <button 
-          onClick={loadAssets}
+          onClick={() => loadAssets()}
           className="px-4 py-2 bg-[#D4A843]/10 hover:bg-[#D4A843]/20 text-[#E8C070] border border-[#D4A843]/20 text-[10px] font-data font-bold rounded-xl uppercase transition-all"
         >
           Retry Asset Fetch
@@ -328,11 +406,11 @@ export function AssetsList() {
       {/* Upper header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-[rgba(255,255,255,0.05)] pb-5 font-sans">
         <div>
-          <h2 className="text-2xl font-medium tracking-tight text-white mb-1 font-display">Asset Registry</h2>
+          <h2 className="text-2xl font-bold tracking-tight text-white mb-1 font-display">Asset Registry</h2>
           <p className="text-xs text-[#8892A4] font-body">Master indices catalog, tracking safe-haven precious ETFs, corporate equities, and currency benchmarks.</p>
         </div>
         <button 
-          onClick={loadAssets}
+          onClick={() => loadAssets()}
           className="flex items-center gap-1.5 px-3 py-1.5 bg-white/[0.02] hover:bg-white/[0.05] text-[#8892A4] hover:text-white rounded-lg text-xs font-data border border-[rgba(255,255,255,0.04)] font-mono"
         >
           <RefreshCw size={11} />
@@ -629,7 +707,7 @@ export function AssetsList() {
           <div className="bg-[#0C1018] border border-white/[0.08] rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl space-y-5">
             <div className="flex items-center gap-2.5 text-rose-500">
               <AlertCircle size={22} className="shrink-0" />
-              <h3 className="text-sm font-semibold text-white font-sans uppercase tracking-wider">Untrack custom asset?</h3>
+              <h3 className="text-sm font-semibold text-white font-sans uppercase tracking-wider font-bold">Untrack custom asset?</h3>
             </div>
             
             <p className="text-xs text-[#8892A4] leading-relaxed font-mono">
