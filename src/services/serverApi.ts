@@ -344,6 +344,12 @@ function generateSyntheticHistory(symbol: string, startDate: Date, endDate: Date
     'MUTHOOTFIN.NS': 1650,
     'MANAPPURAM.NS': 180,
     'WAAREEENER.NS': 2000,
+    'ZEEL.NS': 110,
+    'ZEEL': 110,
+    'SBIN.NS': 830,
+    'ICICIBANK.NS': 1120,
+    'BHARTIARTL.NS': 1450,
+    'ITC.NS': 430,
     'GOLDBEES.NS': 60,
     'SILVERBEES.NS': 80
   };
