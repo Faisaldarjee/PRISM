@@ -136,24 +136,24 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)} 
             className="md:hidden text-[#8892A4] hover:text-[#F0F4FF] p-1 transition-colors z-10"
           >
-            <Menu size={20} />
+            {mobileMenuOpen ? <X size={20} className="text-[#F0F4FF]" /> : <Menu size={20} />}
           </button>
         </div>
 
         {/* Mobile menu container */}
         {mobileMenuOpen && (
           <div className="md:hidden absolute top-full left-0 right-0 bg-[#0D1018] border-b border-[rgba(255,255,255,0.08)] py-6 px-6 shadow-xl flex flex-col gap-4 z-45">
-            <button onClick={() => scrollToId('features')} className="text-left text-[#8892A4] text-xs font-mono">
-              ★ FILE_FEATURES
+            <button onClick={() => scrollToId('features')} className="text-left text-[#8892A4] text-xs font-sans font-medium">
+              Features
             </button>
-            <button onClick={() => scrollToId('how-it-works')} className="text-left text-[#8892A4] text-xs font-mono">
-              ★ FILE_EXECUTION
+            <button onClick={() => scrollToId('how-it-works')} className="text-left text-[#8892A4] text-xs font-sans font-medium">
+              How It Works
             </button>
-            <button onClick={() => scrollToId('active-setups')} className="text-left text-[#8892A4] text-xs font-mono">
-              ★ LIVE_SCANNED
+            <button onClick={() => scrollToId('active-setups')} className="text-left text-[#8892A4] text-xs font-sans font-medium">
+              Live Scans
             </button>
-            <button onClick={() => scrollToId('pricing')} className="text-left text-[#8892A4] text-xs font-mono">
-              ★ PLAN_OFFERINGS
+            <button onClick={() => scrollToId('pricing')} className="text-left text-[#8892A4] text-xs font-sans font-medium">
+              Pricing
             </button>
             <div className="pt-4 border-t border-[rgba(255,255,255,0.06)] flex flex-col gap-3">
               {user ? (
@@ -184,8 +184,8 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
           transition={{ duration: 0.4 }}
           className="mb-6 tracking-[0.25em] font-data text-[10.5px] text-[#E8C070] font-medium flex items-center gap-2 bg-[#D4A843]/5 border border-[#D4A843]/10 py-1.5 px-4 rounded-full"
         >
-          <Sparkles size={11} className="text-[#D4A843] animate-pulse" />
-          QUANTITATIVE INTELLIGENCE DIRECTIVE
+          <Sparkles size={11} className="text-[#D4A843]" />
+          Live Market Intelligence · NSE/BSE
         </motion.div>
 
         {/* Dynamic Contrasting Split Headline */}
@@ -205,7 +205,7 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
             </div>
 
             {/* Vertical divides with absolute center marker */}
-            <div className="w-12 h-[1px] md:w-[1px] md:h-20 bg-gradient-to-r md:bg-gradient-to-b from-[#D4A843]/40 via-[#D4A843]/15 to-transparent shrink-0 relative flex items-center justify-center">
+            <div className="hidden md:flex w-[1px] h-20 bg-gradient-to-b from-[#D4A843]/40 via-[#D4A843]/15 to-transparent shrink-0 relative items-center justify-center">
               <div className="absolute w-1.5 h-1.5 rounded-full bg-[#D4A843] blur-[2px]" />
             </div>
 
@@ -251,7 +251,7 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
           <div className="clay-element p-6 text-left transform hover:-translate-y-1 transition-all duration-300">
             <div className="flex justify-between items-start mb-2.5">
               <span className="font-data text-[9px] uppercase font-bold text-[#D4A843] tracking-widest">LAYER 03 · FRICTION</span>
-              <span className="text-[10px] bg-[#00D084]/20 text-[#00D084] px-1.5 py-0.5 rounded font-data font-bold">STT ACCURATE</span>
+              <span className="text-[10px] bg-[#34A77A]/20 text-[#34A77A] px-1.5 py-0.5 rounded font-data font-bold">STT ACCURATE</span>
             </div>
             <span className="font-display text-[16.5px] font-semibold text-[#F0F4FF] block leading-snug">Real Backtest</span>
             <span className="text-[12px] text-[#8892A4] block mt-1.5 font-body">Calculations fully model STT, SEBI turnover fees, local stamp taxes, and 15% STCG.</span>
@@ -262,13 +262,13 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
         <div className="flex flex-col sm:flex-row items-center gap-4 mb-5">
           <button 
             onClick={onEnterGuestMode}
-            className="clay-badge-gold hover:brightness-110 text-sm tracking-widest px-8 py-3.5 flex items-center justify-center gap-2 cursor-pointer w-full sm:w-auto"
+            className="bg-gradient-to-r from-[#D4A843] to-[#B8912E] hover:brightness-110 text-[#080A0F] font-bold text-sm tracking-widest py-3 px-6 rounded-xl shadow-[3px_3px_6px_rgba(0,0,0,0.4)] transition-all flex items-center justify-center gap-2 cursor-pointer w-full sm:w-auto text-center"
           >
             Launch Terminal <ArrowRight size={14} className="stroke-[3]" />
           </button>
           <button 
             onClick={() => scrollToId('how-it-works')}
-            className="px-6 py-3.5 bg-transparent hover:bg-white/5 border border-[rgba(255,255,255,0.06)] hover:border-[rgba(255,255,255,0.14)] text-xs font-data rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 w-full sm:w-auto text-[#8892A4] hover:text-[#F0F4FF]"
+            className="py-3 px-6 bg-transparent hover:bg-white/5 border border-[rgba(255,255,255,0.06)] hover:border-[rgba(255,255,255,0.14)] text-xs font-data rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 w-full sm:w-auto text-[#8892A4] hover:text-[#F0F4FF]"
           >
             <Play size={10} className="fill-[#8892A4] group-hover:fill-current" /> See how it works ↓
           </button>
@@ -293,11 +293,6 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
       {/* ZONE 2: TRANSITION TO GLASSMORPHISM PREVIEW */}
       <section id="active-setups" className="py-20 px-6 max-w-7xl mx-auto relative z-10 scroll-mt-20">
         <div className="glass-card p-6 md:p-8 relative overflow-hidden backdrop-blur-md">
-          {/* Subtle decoration marker */}
-          <div className="absolute top-0 right-0 z-10 py-1.5 px-4 bg-transparent border-b border-l border-[rgba(212,168,67,0.15)] font-data text-[9px] text-[#E8C070]">
-            INDEX_STREAM: VERIFIED_SETUPS
-          </div>
-
           <div className="mb-8">
             <span className="font-data text-[10px] text-[#4A5568] uppercase tracking-widest block">Active consensus metrics</span>
             <h2 className="font-display font-medium text-2xl mt-1 text-[#F0F4FF]">Live Diagnostic Scanner</h2>
@@ -349,7 +344,7 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
                     const isSell = setup.signal === 'SELL';
                     const scoreVal = Math.round(setup.setupScore || setup.score || 80);
                     return (
-                      <tr key={setup.symbol} onClick={onOpenAuth} className="data-row hover:bg-white/[0.01] transition-colors relative cursor-pointer">
+                      <tr key={setup.symbol} onClick={onOpenAuth} className="data-row hover:bg-[#111115]/80 transition-all duration-150 border-b border-white/[0.02] relative cursor-pointer">
                         <td className="py-4 px-3 font-data text-xs text-[#E8C070] relative">
                           #{index + 1}
                           <span className="absolute left-1 top-1/2 -translate-y-1/2 flex h-1.5 w-1.5 bg-emerald-500 rounded-full animate-pulse" title="LIVE DATA" />
@@ -420,7 +415,7 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
               onClick={onEnterGuestMode}
               className="text-[#E8C070] hover:text-[#fbf0d0] text-[11px] font-bold flex items-center gap-1 cursor-pointer bg-transparent border border-[#D4A843]/20 py-1.5 px-3 rounded-lg"
             >
-              RUN_ALL_SCANS (15) <ArrowRight size={11} />
+              Run All Scanners <ArrowRight size={11} />
             </button>
           </div>
         </div>
@@ -448,7 +443,7 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
                 Consolidates multiple timeframe trendlines, ADX thresholds, and volume multiples. Prevents entry into listless consolidation traps.
               </p>
             </div>
-            <span className="font-data text-[10px] text-[#4A5568] mt-4 block">MODULE 01 · DESK</span>
+            <span className="font-data text-[10px] text-[#8892A4] mt-4 block tracking-widest font-medium">CORE MODULE · Swing Scanner</span>
           </div>
 
           {/* Card 2 */}
@@ -457,12 +452,12 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
               <div className="w-10 h-10 border border-[rgba(255,255,255,0.08)] rounded-xl flex items-center justify-center text-[#E8C070] bg-white/5 mb-5">
                 <Layers size={18} />
               </div>
-              <h3 className="font-display font-medium text-base mb-2 text-[#F0F4FF]">ATR Position Engine</h3>
+              <h3 className="font-display font-medium text-[14px] text-[#F0F4FF]">ATR Position Engine</h3>
               <p className="text-[#8892A4] text-[13px] leading-relaxed">
                 Enter target capital or custom account risk percentages. Evaluates the ATR volatility in real-time to compute conservative trading volumes.
               </p>
             </div>
-            <span className="font-data text-[10px] text-[#4A5568] mt-4 block">MODULE 02 · SIZER</span>
+            <span className="font-data text-[10px] text-[#8892A4] mt-4 block tracking-widest font-medium">CORE MODULE · Position Sizer</span>
           </div>
 
           {/* Card 3 */}
@@ -476,7 +471,7 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
                 Calculates weighted parameters from Technical indicators, AI brief diagnostics, and Macro trends to authorize a signal consensus.
               </p>
             </div>
-            <span className="font-data text-[10px] text-[#4A5568] mt-4 block">MODULE 03 · MATRIX</span>
+            <span className="font-data text-[10px] text-[#8892A4] mt-4 block tracking-widest font-medium">CORE MODULE · Consensus Matrix</span>
           </div>
 
           {/* Card 4 */}
@@ -490,7 +485,7 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
                 Integrates weekly long-term direction, daily setups, and hourly oscillator status so you only deploy when momentum aligns.
               </p>
             </div>
-            <span className="font-data text-[10px] text-[#4A5568] mt-4 block">MODULE 04 · CONCORD</span>
+            <span className="font-data text-[10px] text-[#8892A4] mt-4 block tracking-widest font-medium">CORE MODULE · Timeframe Concordance</span>
           </div>
 
           {/* Card 5 */}
@@ -504,7 +499,7 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
                 Automatically calculates budget adjustments. Automatically scales up ETF allocations at oversold market floors and pauses at euphoric peaks.
               </p>
             </div>
-            <span className="font-data text-[10px] text-[#4A5568] mt-4 block">MODULE 05 · SIP</span>
+            <span className="font-data text-[10px] text-[#8892A4] mt-4 block tracking-widest font-medium">CORE MODULE · Dynamic SIP Planner</span>
           </div>
 
           {/* Card 6 */}
@@ -518,7 +513,7 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
                 Calculates actual post-friction returns. Automatically accounts for STT, SEBI turnover fees, local stamp taxes, and 15% STCG.
               </p>
             </div>
-            <span className="font-data text-[10px] text-[#4A5568] mt-4 block">MODULE 06 · FRICTION</span>
+            <span className="font-data text-[10px] text-[#8892A4] mt-4 block tracking-widest font-medium">CORE MODULE · Friction Engine</span>
           </div>
         </div>
       </section>
@@ -541,7 +536,7 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
             <div className="flex flex-col gap-3">
               <span className="font-data text-[11px] text-[#E8C070] font-black tracking-widest block">02 · ALGO SCANNING</span>
               <h4 className="font-display font-medium text-[14px] text-[#F0F4FF]">Review Active Setup</h4>
-              <p className="text-[#8892A4] text-[12.5px] leading-relaxed font-body">Observe automated daily swing daily swing signals matching Bollinger squeeze metrics.</p>
+              <p className="text-[#8892A4] text-[12.5px] leading-relaxed font-body">Observe automated real-time algorithmic swing signals matching Bollinger squeeze metrics.</p>
             </div>
 
             <div className="flex flex-col gap-3">
@@ -577,27 +572,27 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
           {/* FREE Tier Card */}
           <div className="glass-card p-8 flex flex-col justify-between">
             <div>
-              <span className="font-data text-[11px] text-[#8892A4] uppercase tracking-wider block mb-2">FREE_MODULE_ENTRY</span>
+              <span className="font-data text-[11px] text-[#8892A4] uppercase tracking-wider block mb-2">Standard Plan</span>
               <h3 className="font-display text-4.5xl font-semibold text-[#F0F4FF] mb-1">
-                ₹0 <span className="text-xs font-data text-[#4A5568] font-normal">/ GUEST_ROLE</span>
+                ₹0 <span className="text-xs font-data text-[#8892A4] font-normal">/ month</span>
               </h3>
               <p className="text-[12.5px] text-[#8892A4] mb-6 font-body">All core features available. Set up custom workspaces locally.</p>
               
               <ul className="space-y-3.5 text-[13px] border-t border-[rgba(255,255,255,0.04)] pt-6 mb-8 font-body">
                 <li className="flex items-start gap-2.5">
-                  <Check size={14} className="text-[#00D084] mt-0.5 shrink-0" />
+                  <Check size={14} className="text-[#34A77A] mt-0.5 shrink-0" />
                   <span>Consensus Swing Scanners List</span>
                 </li>
                 <li className="flex items-start gap-2.5">
-                  <Check size={14} className="text-[#00D084] mt-0.5 shrink-0" />
+                  <Check size={14} className="text-[#34A77A] mt-0.5 shrink-0" />
                   <span>ATR Volatility Sizer Module</span>
                 </li>
                 <li className="flex items-start gap-2.5">
-                  <Check size={14} className="text-[#00D084] mt-0.5 shrink-0" />
+                  <Check size={14} className="text-[#34A77A] mt-0.5 shrink-0" />
                   <span>Local Guest Mode Sandbox</span>
                 </li>
                 <li className="flex items-start gap-2.5">
-                  <Check size={14} className="text-[#00D084] mt-0.5 shrink-0" />
+                  <Check size={14} className="text-[#34A77A] mt-0.5 shrink-0" />
                   <span>Cloud sync after safe signup</span>
                 </li>
               </ul>
@@ -605,9 +600,9 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
 
             <button 
               onClick={onEnterGuestMode}
-              className="w-full py-3 border border-[rgba(255,255,255,0.08)] hover:border-[#D4A843]/30 text-[#8892A4] hover:text-[#F0F4FF] bg-transparent text-xs font-data rounded-xl transition-all cursor-pointer"
+              className="w-full py-3 px-6 border border-[rgba(255,255,255,0.08)] hover:border-[#D4A843]/30 text-[#8892A4] hover:text-[#F0F4FF] bg-transparent text-xs font-data rounded-xl transition-all cursor-pointer text-center"
             >
-              RUN_LOCAL_GUEST_DESK
+              Launch Free Workspace
             </button>
           </div>
 
@@ -618,28 +613,28 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
             </div>
 
             <div>
-              <span className="font-data text-[11px] text-[#E8C070] uppercase tracking-wider block mb-2">PRO_MODULE_STATUS</span>
+              <span className="font-data text-[11px] text-[#E8C070] uppercase tracking-wider block mb-2">Pro Plan</span>
               <h3 className="font-display text-4.5xl font-semibold text-[#E8C070] mb-1">
                 BETA_FREE <span className="text-xs font-data text-[#8892A4] font-normal">/ COMING_SOON</span>
               </h3>
               <p className="text-[12.5px] text-[#8892A4] mb-3 font-body">Pro Cloud Persist capabilities are currently in developmental beta testing.</p>
-              <p className="text-[11px] font-semibold text-[#00D084] mb-6">Currently free during beta. No payment integration setup.</p>
+              <p className="text-[11px] font-semibold text-[#34A77A] mb-6">Currently free during beta. No payment integration setup.</p>
               
               <ul className="space-y-3.5 text-[13px] border-t border-[#D4A843]/15 pt-6 mb-8 font-body">
                 <li className="flex items-start gap-2.5 text-slate-400">
-                  <Check size={14} className="text-[#00D084] mt-0.5 shrink-0" />
+                  <Check size={14} className="text-[#34A77A] mt-0.5 shrink-0" />
                   <span>Advanced Cloud Watchlist sync</span>
                 </li>
                 <li className="flex items-start gap-2.5 text-slate-400">
-                  <Check size={14} className="text-[#00D084] mt-0.5 shrink-0" />
+                  <Check size={14} className="text-[#34A77A] mt-0.5 shrink-0" />
                   <span>High-speed automated price target exports</span>
                 </li>
                 <li className="flex items-start gap-2.5 text-slate-400">
-                  <Check size={14} className="text-[#00D084] mt-0.5 shrink-0" />
+                  <Check size={14} className="text-[#34A77A] mt-0.5 shrink-0" />
                   <span>Premium Gemini macro brief confluences</span>
                 </li>
                 <li className="flex items-start gap-2.5 text-slate-400">
-                  <Check size={14} className="text-[#00D084] mt-0.5 shrink-0" />
+                  <Check size={14} className="text-[#34A77A] mt-0.5 shrink-0" />
                   <span>Real-time custom email threshold notifications</span>
                 </li>
               </ul>
@@ -647,9 +642,9 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
 
             <button 
               onClick={onOpenAuth}
-              className="w-full py-3 bg-[#D4A843] hover:bg-[#E8C070] text-[#05070C] text-xs font-data rounded-xl transition-all cursor-pointer font-bold"
+              className="w-full py-3 px-6 bg-gradient-to-r from-[#D4A843] to-[#B8912E] hover:brightness-110 text-[#05070C] text-xs font-data rounded-xl transition-all cursor-pointer font-bold text-center"
             >
-              INITIALIZE_FREE_ACCOUNT
+              Get Started Free
             </button>
           </div>
         </div>
@@ -658,12 +653,11 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
       {/* BOTTOM DISCLAIMER FOOTER */}
       <footer className="py-12 bg-[#05070C] text-[#4A5568] px-6 border-t border-[rgba(255,255,255,0.04)]">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 text-center md:text-left">
             <PrismLogo size={36} showText={true} />
-            <span className="text-[11px] font-data text-slate-500"> </span>
           </div>
 
-          <div className="flex items-center gap-6 text-[11px] font-data font-bold tracking-wider">
+          <div className="flex flex-wrap items-center justify-center gap-6 text-[11px] font-data font-bold tracking-wider text-center md:text-left">
             <Link to="/privacy" className="hover:text-[#E8C070] transition-colors uppercase">Privacy Policy</Link>
             <Link to="/terms" className="hover:text-[#E8C070] transition-colors uppercase">Terms of Use</Link>
             <Link to="/disclaimer" className="hover:text-[#E8C070] transition-colors uppercase text-[#E8C070]">Risk Disclosure</Link>

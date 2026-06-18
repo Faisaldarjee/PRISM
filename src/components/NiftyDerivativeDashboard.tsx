@@ -309,7 +309,7 @@ export function NiftyDerivativeDashboard({ prediction }: NiftyDerivativeDashboar
           <span className="text-[9px] text-slate-500 uppercase tracking-widest block font-sans">Nifty 50 Index Spot</span>
           <div className="flex items-baseline gap-2 mt-1">
             <span className="text-xl font-bold text-white tracking-tight">₹{spotPrice.toLocaleString('en-IN')}</span>
-            <span className="text-[10px] text-[#00D084] font-bold">+1.12%</span>
+            <span className="text-[10px] text-[#34A77A] font-bold">+1.12%</span>
           </div>
           <span className="text-[9px] text-[#4A5568] block mt-1 font-sans">Underlying Spot Index</span>
         </div>
@@ -348,7 +348,7 @@ export function NiftyDerivativeDashboard({ prediction }: NiftyDerivativeDashboar
       {/* 2. OPTION PLAYBOOK SELECTOR */}
       <section className="glass-card p-5 md:p-6 space-y-4">
         <div className="flex items-center gap-2 border-b border-white/[0.04] pb-3 mb-4">
-          <Layers className="text-[#00D084]" size={16} />
+          <Layers className="text-[#34A77A]" size={16} />
           <div>
             <h4 className="font-display font-semibold text-sm text-white">Nifty 50 Hedged Strategy Playbooks</h4>
             <p className="text-[9pt] text-slate-400 font-body">Choose a recommended derivative setup based on predictive algorithms</p>
@@ -369,12 +369,12 @@ export function NiftyDerivativeDashboard({ prediction }: NiftyDerivativeDashboar
                 onClick={() => setSelectedStrategy(strat.id as any)}
                 className={`p-4 rounded-xl text-left border cursor-pointer hover:bg-white/[0.03] transition-all relative ${
                   isSelected 
-                    ? 'border-[#00D084] bg-white/[0.02] ring-1 ring-[#00D084]/20' 
+                    ? 'border-[#34A77A] bg-white/[0.02] ring-1 ring-[#34A77A]/20' 
                     : 'border-white/[0.04] bg-black/20'
                 }`}
               >
                 {isSelected && (
-                  <span className="absolute top-3 right-3 text-[8px] bg-[#00D084]/25 text-[#00D084] font-mono px-2 py-0.5 rounded border border-[#00D084]/30 uppercase font-extrabold font-sans">
+                  <span className="absolute top-3 right-3 text-[8px] bg-[#34A77A]/25 text-[#34A77A] font-mono px-2 py-0.5 rounded border border-[#34A77A]/30 uppercase font-extrabold font-sans">
                     Active Play
                   </span>
                 )}
@@ -547,7 +547,7 @@ export function NiftyDerivativeDashboard({ prediction }: NiftyDerivativeDashboar
                   step={10}
                   value={customExpiryPrice}
                   onChange={(e) => setCustomExpiryPrice(Number(e.target.value))}
-                  className="w-full accent-[#00D084] bg-slate-910 outline-none rounded-lg h-1"
+                  className="w-full accent-[#34A77A] bg-slate-910 outline-none rounded-lg h-1"
                 />
                 <div className="flex justify-between text-[9px] text-slate-500 font-mono">
                   <span>-500 pts</span>
@@ -559,11 +559,11 @@ export function NiftyDerivativeDashboard({ prediction }: NiftyDerivativeDashboar
               {/* PnL Payoff Visual Gauge */}
               <div className={`mt-6 p-5 rounded-2xl border text-center font-mono space-y-1 transition-all ${
                 currentExpiryPnl >= 0 
-                  ? 'bg-emerald-950/20 border-emerald-500/20 shadow-[0_4px_30px_rgba(0,208,132,0.03)]' 
-                  : 'bg-rose-950/20 border-rose-500/20 shadow-[0_4px_30px_rgba(255,71,87,0.03)]'
+                  ? 'bg-emerald-950/20 border-emerald-500/20 shadow-[0_4px_30px_rgba(52,167,122,0.03)]' 
+                  : 'bg-rose-950/20 border-rose-500/20 shadow-[0_4px_30px_rgba(224,82,82,0.03)]'
               }`}>
                 <span className="text-[9.5pt] text-slate-400 font-sans block">Projected Hedge Profit/Loss</span>
-                <span className={`text-2xl font-black tracking-tight block ${currentExpiryPnl >= 0 ? 'text-[#00D084]' : 'text-[#FF4757]'}`}>
+                <span className={`text-2xl font-black tracking-tight block ${currentExpiryPnl >= 0 ? 'text-[#34A77A]' : 'text-[#E05252]'}`}>
                   {currentExpiryPnl >= 0 ? '+' : ''}₹{currentExpiryPnl.toLocaleString('en-IN')}
                 </span>
                 <span className={`text-[9px] font-bold block ${currentExpiryPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
@@ -588,7 +588,7 @@ export function NiftyDerivativeDashboard({ prediction }: NiftyDerivativeDashboar
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/[0.04] pb-4">
           <div>
             <h4 className="text-sm font-display font-semibold text-white uppercase tracking-wider flex items-center gap-2">
-              <Activity size={18} className="text-[#00D084]" /> Live Nifty 50 Options Chain Matrix (Calls vs Puts)
+              <Activity size={18} className="text-[#34A77A]" /> Live Nifty 50 Options Chain Matrix (Calls vs Puts)
             </h4>
             <p className="text-xs text-[#8892A4] mt-1 font-body">Complete Strike price overview highlighting Open Interest buildup and premium decay indices:</p>
           </div>
@@ -629,7 +629,7 @@ export function NiftyDerivativeDashboard({ prediction }: NiftyDerivativeDashboar
                   <tr 
                     key={idx} 
                     className={`hover:bg-white/[0.02] transition-colors ${
-                      isAtm ? 'bg-[#00D084]/[0.02] font-semibold text-slate-100' : ''
+                      isAtm ? 'bg-[#34A77A]/[0.02] font-semibold text-slate-100' : ''
                     }`}
                   >
                     {/* Calls OI */}
@@ -647,9 +647,9 @@ export function NiftyDerivativeDashboard({ prediction }: NiftyDerivativeDashboar
 
                     {/* HIdhlighted Strike price */}
                     <td className={`py-3.5 px-4 font-bold bg-slate-900 border-x border-white/[0.04] text-center ${
-                      isAtm ? 'text-[#E8C070] text-sm scale-105 border-y border-[#00D084]/20 ring-1 ring-[#00D084]/15' : 'text-slate-200'
+                      isAtm ? 'text-[#E8C070] text-sm scale-105 border-y border-[#34A77A]/20 ring-1 ring-[#34A77A]/15' : 'text-slate-200'
                     }`}>
-                      {row.strike || 0} {isAtm && <span className="text-[8px] font-mono block tracking-tight text-[#00D084] uppercase font-bold">ATM</span>}
+                      {row.strike || 0} {isAtm && <span className="text-[8px] font-mono block tracking-tight text-[#34A77A] uppercase font-bold">ATM</span>}
                     </td>
 
                     {/* Puts LTP */}

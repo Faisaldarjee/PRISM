@@ -35,15 +35,15 @@
   --gold-border: rgba(212, 168, 67, 0.18);
 
   /* === SIGNAL COLORS === */
-  --buy: #00D084;
-  --buy-bg: rgba(0, 208, 132, 0.06);
-  --buy-border: rgba(0, 208, 132, 0.18);
-  --buy-glow: rgba(0, 208, 132, 0.10);
+  --buy: #34A77A;
+  --buy-bg: rgba(52, 167, 122, 0.06);
+  --buy-border: rgba(52, 167, 122, 0.18);
+  --buy-glow: rgba(52, 167, 122, 0.10);
 
-  --sell: #FF4757;
-  --sell-bg: rgba(255, 71, 87, 0.06);
-  --sell-border: rgba(255, 71, 87, 0.18);
-  --sell-glow: rgba(255, 71, 87, 0.10);
+  --sell: #E05252;
+  --sell-bg: rgba(224, 82, 82, 0.06);
+  --sell-border: rgba(224, 82, 82, 0.18);
+  --sell-glow: rgba(224, 82, 82, 0.10);
 
   --hold: #FFA502;
   --hold-bg: rgba(255, 165, 2, 0.06);
@@ -134,7 +134,7 @@ body {
   background-clip: text;
 }
 .gradient-text-buy {
-  background: linear-gradient(135deg, #00D084, #00F5A0);
+  background: linear-gradient(135deg, #34A77A, #48c495);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

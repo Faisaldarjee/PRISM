@@ -60,10 +60,10 @@ const getSentimentColorStyle = (label: string | undefined | null) => {
   if (!label) return 'bg-zinc-500/10 text-zinc-400 border border-zinc-500/20';
   const clean = label.toUpperCase().trim();
   if (clean.includes('STRONGLY_BULLISH') || clean.includes('STRONGLY BULLISH')) {
-    return 'bg-[#00D084]/15 text-[#00D084] border border-[#00D084]/25 animate-pulse';
+    return 'bg-[#34A77A]/15 text-[#34A77A] border border-[#34A77A]/25 animate-pulse';
   }
   if (clean.includes('BULLISH')) {
-    return 'bg-[#00D084]/10 text-[#00D084] border border-[#00D084]/20';
+    return 'bg-[#34A77A]/10 text-[#34A77A] border border-[#34A77A]/20';
   }
   if (clean.includes('MIXED') || clean.includes('CAUTIOUS')) {
     return 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20';
@@ -164,7 +164,7 @@ export function AssetDetail() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] gap-3">
         <RefreshCw size={36} className="text-[#D4A843] animate-spin" />
-        <p className="font-data text-xs text-[#8892A4] animate-pulse uppercase tracking-widest">COMPILING_ASSET_METRICS_{resolvedSymbol.split('.')[0]}...</p>
+        <p className="font-data text-xs text-[#8892A4] animate-pulse uppercase tracking-widest">Loading Technical Metrics...</p>
       </div>
     );
   }
@@ -172,8 +172,8 @@ export function AssetDetail() {
   if (error || !prediction) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[460px] max-w-md mx-auto p-8 rounded-2xl bg-[#0C1018] border border-white/[0.05] shadow-xl text-center font-data">
-        <AlertCircle size={40} className="text-[#FF4757] mb-4 animate-bounce" />
-        <h3 className="text-sm font-display font-semibold text-white mb-2 uppercase tracking-wide">Asset Resolution Failed</h3>
+        <AlertCircle size={40} className="text-[#E05252] mb-4 animate-bounce" />
+        <h3 className="text-sm font-display font-semibold text-white mb-2 uppercase tracking-wide">Data Unavailable</h3>
         <p className="text-xs text-[#8892A4] mb-6 font-body leading-relaxed">{error || 'Asset could not be resolved. Please verify Symbol tick name.'}</p>
         <div className="flex gap-3 justify-center">
           <Link to="/" className="px-4 py-2 bg-white/[0.02] border border-white/[0.05] text-[#8892A4] text-[10px] font-data font-bold rounded-xl hover:text-white uppercase">
@@ -191,6 +191,13 @@ export function AssetDetail() {
   }
 
   const breakdown = prediction.agent_breakdown || {};
+  const smcAgent = {
+    name: 'SMC Institutional Flow Agent',
+    signal: breakdown.smc?.signal || 'HOLD',
+    confidence: breakdown.smc?.confidence || 0.75,
+    reasons: breakdown.smc?.key_reasons || ['Liquidity pools mapping', 'Order block mitigation indexes']
+  };
+
   const techAgent = {
     name: 'Technical Trend Agent',
     signal: breakdown.technical?.signal || 'HOLD',
@@ -262,7 +269,7 @@ export function AssetDetail() {
                 {resolvedSymbol.split('.')[0]}
               </h2>
               <span className="text-[8px] font-data font-bold uppercase bg-white/[0.03] border border-white/[0.06] text-[#E8C070] px-2 py-0.5 rounded">
-                ACTIVE_SUITE_ASSET
+                Tracked Asset
               </span>
             </div>
             <p className="text-[#8892A4] text-xs font-body">{isEtf ? 'Securitized Precious Metals ETF Brokerage Segment' : 'NSE Corporate Private Equities Stock'}</p>
@@ -271,7 +278,7 @@ export function AssetDetail() {
           <div className="flex flex-wrap items-center gap-6 font-data text-xs">
             {/* Orchestrator verdict */}
             <div>
-              <span className="text-[9px] text-[#4A5568] uppercase tracking-wider block">Orchestration Decision</span>
+              <span className="text-[9px] text-[#4A5568] uppercase tracking-wider block">Consensus Signal</span>
               <div className="flex items-center gap-3 mt-1.5">
                 <SignalBadge signal={prediction.signal} size="lg" />
               </div>
@@ -279,7 +286,7 @@ export function AssetDetail() {
             
             {/* Timeframe */}
             <div className="border-l border-white/[0.04] pl-6">
-              <span className="text-[9px] text-[#4A5568] uppercase tracking-wider block">Decision Timeframe</span>
+              <span className="text-[9px] text-[#4A5568] uppercase tracking-wider block">Timeframe</span>
               <span className="text-sm font-semibold text-white mt-1.5 block flex items-center gap-1.5 font-mono">
                 <Clock size={13} className="text-[#8892A4]" />
                 {prediction.timeframe}
@@ -288,13 +295,13 @@ export function AssetDetail() {
 
             {/* Risk Class */}
             <div className="border-l border-white/[0.04] pl-6">
-              <span className="text-[9px] text-[#4A5568] uppercase tracking-wider block">Risk Framework rating</span>
+              <span className="text-[9px] text-[#4A5568] uppercase tracking-wider block">Risk Level</span>
               <span className={`text-sm font-bold tracking-widest mt-1.5 block flex items-center gap-1 font-mono ${
                 prediction.risk_level === 'LOW' 
-                  ? 'text-[#00D084]' 
+                  ? 'text-[#34A77A]' 
                   : prediction.risk_level === 'MEDIUM' 
                     ? 'text-[#E8C070]' 
-                    : 'text-[#FF4757]'
+                    : 'text-[#E05252]'
               }`}>
                 <AlertTriangle size={12} />
                 {prediction.risk_level}
@@ -322,8 +329,18 @@ export function AssetDetail() {
         </div>
 
         {retrainSuccess && (
-          <div className="mt-3 p-3 bg-[#00D084]/10 border border-[#00D084]/25 rounded-xl text-xs text-slate-200 font-body">
+          <div className="mt-3 p-3 bg-[#34A77A]/10 border border-[#34A77A]/25 rounded-xl text-xs text-slate-200 font-body">
             {retrainSuccess}
+          </div>
+        )}
+
+        {prediction.consensus?.conflictDetected && (
+          <div id="consensus-conflict-alert" className="mt-4 p-4 bg-[#E05252]/10 border border-[#E05252]/25 rounded-xl text-xs text-[#E8C070] font-body relative overflow-hidden flex items-start gap-3">
+            <AlertTriangle className="text-[#E05252] shrink-0 mt-0.5 animate-pulse" size={18} />
+            <div>
+              <h5 className="font-display font-semibold text-[#E05252] uppercase tracking-wider text-[10px]">Consensus Engine Divergence Warning</h5>
+              <p className="mt-1 text-[#C4CBD4] font-body leading-relaxed">{prediction.consensus.conflictReason}</p>
+            </div>
           </div>
         )}
       </section>
@@ -335,7 +352,7 @@ export function AssetDetail() {
             onClick={() => setSubTab('SPOT')}
             className={`px-5 py-3 text-xs font-display font-medium uppercase tracking-wider relative transition-all cursor-pointer ${
               subTab === 'SPOT' 
-                ? 'text-[#00D084] font-bold border-b-2 border-[#00D084]' 
+                ? 'text-[#34A77A] font-bold border-b-2 border-[#34A77A]' 
                 : 'text-[#8892A4] hover:text-white'
             }`}
           >
@@ -345,7 +362,7 @@ export function AssetDetail() {
             onClick={() => setSubTab('DERIVATIVES')}
             className={`px-5 py-3 text-xs font-display font-medium uppercase tracking-wider relative transition-all cursor-pointer ${
               subTab === 'DERIVATIVES' 
-                ? 'text-[#00D084] font-bold border-b-2 border-[#00D084]' 
+                ? 'text-[#34A77A] font-bold border-b-2 border-[#34A77A]' 
                 : 'text-[#8892A4] hover:text-white'
             }`}
           >
@@ -382,7 +399,7 @@ export function AssetDetail() {
               className="flex items-center justify-between p-4 cursor-pointer hover:bg-white/[0.02] transition-colors"
             >
               <div className="flex items-center gap-3">
-                <Globe className="text-[#00D084]" size={18} />
+                <Globe className="text-[#34A77A]" size={18} />
                 <div>
                   <span className="text-[9px] text-[#8892A4] tracking-wider uppercase block">🌐 Global Macro Impact</span>
                   <span className="text-xs text-white font-medium block mt-0.5">{ctx.globalMacro}</span>
@@ -428,7 +445,7 @@ export function AssetDetail() {
               className="flex items-center justify-between p-4 cursor-pointer hover:bg-white/[0.02] transition-colors"
             >
               <div className="flex items-center gap-3">
-                <Calendar className={ctx.earningsAlert ? "text-[#FF4757]" : "text-[#00D084]"} size={18} />
+                <Calendar className={ctx.earningsAlert ? "text-[#E05252]" : "text-[#34A77A]"} size={18} />
                 <div>
                   <span className="text-[9px] text-[#8892A4] tracking-wider uppercase block">📅 Corporate Events & Earnings</span>
                   <span className="text-xs text-white font-medium block mt-0.5">
@@ -442,9 +459,9 @@ export function AssetDetail() {
               <div className="p-4 bg-white/[0.01] border-t border-white/[0.02] text-xs text-[#8892A4] leading-relaxed space-y-2 font-mono">
                 <p>Corporate calendars monitor forthcoming earnings declarations, dividend announcements, board meetings, and shareholder AGMs.</p>
                 {ctx.earningsAlert ? (
-                  <p className="text-[#FF4757] font-bold">&rarr; Alert: {ctx.earningsAlert}</p>
+                  <p className="text-[#E05252] font-bold">&rarr; Alert: {ctx.earningsAlert}</p>
                 ) : (
-                  <p className="text-[#00D084]">&rarr; Event Timeline status is clear.</p>
+                  <p className="text-[#34A77A]">&rarr; Event Timeline status is clear.</p>
                 )}
               </div>
             )}
@@ -457,7 +474,7 @@ export function AssetDetail() {
               className="flex items-center justify-between p-4 cursor-pointer hover:bg-white/[0.02] transition-colors"
             >
               <div className="flex items-center gap-3">
-                <TrendingUp className="text-[#00D084]" size={18} />
+                <TrendingUp className="text-[#34A77A]" size={18} />
                 <div>
                   <span className="text-[9px] text-[#8892A4] tracking-wider uppercase block">📊 Insider & Bulk Deals</span>
                   <span className="text-xs text-white font-medium block mt-0.5">{ctx.bulkDealAlert}</span>
@@ -480,7 +497,7 @@ export function AssetDetail() {
               className="flex items-center justify-between p-4 cursor-pointer hover:bg-white/[0.02] transition-colors"
             >
               <div className="flex items-center gap-3">
-                <Newspaper className="text-[#00D084]" size={18} />
+                <Newspaper className="text-[#34A77A]" size={18} />
                 <div>
                   <span className="text-[9px] text-[#8892A4] tracking-wider uppercase block">📰 News Intelligence</span>
                   <span className="text-xs text-white font-medium block mt-0.5">{ctx.newsSentiment}</span>
@@ -500,14 +517,14 @@ export function AssetDetail() {
         {/* Key Risks and Supports Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-4 border-t border-white/[0.04]">
           {/* Risks */}
-          <div className="p-4 bg-[#FF4757]/[0.02] border border-[#FF4757]/10 rounded-xl space-y-2.5">
-            <h4 className="text-[10px] uppercase tracking-wider text-[#FF4757] font-semibold flex items-center gap-1.5">
+          <div className="p-4 bg-[#E05252]/[0.02] border border-[#E05252]/10 rounded-xl space-y-2.5">
+            <h4 className="text-[10px] uppercase tracking-wider text-[#E05252] font-semibold flex items-center gap-1.5">
               <AlertCircle size={12} /> Key Intelligence Risks
             </h4>
             <ul className="space-y-1.5 text-xs text-[#8892A4] leading-relaxed font-body">
               {ctx.keyRisks.map((risk, i) => (
                 <li key={i} className="flex gap-2 items-start">
-                  <span className="text-[#FF4757] font-bold mt-0.5 font-mono">•</span>
+                  <span className="text-[#E05252] font-bold mt-0.5 font-mono">•</span>
                   <span>{risk}</span>
                 </li>
               ))}
@@ -515,14 +532,14 @@ export function AssetDetail() {
           </div>
 
           {/* Supports */}
-          <div className="p-4 bg-[#00D084]/[0.02] border border-[#00D084]/15 rounded-xl space-y-2.5">
-            <h4 className="text-[10px] uppercase tracking-wider text-[#00D084] font-semibold flex items-center gap-1.5">
+          <div className="p-4 bg-[#34A77A]/[0.02] border border-[#34A77A]/15 rounded-xl space-y-2.5">
+            <h4 className="text-[10px] uppercase tracking-wider text-[#34A77A] font-semibold flex items-center gap-1.5">
               <CheckCircle2 size={12} /> Key Support Factors
             </h4>
             <ul className="space-y-1.5 text-xs text-[#8892A4] leading-relaxed font-body">
               {ctx.keySupportFactors.map((sup, i) => (
                 <li key={i} className="flex gap-2 items-start">
-                  <span className="text-[#00D084] font-bold mt-0.5 font-mono">•</span>
+                  <span className="text-[#34A77A] font-bold mt-0.5 font-mono">•</span>
                   <span>{sup}</span>
                 </li>
               ))}
@@ -549,15 +566,15 @@ export function AssetDetail() {
 
         {/* Reward Target */}
         <div className="glass-card p-5 flex items-center gap-4">
-          <div className="p-2.5 rounded-lg bg-[#00D084]/10 text-[#00D084] border border-[#00D084]/20">
+          <div className="p-2.5 rounded-lg bg-[#34A77A]/10 text-[#34A77A] border border-[#34A77A]/20">
             <Target size={18} />
           </div>
           <div>
             <span className="text-[9px] text-[#4A5568] tracking-wider uppercase block">ALGORITHM EXIT TARGET PRICE</span>
             <div className="flex items-baseline gap-1 mt-1 font-mono">
-              <span className="text-lg font-bold text-[#00D084]">₹{(prediction.target_price || 0).toLocaleString('en-IN')}</span>
+              <span className="text-lg font-bold text-[#34A77A]">₹{(prediction.target_price || 0).toLocaleString('en-IN')}</span>
               {prediction.target_price && prediction.entry_price && (
-                <span className="text-[9.5px] font-bold text-[#00D084] ml-1.5">
+                <span className="text-[9.5px] font-bold text-[#34A77A] ml-1.5 font-mono">
                   (+{(((prediction.target_price - prediction.entry_price) / prediction.entry_price) * 100).toFixed(1)}%)
                 </span>
               )}
@@ -567,15 +584,15 @@ export function AssetDetail() {
 
         {/* Protective Stop Loss */}
         <div className="glass-card p-5 flex items-center gap-4">
-          <div className="p-2.5 rounded-lg bg-[#FF4757]/10 text-[#FF4757] border border-[#FF4757]/20">
+          <div className="p-2.5 rounded-lg bg-[#E05252]/10 text-[#E05252] border border-[#E05252]/20">
             <ShieldAlert size={18} />
           </div>
           <div>
             <span className="text-[9px] text-[#4A5568] tracking-wider uppercase block">CAPITAL PROTECTION STOP LOSS</span>
             <div className="flex items-baseline gap-1 mt-1 font-mono">
-              <span className="text-lg font-bold text-[#FF4757]">₹{(prediction.stop_loss || 0).toLocaleString('en-IN')}</span>
+              <span className="text-lg font-bold text-[#E05252]">₹{(prediction.stop_loss || 0).toLocaleString('en-IN')}</span>
               {prediction.stop_loss && prediction.entry_price && (
-                <span className="text-[9.5px] font-bold text-[#FF4757] ml-1.5 font-mono">
+                <span className="text-[9.5px] font-bold text-[#E05252] ml-1.5 font-mono">
                   ({(((prediction.stop_loss - prediction.entry_price) / prediction.entry_price) * 100).toFixed(1)}%)
                 </span>
               )}
@@ -612,43 +629,43 @@ export function AssetDetail() {
         {/* Dynamic Pattern recognition */}
         <div className="glass-card p-5">
           <div className="flex items-center gap-2 border-b border-white/[0.04] pb-3 mb-4 font-sans">
-            <Cpu className="text-[#00D084]" size={16} />
-            <div>
-              <h4 className="font-display font-semibold text-sm text-white font-sans">Pattern Recognition Engine</h4>
-              <p className="text-[9px] text-[#8892A4] font-body uppercase mt-0.5">Active Candlestick & Swing Formations</p>
-            </div>
-          </div>
-          <div className="space-y-3 font-mono text-xs">
-            {prediction.detected_patterns && prediction.detected_patterns.length > 0 ? (
-              prediction.detected_patterns.map((pat: string, idx: number) => (
-                <div key={idx} className="flex gap-2 items-center bg-black/40 border border-white/[0.02] p-2.5 rounded-lg text-slate-200">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#00D084]" />
-                  <span>{pat}</span>
-                </div>
-              ))
-            ) : (
-              <div className="text-gray-500 italic text-center py-4">No strong formations detected on daily resolution bounds.</div>
-            )}
+          <Cpu className="text-[#34A77A]" size={16} />
+          <div>
+            <h4 className="font-display font-semibold text-sm text-white font-sans">Pattern Recognition</h4>
+            <p className="text-[9px] text-[#8892A4] font-body uppercase mt-0.5">Candlestick & Swing Formations</p>
           </div>
         </div>
+        <div className="space-y-3 font-mono text-xs">
+          {prediction.detected_patterns && prediction.detected_patterns.length > 0 ? (
+            prediction.detected_patterns.map((pat: string, idx: number) => (
+              <div key={idx} className="flex gap-2 items-center bg-black/40 border border-white/[0.02] p-2.5 rounded-lg text-slate-200">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#34A77A]" />
+                <span>{pat}</span>
+              </div>
+            ))
+          ) : (
+            <div className="text-gray-500 italic text-center py-4">No strong formations detected on daily resolution bounds.</div>
+          )}
+        </div>
+      </div>
 
-        {/* Hold Time Recommendation */}
-        {(() => {
-          const sig = (prediction.signal || 'HOLD').toUpperCase();
-          let holdText = "Hold for upside target";
-          if (sig === 'SELL') holdText = "Exit within this timeframe";
-          if (sig === 'HOLD') holdText = "Monitor for clearer signal";
+      {/* Holding Period */}
+      {(() => {
+        const sig = (prediction.signal || 'HOLD').toUpperCase();
+        let holdText = "Hold for upside target";
+        if (sig === 'SELL') holdText = "Exit within this timeframe";
+        if (sig === 'HOLD') holdText = "Monitor for clearer signal";
 
-          return (
-            <div className="glass-card p-5 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center gap-2 border-b border-white/[0.04] pb-3 mb-4 font-sans">
-                  <Clock className="text-[#E8C070]" size={16} />
-                  <div>
-                    <h4 className="font-display font-semibold text-sm text-white font-sans">Hold Time Recommendation</h4>
-                    <p className="text-[9px] text-[#8892A4] font-body uppercase mt-0.5">Expected Swing Duration Velocity</p>
-                  </div>
+        return (
+          <div className="glass-card p-5 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center gap-2 border-b border-white/[0.04] pb-3 mb-4 font-sans">
+                <Clock className="text-[#E8C070]" size={16} />
+                <div>
+                  <h4 className="font-display font-semibold text-sm text-white font-sans">Holding Period</h4>
+                  <p className="text-[9px] text-[#8892A4] font-body uppercase mt-0.5">Expected Swing Duration Velocity</p>
                 </div>
+              </div>
                 <div className="bg-[#E8C070]/5 border border-[#E8C070]/20 p-4 rounded-xl text-center">
                   <span className="text-[10px] text-gray-400 block uppercase font-mono tracking-widest mb-1">OPTIMAL SWING WINDOW</span>
                   <span className="text-sm font-bold text-[#E8C070] font-mono block">
@@ -727,12 +744,12 @@ export function AssetDetail() {
                   <span className="text-rose-400 font-bold">₹{prediction.trade_plan?.stop_loss?.toLocaleString('en-IN') || "N/A"}</span>
                 </div>
                 <div className="flex justify-between items-center py-1 border-b border-white/[0.02]">
-                  <span className="text-[#00D084] font-medium">{t1Label}</span>
-                  <span className="text-[#00D084] font-bold">₹{prediction.trade_plan?.target_1?.toLocaleString('en-IN') || "N/A"}</span>
+                  <span className="text-[#34A77A] font-medium">{t1Label}</span>
+                  <span className="text-[#34A77A] font-bold">₹{prediction.trade_plan?.target_1?.toLocaleString('en-IN') || "N/A"}</span>
                 </div>
                 <div className="flex justify-between items-center py-1 border-b border-white/[0.02]">
-                  <span className="text-[#00D084]/80 font-medium">{t2Label}</span>
-                  <span className="text-[#00D084]/80 font-semibold">₹{prediction.trade_plan?.target_2?.toLocaleString('en-IN') || "N/A"}</span>
+                  <span className="text-[#34A77A]/80 font-medium">{t2Label}</span>
+                  <span className="text-[#34A77A]/80 font-semibold">₹{prediction.trade_plan?.target_2?.toLocaleString('en-IN') || "N/A"}</span>
                 </div>
                 <div className="flex justify-between items-center pt-2">
                   <span className="text-gray-400">ACTION TYPE:</span>
@@ -766,7 +783,7 @@ export function AssetDetail() {
             <div className="w-full md:w-1/3 bg-[#0d0e12]/60 border border-white/[0.04] p-5 rounded-xl flex flex-col justify-between self-stretch">
               <div>
                 <div className="flex items-center gap-2 border-b border-white/[0.04] pb-3 mb-4 font-sans">
-                  <Sparkles className="text-[#00D084]" size={15} />
+                  <Sparkles className="text-[#34A77A]" size={15} />
                   <div>
                     <h4 className="font-display font-semibold text-xs text-white">Sentiment Status</h4>
                     <p className="text-[8.5px] text-[#8892A4] font-mono uppercase mt-0.5 tracking-wider">AI Weighted News Score</p>
@@ -774,7 +791,7 @@ export function AssetDetail() {
                 </div>
 
                 <div className="flex items-center justify-center py-6 flex-col relative bg-black/30 rounded-xl">
-                  <div className="text-4xl font-extrabold font-mono tracking-tight text-[#00D084]">
+                  <div className="text-4xl font-extrabold font-mono tracking-tight text-[#34A77A]">
                     {prediction.newsIntelligence.sentimentScore > 0 ? `+${prediction.newsIntelligence.sentimentScore}` : prediction.newsIntelligence.sentimentScore}
                   </div>
                   <span className="text-[8px] text-gray-400 font-mono tracking-widest block mt-2 text-center uppercase">WEIGHED INDEX (-100 to +100)</span>
@@ -797,7 +814,7 @@ export function AssetDetail() {
                 </div>
                 <div className="flex justify-between items-center text-[10.5px] py-1 border-b border-white/[0.02]">
                   <span className="text-gray-400 uppercase">TARGET RANGE:</span>
-                  <span className="text-[#00D084] font-bold">{prediction.newsIntelligence.swingStrategy.targetZone}</span>
+                  <span className="text-[#34A77A] font-bold">{prediction.newsIntelligence.swingStrategy.targetZone}</span>
                 </div>
                 <div className="flex justify-between items-center text-[10.5px] pt-1">
                   <span className="text-gray-400 uppercase">PROTECTIVE STOP:</span>
@@ -810,7 +827,7 @@ export function AssetDetail() {
             <div className="w-full md:w-2/3 flex flex-col justify-between self-stretch">
               <div>
                 <div className="flex items-center gap-2 border-b border-white/[0.04] pb-3 mb-4 font-sans">
-                  <div className="bg-[#00D084]/10 text-[#00D084] p-1.5 rounded-lg border border-[#00D084]/15">
+                  <div className="bg-[#34A77A]/10 text-[#34A77A] p-1.5 rounded-lg border border-[#34A77A]/15">
                     <Sparkles size={13} />
                   </div>
                   <div>
@@ -830,7 +847,7 @@ export function AssetDetail() {
                 <div className="space-y-2.5">
                   {prediction.newsIntelligence.keyCatalysts.map((cat: string, idx: number) => (
                     <div key={idx} className="flex gap-2.5 items-start text-[11px] font-mono text-zinc-300 leading-normal">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#00D084] mt-1.5 flex-shrink-0" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#34A77A] mt-1.5 flex-shrink-0" />
                       <span className="leading-tight">{cat}</span>
                     </div>
                   ))}
@@ -847,7 +864,7 @@ export function AssetDetail() {
         {/* Trend Concordant Block */}
         <div className="glass-card p-5 flex flex-col justify-between">
           <div className="flex items-center gap-2 border-b border-white/[0.04] pb-3 mb-4 font-sans">
-            <Layers className="text-[#00D084]" size={16} />
+            <Layers className="text-[#34A77A]" size={16} />
             <div>
               <h4 className="font-display font-semibold text-sm text-white">Multi-Timeframe Trend Concordance</h4>
               <p className="text-[9px] text-[#8892A4] font-body uppercase mt-0.5">Aligned Weekly, Daily, and Hourly momentum signals</p>
@@ -860,9 +877,9 @@ export function AssetDetail() {
                 <span className="text-[#8892A4] uppercase">Weekly Trend Basis:</span>
                 <span className={`font-bold px-2 py-0.5 rounded text-[10px] ${
                   prediction.multiTimeframe.weeklyTrend === 'BULLISH'
-                    ? 'bg-[#00D084]/15 text-[#00D084]'
+                    ? 'bg-[#34A77A]/15 text-[#34A77A]'
                     : prediction.multiTimeframe.weeklyTrend === 'BEARISH'
-                      ? 'bg-[#FF4757]/15 text-[#FF4757]'
+                      ? 'bg-[#E05252]/15 text-[#E05252]'
                       : 'bg-white/[0.04] text-slate-300'
                 }`}>
                   {prediction.multiTimeframe.weeklyTrend}
@@ -873,9 +890,9 @@ export function AssetDetail() {
                 <span className="text-[#8892A4] uppercase">Daily Trend Setup Trigger:</span>
                 <span className={`font-bold px-2 py-0.5 rounded text-[10px] ${
                   prediction.multiTimeframe.dailySignal === 'BUY'
-                    ? 'bg-[#00D084]/15 text-[#00D084] border border-[#00D084]/20'
+                    ? 'bg-[#34A77A]/15 text-[#34A77A] border border-[#34A77A]/20'
                     : prediction.multiTimeframe.dailySignal === 'SELL'
-                      ? 'bg-[#FF4757]/15 text-[#FF4757] border border-[#FF4757]/20'
+                      ? 'bg-[#E05252]/15 text-[#E05252] border border-[#E05252]/20'
                       : 'bg-white/[0.04] text-slate-300'
                 }`}>
                   {prediction.multiTimeframe.dailySignal}
@@ -885,7 +902,7 @@ export function AssetDetail() {
               <div className="flex justify-between items-center py-1.5 border-b border-white/[0.02]">
                 <span className="text-[#8892A4] uppercase">4-Hour Fine Entry Trigger:</span>
                 <span className={`font-semibold text-xs ${
-                  prediction.multiTimeframe.fourHourTrig === 'ACCUMULATE_NOW' ? 'text-[#00D084]' : 'text-slate-200'
+                  prediction.multiTimeframe.fourHourTrig === 'ACCUMULATE_NOW' ? 'text-[#34A77A]' : 'text-slate-200'
                 }`}>
                   {prediction.multiTimeframe.fourHourTrig === 'ACCUMULATE_NOW' ? '⚡ INTERACTIVE ACCUMULATE NOW' : prediction.multiTimeframe.fourHourTrig}
                 </span>
@@ -920,7 +937,7 @@ export function AssetDetail() {
               <>
                 <div className="flex justify-between items-center pb-2 border-b border-white/[0.02]">
                   <span className="text-[#8892A4]">LIVE XGBOOST CONFIDENCE RATIO:</span>
-                  <span className="text-[#00D084] font-bold font-mono">{Math.round((breakdown.ml.confidence || 0.74) * 100)}%</span>
+                  <span className="text-[#34A77A] font-bold font-mono">{Math.round((breakdown.ml.confidence || 0.74) * 100)}%</span>
                 </div>
                 <div className="space-y-2">
                   <span className="text-[8px] text-[#4A5568] uppercase block tracking-widest font-mono">ACTIVE SGD METRIC VALUE STREAMS:</span>
@@ -944,10 +961,16 @@ export function AssetDetail() {
 
       </section>
 
-      {/* DECENTRALIZED MULTI-AGENT SHIELD DEEP GRID */}
+      {/* MULTI_AGENT ANALYSIS */}
       <section className="space-y-3">
-        <h3 className="font-display font-semibold text-sm text-white uppercase tracking-wider pl-1">Decentralized Brokerage Expert Breakdown</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <h3 className="font-display font-semibold text-sm text-white uppercase tracking-wider pl-1">Consensus Agent Breakdown</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+          <AgentCard 
+            agentName={smcAgent.name} 
+            signal={smcAgent.signal} 
+            confidence={smcAgent.confidence} 
+            reasons={smcAgent.reasons} 
+          />
           <AgentCard 
             agentName={techAgent.name} 
             signal={techAgent.signal} 
@@ -1011,7 +1034,7 @@ export function AssetDetail() {
                     <span className="text-[9px] text-[#4A5568] uppercase tracking-wider block">Timing Directive</span>
                     <span className={`text-sm font-bold uppercase mt-1.5 inline-block px-3 py-1.5 rounded-lg border font-mono ${
                       sip.sip_recommendation === 'BUY' 
-                        ? 'bg-[#00D084]/15 text-[#00D084] border-[#00D084]/25' 
+                        ? 'bg-[#34A77A]/15 text-[#34A77A] border-[#34A77A]/25' 
                         : 'bg-[#D4A843]/15 text-[#E8C070] border-[#D4A843]/25'
                     }`}>
                       {sip.sip_recommendation}
@@ -1101,7 +1124,7 @@ export function AssetDetail() {
                   </div>
                   <div className="flex justify-between items-center font-mono">
                     <span className="text-[#8892A4] font-body">Physical Backing Class</span>
-                    <span className="text-[#00D084] font-bold uppercase">{fundamentals.physical_backing || 'LBMA Vault'}</span>
+                    <span className="text-[#34A77A] font-bold uppercase">{fundamentals.physical_backing || 'LBMA Vault'}</span>
                   </div>
                 </div>
 
@@ -1127,7 +1150,7 @@ export function AssetDetail() {
                 <div className="space-y-3.5">
                   <div className="flex justify-between items-center border-b border-white/[0.02] pb-1.5">
                     <span className="text-[#8892A4]">Promoter Holding</span>
-                    <span className="text-[#00D084] font-bold">{fundamentals.promoter_holding || 'N/A'}</span>
+                    <span className="text-[#34A77A] font-bold">{fundamentals.promoter_holding || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between items-center border-b border-white/[0.02] pb-1.5">
                     <span className="text-[#8892A4]">Shares Pledged Status</span>
@@ -1165,8 +1188,8 @@ export function AssetDetail() {
         <section className="glass-card p-5 space-y-4">
           <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 border-b border-white/[0.04] pb-3.5">
             <div className="font-sans">
-              <h3 className="font-display font-medium text-sm text-[#F0F4FF]">FinBERT NLP Sentiment Dashboard</h3>
-              <p className="text-[9.5px] text-[#4A5568] uppercase font-data mt-0.5">Web scraper news streams parsed yesterday</p>
+              <h3 className="font-display font-medium text-sm text-[#F0F4FF]">Sentiment Consensus</h3>
+              <p className="text-[9.5px] text-[#4A5568] uppercase font-data mt-0.5">Scanned news streams and parsed sentiments</p>
             </div>
             
             <div className="flex flex-wrap items-center gap-3.5 font-data text-xs text-[#8892A4]">
@@ -1178,8 +1201,8 @@ export function AssetDetail() {
               <span>Aggregator Weight:</span>
               <span className={`px-2.5 py-0.5 rounded font-mono font-bold ${
                 sentiment.score > 0.05 
-                  ? 'bg-[#00D084]/10 text-[#00D084]' 
-                  : 'bg-[#FF4757]/10 text-[#FF4757]'
+                  ? 'bg-[#34A77A]/10 text-[#34A77A]' 
+                  : 'bg-[#E05252]/10 text-[#E05252]'
               }`}>
                 {sentiment.score > 0 ? '+' : ''}{sentiment.score?.toFixed(2)}
               </span>
@@ -1193,7 +1216,7 @@ export function AssetDetail() {
                 <div id="headlines-container" className="space-y-1.5">
                   {sentiment.headlines.map((headline, i) => (
                     <div key={i} className="p-3 bg-white/[0.015] border border-white/[0.02] rounded-xl flex items-start gap-3">
-                      <span className="px-1.5 py-0.5 bg-[#00D084]/10 text-[#00D084] border border-[#00D084]/20 rounded font-mono text-[8px] mt-0.5 shrink-0">NLP_OK</span>
+                      <span className="px-1.5 py-0.5 bg-[#34A77A]/10 text-[#34A77A] border border-[#34A77A]/20 rounded font-mono text-[8px] mt-0.5 shrink-0">PARSED</span>
                       <p className="text-xs text-zinc-300 font-body leading-relaxed">{headline}</p>
                     </div>
                   ))}

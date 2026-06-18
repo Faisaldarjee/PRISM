@@ -627,7 +627,7 @@ export function SipTracker() {
             </div>
             <div className="mt-3 text-[9px] font-mono border-t border-white/[0.04] pt-2 flex justify-between items-center">
               <span className="text-[#8892A4]">USD/INR:</span>
-              <span className="text-[#00D084] font-bold">REAL TIME</span>
+              <span className="text-[#34A77A] font-bold">REAL TIME</span>
             </div>
           </div>
 
@@ -729,7 +729,7 @@ export function SipTracker() {
               <div id="deployment-verdict-box" className="p-3 bg-white/[0.01] border border-white/[0.03] rounded-lg space-y-2">
                 <div className="flex justify-between text-[9px] font-mono uppercase text-[#8892A4]">
                   <span>Optimized Tranche Allotment ({sipDeployment.percent}):</span>
-                  <span className="text-[#00D084] font-bold font-mono">₹{sipDeployment.deploy.toLocaleString('en-IN')}</span>
+                  <span className="text-[#34A77A] font-bold font-mono">₹{sipDeployment.deploy.toLocaleString('en-IN')}</span>
                 </div>
                 {sipDeployment.reserve > 0 && (
                   <div className="flex justify-between text-[9px] font-mono uppercase text-[#8892A4]">
@@ -745,7 +745,7 @@ export function SipTracker() {
           </div>
 
           <div id="deployment-system-verdict" className="mt-4 pt-3 border-t border-white/[0.04] text-[9px] font-mono text-zinc-400 flex items-center justify-between">
-            <span>RSI BARRIER TRIGGER STATUS:</span>
+            <span>RSI Trigger Boundary:</span>
             <span className="text-emerald-400 font-bold">★ CALIBRATED</span>
           </div>
         </div>
@@ -885,7 +885,7 @@ export function SipTracker() {
                 {/* XIRR Badge */}
                 <div id="xirr-badge-box" className="p-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-center font-mono">
                   <span className="text-[7px] text-[#8892A4] uppercase block leading-none font-bold">ANNUALIZED XIRR</span>
-                  <span className="text-sm font-bold text-[#00D084] mt-0.5 block">{performanceMetrics.xirr}%</span>
+                  <span className="text-sm font-bold text-[#34A77A] mt-0.5 block">{performanceMetrics.xirr}%</span>
                 </div>
               </div>
 
@@ -903,7 +903,7 @@ export function SipTracker() {
 
                 <div className="p-3 bg-white/[0.015] border border-white/[0.03] rounded-lg">
                   <span className="text-[8px] font-mono text-[#4A5568] uppercase block leading-none">ABSOLUTE RETURNS %</span>
-                  <span className={`text-sm font-bold mt-1.5 block font-mono ${performanceMetrics.absoluteReturnRupees >= 0 ? 'text-[#00D084]' : 'text-[#FF4757]'}`}>
+                  <span className={`text-sm font-bold mt-1.5 block font-mono ${performanceMetrics.absoluteReturnRupees >= 0 ? 'text-[#34A77A]' : 'text-[#E05252]'}`}>
                     ₹{performanceMetrics.absoluteReturnRupees.toLocaleString('en-IN')} ({performanceMetrics.absoluteReturnPercent}%)
                   </span>
                 </div>
@@ -920,7 +920,7 @@ export function SipTracker() {
                   <span>WORST MONTH RETURN:</span>
                   <span className="font-bold">{performanceMetrics.worstMonth}%</span>
                 </div>
-                <div className="flex justify-between items-center text-[#00D084]">
+                <div className="flex justify-between items-center text-[#34A77A]">
                   <span>BEST MONTH RETURN:</span>
                   <span className="font-bold">+{performanceMetrics.bestMonth}%</span>
                 </div>
@@ -1026,12 +1026,12 @@ export function SipTracker() {
 
             {/* Target & stop ranges */}
             <div id="target-ranges-grid" className="grid grid-cols-3 gap-2.5 text-center font-mono text-[10px]">
-              <div className="bg-[#FF4757]/10 p-2 border border-[#FF4757]/20 rounded-lg">
-                <span className="text-[#FF4757] block text-[8px] uppercase font-bold">STOP LOSS (-2 ATR)</span>
+              <div className="bg-[#E05252]/10 p-2 border border-[#E05252]/20 rounded-lg">
+                <span className="text-[#E05252] block text-[8px] uppercase font-bold">STOP LOSS (-2 ATR)</span>
                 <span className="text-white mt-1 block font-mono">₹{atrMetrics.stopLoss.toFixed(2)}</span>
               </div>
-              <div className="bg-[#00D084]/10 p-2 border border-[#00D084]/20 rounded-lg">
-                <span className="text-[#00D084] block text-[8px] uppercase font-bold font-semibold">TARGET 1 (+3 ATR)</span>
+              <div className="bg-[#34A77A]/10 p-2 border border-[#34A77A]/20 rounded-lg">
+                <span className="text-[#34A77A] block text-[8px] uppercase font-bold font-semibold">TARGET 1 (+3 ATR)</span>
                 <span className="text-white mt-1 block font-mono">₹{atrMetrics.target1.toFixed(2)}</span>
               </div>
               <div className="bg-[#D4A843]/10 p-2 border border-[#D4A843]/20 rounded-lg">
@@ -1043,7 +1043,7 @@ export function SipTracker() {
 
           <div id="swing-account-risk-banner" className="mt-4 pt-3 border-t border-white/[0.04] text-[9.5px] font-mono text-[#8892A4] flex justify-between items-center">
             <span>MAX ACCOUNT RISK LIMIT: ₹{atrMetrics.riskAmount.toFixed(2)}</span>
-            <span className="text-[#00D084] font-bold">1:{atrMetrics.riskRewardRatio.toFixed(1)} RISK REWARD RATIO</span>
+            <span className="text-[#34A77A] font-bold">1:{atrMetrics.riskRewardRatio.toFixed(1)} RISK REWARD RATIO</span>
           </div>
         </div>
 

@@ -397,7 +397,7 @@ function AppContent() {
           >
             <Bell size={15} />
             {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#00D084] font-data text-[8px] font-black leading-none text-black animate-bounce">
+              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#34A77A] font-data text-[8px] font-black leading-none text-black animate-bounce">
                 {unreadCount}
               </span>
             )}
@@ -451,7 +451,7 @@ function AppContent() {
                   <button 
                     onClick={() => handleLogout()}
                     title="Logout"
-                    className="p-1.5 rounded-lg bg-[rgba(255,255,255,0.03)] hover:bg-[#FF4757]/15 border border-[rgba(255,255,255,0.05)] hover:border-[#FF4757]/30 text-[#8892A4] hover:text-[#FF4757] transition-colors"
+                    className="p-1.5 rounded-lg bg-[rgba(255,255,255,0.03)] hover:bg-[#E05252]/15 border border-[rgba(255,255,255,0.05)] hover:border-[#E05252]/30 text-[#8892A4] hover:text-[#E05252] transition-colors"
                   >
                     <LogOut size={11} />
                   </button>
@@ -563,7 +563,7 @@ function AppContent() {
             <div className="flex items-center justify-between gap-1">
               <span className="text-[9px] text-[#4A5568] font-data uppercase tracking-wider">Trading Desk</span>
               <span className={`text-[8px] font-data font-bold px-1.5 py-0.5 rounded uppercase leading-none ${
-                marketHours.status === 'NSE OPEN' ? 'bg-[#00D084]/10 text-[#00D084]' : 'bg-[#FF4757]/10 text-[#FF4757]'
+                marketHours.status === 'NSE OPEN' ? 'bg-[#34A77A]/10 text-[#34A77A]' : 'bg-[#E05252]/10 text-[#E05252]'
               }`}>
                 {marketHours.status}
               </span>
@@ -573,8 +573,8 @@ function AppContent() {
 
           <div className="py-1 px-2.5 bg-[rgba(255,255,255,0.02)] rounded-lg border border-transparent flex items-center justify-between">
             <span className="text-[8.5px] text-[#4A5568] font-data uppercase tracking-wider leading-none">SIGNALS</span>
-            <div className="flex items-center gap-1 text-[9.5px] font-data font-bold text-[#00D084] leading-none">
-              ★ PRISM_ACTIVE
+            <div className="flex items-center gap-1 text-[9.5px] font-data font-bold text-[#34A77A] leading-none">
+              Prism Active
             </div>
           </div>
         </div>

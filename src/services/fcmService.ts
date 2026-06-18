@@ -1,5 +1,5 @@
-import { getApps, initializeApp } from 'firebase-admin/app';
 import { getMessaging } from 'firebase-admin/messaging';
+import { initializeFirebaseAdmin } from './firebaseAdminHelper';
 
 export async function sendPushNotification(
   fcmToken: string, 
@@ -9,10 +9,7 @@ export async function sendPushNotification(
 ) {
   try {
     // Ensure firebase admin is initialized safely
-    if (getApps().length === 0) {
-      const projectId = process.env.VITE_FIREBASE_PROJECT_ID || 'prismlocal';
-      initializeApp({ projectId });
-    }
+    initializeFirebaseAdmin();
     
     const message = {
       token: fcmToken,

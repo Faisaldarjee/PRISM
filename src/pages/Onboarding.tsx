@@ -117,10 +117,10 @@ export default function Onboarding({ onComplete, onSkip, onCancel }: OnboardingP
                 step === s.num 
                   ? 'bg-[#D4A843] scale-125 shadow-lg shadow-[#D4A843]/20' 
                   : step > s.num 
-                    ? 'bg-[#00D084]' 
+                    ? 'bg-[#34A77A]' 
                     : 'bg-[#1C2433]'
               }`} />
-              {s.num < 3 && <div className={`w-8 h-[1px] ${step > s.num ? 'bg-[#00D084]' : 'bg-[#1C2433]'}`} />}
+              {s.num < 3 && <div className={`w-8 h-[1px] ${step > s.num ? 'bg-[#34A77A]' : 'bg-[#1C2433]'}`} />}
             </div>
           ))}
         </div>
@@ -279,7 +279,7 @@ export default function Onboarding({ onComplete, onSkip, onCancel }: OnboardingP
               >
                 <div className="flex items-center justify-between">
                   <span className="font-mono text-[11px] text-[#E8C070] font-bold">📊 EXCHANGE TRADED FUNDS</span>
-                  {selectedMarkets.includes('etfs') && <Check size={14} className="text-[#00D084]" />}
+                  {selectedMarkets.includes('etfs') && <Check size={14} className="text-[#34A77A]" />}
                 </div>
                 <h4 className="font-display font-medium text-[13.5px] text-[#F0F4FF]">Gold & Silver BeES</h4>
                 <p className="text-[11px] text-[#8892A4]">Ideal for volatility systematic SIP and hedging.</p>
@@ -296,7 +296,7 @@ export default function Onboarding({ onComplete, onSkip, onCancel }: OnboardingP
               >
                 <div className="flex items-center justify-between">
                   <span className="font-mono text-[11px] text-sky-400 font-bold">📈 LARGE CAP</span>
-                  {selectedMarkets.includes('large-cap') && <Check size={14} className="text-[#00D084]" />}
+                  {selectedMarkets.includes('large-cap') && <Check size={14} className="text-[#34A77A]" />}
                 </div>
                 <h4 className="font-display font-medium text-[13.5px] text-[#F0F4FF]">Benchmark Nifty Bluechips</h4>
                 <p className="text-[11px] text-[#8892A4]">Standard high liquidity swing setups.</p>
@@ -313,7 +313,7 @@ export default function Onboarding({ onComplete, onSkip, onCancel }: OnboardingP
               >
                 <div className="flex items-center justify-between">
                   <span className="font-mono text-[11px] text-pink-400 font-bold">🏢 MID/SMALL CAP</span>
-                  {selectedMarkets.includes('mid-cap') && <Check size={14} className="text-[#00D084]" />}
+                  {selectedMarkets.includes('mid-cap') && <Check size={14} className="text-[#34A77A]" />}
                 </div>
                 <h4 className="font-display font-medium text-[13.5px] text-[#F0F4FF]">Tata Motors & Suzlon</h4>
                 <p className="text-[11px] text-[#8892A4]">Higher potential volatility rewards.</p>
@@ -329,8 +329,8 @@ export default function Onboarding({ onComplete, onSkip, onCancel }: OnboardingP
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-[11px] text-[#00D084] font-bold">⚡ ALL SCANNERS</span>
-                  {selectedMarkets.includes('all') && <Check size={14} className="text-[#00D084]" />}
+                  <span className="font-mono text-[11px] text-[#34A77A] font-bold">⚡ ALL SCANNERS</span>
+                  {selectedMarkets.includes('all') && <Check size={14} className="text-[#34A77A]" />}
                 </div>
                 <h4 className="font-display font-medium text-[13.5px] text-[#F0F4FF]">Universal Sizers</h4>
                 <p className="text-[11px] text-[#8892A4]">Track full Nifty indices consensus triggers.</p>

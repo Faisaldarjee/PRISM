@@ -302,7 +302,7 @@ export function AssetsList() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] gap-3">
         <RefreshCw size={36} className="text-[#D4A843] animate-spin" />
-        <p className="font-data text-xs text-[#8892A4] animate-pulse uppercase tracking-widest">CATALOGING_MASTER_REGISTRY...</p>
+        <p className="font-data text-xs text-[#8892A4] animate-pulse uppercase tracking-widest">Fetching Market Registry...</p>
       </div>
     );
   }
@@ -310,7 +310,7 @@ export function AssetsList() {
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[40vh] max-w-md mx-auto p-8 rounded-2xl bg-[#0C1018] border border-white/[0.05] shadow-xl text-center">
-        <AlertCircle size={40} className="text-[#FF4757] mb-4" />
+        <AlertCircle size={40} className="text-[#E05252] mb-4" />
         <h3 className="text-sm font-display font-semibold text-white mb-2 font-sans">Index Synchronization Failure</h3>
         <p className="text-xs text-[#8892A4] mb-6 font-body leading-relaxed">{error}</p>
         <button 
@@ -466,16 +466,16 @@ export function AssetsList() {
         {importMessage && (
           <div className={`p-4 rounded-xl border text-xs flex items-start gap-3 shadow-md transition-all animate-fadeIn ${
             importMessage.isError 
-              ? 'bg-[#FF4757]/10 border-[#FF4757]/25 text-rose-300' 
-              : 'bg-[#00D084]/10 border-[#00D084]/25 text-emerald-300'
+              ? 'bg-[#E05252]/10 border-[#E05252]/25 text-rose-300' 
+              : 'bg-[#34A77A]/10 border-[#34A77A]/25 text-emerald-300'
           }`}>
           {importMessage.isError ? (
-            <XCircle size={15} className="shrink-0 mt-0.5 text-[#FF4757]" />
+            <XCircle size={15} className="shrink-0 mt-0.5 text-[#E05252]" />
           ) : (
-            <CheckCircle2 size={15} className="shrink-0 mt-0.5 text-[#00D084]" />
+            <CheckCircle2 size={15} className="shrink-0 mt-0.5 text-[#34A77A]" />
           )}
             <div className="flex-1">
-              <span className="font-semibold block mb-0.5 uppercase tracking-wide text-[10px] font-mono">{importMessage.isError ? 'REGISTRY_FAULT_WARNING' : 'REGISTRY_SYNC_COMPLETE'}</span>
+              <span className="font-semibold block mb-0.5 uppercase tracking-wide text-[10px] font-mono">{importMessage.isError ? 'Registry Warning' : 'Import Successful'}</span>
               <p className="text-zinc-300 leading-relaxed font-mono text-[10.5px]">{importMessage.text}</p>
             </div>
             <button 
@@ -649,7 +649,7 @@ export function AssetsList() {
                 type="button"
                 disabled={deleting}
                 onClick={handleDeleteConfirm}
-                className="px-3 py-2 bg-rose-500/10 hover:bg-rose-500/25 text-[#FF4757] border border-rose-500/20 rounded-xl transition-all flex items-center gap-1 cursor-pointer"
+                className="px-3 py-2 bg-rose-500/10 hover:bg-rose-500/25 text-[#E05252] border border-rose-500/20 rounded-xl transition-all flex items-center gap-1 cursor-pointer"
               >
                 {deleting ? 'Removing...' : 'Yes, Remove'}
               </button>

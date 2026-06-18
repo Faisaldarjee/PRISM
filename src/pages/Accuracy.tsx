@@ -184,14 +184,14 @@ export function Accuracy() {
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] max-w-md mx-auto p-8 rounded-2xl bg-[#0C1018] border border-white/[0.05] shadow-xl text-center" id="accuracy-error-state">
-        <AlertCircle size={44} className="text-[#FF4757] mb-4" />
-        <h3 className="text-sm font-display font-semibold text-white mb-2">Metrics Execution Framework Fault</h3>
+        <AlertCircle size={44} className="text-[#E05252] mb-4" />
+        <h3 className="text-sm font-display font-semibold text-white mb-2">Failed to load metrics</h3>
         <p className="text-xs text-[#8892A4] mb-6 font-body leading-relaxed">{error}</p>
         <button 
           onClick={loadData}
           className="px-5 py-2.5 bg-[#D4A843]/10 hover:bg-[#D4A843]/20 text-[#E8C070] border border-[#D4A843]/20 rounded-xl transition-all font-data font-bold uppercase text-[10px] tracking-wider"
         >
-          Retry Calibration Sync
+          Retry Load
         </button>
       </div>
     );
@@ -207,11 +207,11 @@ export function Accuracy() {
             <h2 className="text-2xl font-medium tracking-tight text-white font-display">Backtest &amp; Accuracy Matrix</h2>
             {isBuilding ? (
               <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#D4A843]/10 border border-[#D4A843]/20 text-[#E8C070] font-mono text-[9px] uppercase tracking-wider animate-pulse">
-                <CircleDot size={8} className="animate-ping" /> SEEDING_REQUIRED_FLOW
+                <CircleDot size={8} className="animate-ping" /> Initial Setup Required
               </span>
             ) : (
-              <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#00D084]/10 border border-[#00D084]/25 text-[#00D084] font-mono text-[9px] uppercase tracking-wider">
-                <CheckCircle size={8} /> LIVE_MATHEMATICAL
+              <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#34A77A]/10 border border-[#34A77A]/25 text-[#34A77A] font-mono text-[9px] uppercase tracking-wider">
+                <CheckCircle size={8} /> Verified Results
               </span>
             )}
           </div>
@@ -267,32 +267,32 @@ export function Accuracy() {
 
         {backtesting && (
           <div className="rounded-lg bg-white/[0.012] border border-white/[0.04] p-4 text-[11px] font-mono text-[#8892A4] space-y-1.5 animate-pulse">
-            <div className="flex items-center gap-1.5 text-[#00D084] font-bold">
-              <RefreshCw size={12} className="animate-spin" /> STACKED_ENSEMBLE_PROCESSING
+            <div className="flex items-center gap-1.5 text-[#34A77A] font-bold">
+              <RefreshCw size={12} className="animate-spin" /> Processing Backtest
             </div>
             <p className="leading-relaxed text-zinc-400">
-              Generating simulated signals, fetching historical closing rates, accounting for variance drift, and writing verified instances to accuracy ledger...
+              Fetching historical closing rates and calculating accuracy...
             </p>
           </div>
         )}
 
         {backtestError && (
-          <div className="rounded-lg bg-[#FF4757]/10 border border-[#FF4757]/20 p-4 text-[11px] font-data text-[#FF4757] flex items-center gap-2">
+          <div className="rounded-lg bg-[#E05252]/10 border border-[#E05252]/20 p-4 text-[11px] font-data text-[#E05252] flex items-center gap-2">
             <AlertCircle size={14} />
             {backtestError}
           </div>
         )}
 
         {backtestResult && (
-          <div className="rounded-lg bg-[#00D084]/5 border border-[#00D084]/25 p-5 space-y-3.5 animate-fadeIn">
+          <div className="rounded-lg bg-[#34A77A]/5 border border-[#34A77A]/25 p-5 space-y-3.5 animate-fadeIn">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5 text-[#00D084] font-data text-xs font-bold uppercase tracking-wider">
+              <div className="flex items-center gap-1.5 text-[#34A77A] font-data text-xs font-bold uppercase tracking-wider">
                 <Sparkles size={14} className="animate-bounce text-[#D4A843]" />
-                CONVERGENCE_TEST_COMPLETED // {backtestResult.symbol.split('.')[0]}
+                Backtest Completed // {backtestResult.symbol.split('.')[0]}
               </div>
               {backtestResult.accuracy !== null && backtestResult.accuracy < 60 && (
-                <span className="text-[10px] text-[#FF4757] font-mono border border-[#FF4757]/30 px-2.5 py-0.5 rounded uppercase font-medium">
-                  ⚠️ ACCURACY_WARNING
+                <span className="text-[10px] text-[#E05252] font-mono border border-[#E05252]/30 px-2.5 py-0.5 rounded uppercase font-medium">
+                  ⚠️ Low Accuracy
                 </span>
               )}
             </div>
@@ -304,11 +304,11 @@ export function Accuracy() {
               </div>
               <div className="bg-[#05070C] p-3 rounded-lg border border-white/[0.02]">
                 <span className="text-[8.5px] text-[#4A5568] uppercase block">Accurate Predictions</span>
-                <span className="text-sm font-bold text-[#00D084] mt-1 block font-mono">{backtestResult.correct_predictions} Days</span>
+                <span className="text-sm font-bold text-[#34A77A] mt-1 block font-mono">{backtestResult.correct_predictions} Days</span>
               </div>
-              <div className="bg-[#05070C] p-3 rounded-lg border border-[#00D084]/10 bg-gradient-to-r from-[#00D084]/5 to-transparent">
-                <span className="text-[8.5px] text-[#00D084]/70 uppercase block font-bold">Calibrated Accuracy Hits</span>
-                <span className="text-sm font-black text-[#00D084] mt-1 block font-mono">
+              <div className="bg-[#05070C] p-3 rounded-lg border border-[#34A77A]/10 bg-gradient-to-r from-[#34A77A]/5 to-transparent">
+                <span className="text-[8.5px] text-[#34A77A]/70 uppercase block font-bold">Calibrated Accuracy Hits</span>
+                <span className="text-sm font-black text-[#34A77A] mt-1 block font-mono">
                   {backtestResult.accuracy !== null ? `${backtestResult.accuracy}%` : 'N/A (No trade signals)'}
                 </span>
               </div>
@@ -343,7 +343,7 @@ export function Accuracy() {
             <div className="stat-card flex flex-col justify-between h-28 animate-fadeInUp stagger-1 shadow-lg">
               <div className="flex items-start justify-between">
                 <span className="text-[9px] text-[#8892A4] uppercase tracking-wider font-semibold">Overall Accuracy</span>
-                <span className="p-1 px-1.5 bg-[#00D084]/10 border border-[#00D084]/20 rounded text-[#00D084]">
+                <span className="p-1 px-1.5 bg-[#34A77A]/10 border border-[#34A77A]/20 rounded text-[#34A77A]">
                   <CheckCircle2 size={13} />
                 </span>
               </div>
@@ -389,12 +389,12 @@ export function Accuracy() {
             <div className="stat-card flex flex-col justify-between h-28 animate-fadeInUp stagger-4 shadow-lg">
               <div className="flex items-start justify-between">
                 <span className="text-[9px] text-[#8892A4] uppercase tracking-wider font-semibold">Max Drawdown</span>
-                <span className="p-1 px-1.5 bg-[#FF4757]/10 border border-[#FF4757]/20 rounded text-[#FF4757]">
+                <span className="p-1 px-1.5 bg-[#E05252]/10 border border-[#E05252]/20 rounded text-[#E05252]">
                   <AlertTriangle size={13} />
                 </span>
               </div>
               <div className="mt-2">
-                <span className="text-xl md:text-2xl font-bold font-mono text-[#FF4757]">{advanced.maxDrawdown > 0 ? `-${advanced.maxDrawdown}%` : '0.00%'}</span>
+                <span className="text-xl md:text-2xl font-bold font-mono text-[#E05252]">{advanced.maxDrawdown > 0 ? `-${advanced.maxDrawdown}%` : '0.00%'}</span>
                 <p className="text-[9px] text-[#4A5568] mt-0.5">Largest peak-to-trough drop</p>
               </div>
             </div>
@@ -439,7 +439,7 @@ export function Accuracy() {
                 </h4>
                 <p className="text-[10px] text-[#8892A4] mt-0.5">Running total feedback gain of verified predictions inside database</p>
               </div>
-              <span className="font-data text-xs text-[#00D084] font-bold bg-[#00D084]/8 border border-[#00D084]/20 px-2 py-0.5 rounded">
+              <span className="font-data text-xs text-[#34A77A] font-bold bg-[#34A77A]/8 border border-[#34A77A]/20 px-2 py-0.5 rounded">
                 Total Return: +{advanced.equityCurve?.[advanced.equityCurve.length - 1]?.equity?.toFixed(2) || '0'}%
               </span>
             </div>
@@ -517,29 +517,29 @@ export function Accuracy() {
               <div className="grid grid-cols-2 gap-3.5 font-data text-center flex-1 py-2">
                 
                 {/* True Positive */}
-                <div className="p-4 rounded-xl border border-[#00D084]/20 bg-[#00D084]/6 flex flex-col justify-center gap-1">
-                  <span className="text-[8.5px] text-[#00D084]/70 font-semibold uppercase tracking-wider leading-none">True Positive (TP)</span>
+                <div className="p-4 rounded-xl border border-[#34A77A]/20 bg-[#34A77A]/6 flex flex-col justify-center gap-1">
+                  <span className="text-[8.5px] text-[#34A77A]/70 font-semibold uppercase tracking-wider leading-none">True Positive (TP)</span>
                   <span className="text-xl font-bold font-mono text-white mt-1">{advanced.confusionMatrix?.tp}</span>
                   <p className="text-[9px] text-[#8892A4]">Correct BUY setups</p>
                 </div>
 
                 {/* False Positive */}
-                <div className="p-4 rounded-xl border border-[#FF4757]/15 bg-[#FF4757]/4 flex flex-col justify-center gap-1">
-                  <span className="text-[8.5px] text-[#FF4757]/70 font-semibold uppercase tracking-wider leading-none">False Positive (FP)</span>
+                <div className="p-4 rounded-xl border border-[#E05252]/15 bg-[#E05252]/4 flex flex-col justify-center gap-1">
+                  <span className="text-[8.5px] text-[#E05252]/70 font-semibold uppercase tracking-wider leading-none">False Positive (FP)</span>
                   <span className="text-xl font-bold font-mono text-white mt-1">{advanced.confusionMatrix?.fp}</span>
                   <p className="text-[9px] text-[#8892A4]">Failed BUY predictions</p>
                 </div>
 
                 {/* False Negative */}
-                <div className="p-4 rounded-xl border border-[#FF4757]/15 bg-[#FF4757]/4 flex flex-col justify-center gap-1">
-                  <span className="text-[8.5px] text-[#FF4757]/70 font-semibold uppercase tracking-wider leading-none">False Negative (FN)</span>
+                <div className="p-4 rounded-xl border border-[#E05252]/15 bg-[#E05252]/4 flex flex-col justify-center gap-1">
+                  <span className="text-[8.5px] text-[#E05252]/70 font-semibold uppercase tracking-wider leading-none">False Negative (FN)</span>
                   <span className="text-xl font-bold font-mono text-white mt-1">{advanced.confusionMatrix?.fn}</span>
                   <p className="text-[9px] text-[#8892A4]">Failed SELL predictions</p>
                 </div>
 
                 {/* True Negative */}
-                <div className="p-4 rounded-xl border border-[#00D084]/20 bg-[#00D084]/6 flex flex-col justify-center gap-1">
-                  <span className="text-[8.5px] text-[#00D084]/70 font-semibold uppercase tracking-wider leading-none">True Negative (TN)</span>
+                <div className="p-4 rounded-xl border border-[#34A77A]/20 bg-[#34A77A]/6 flex flex-col justify-center gap-1">
+                  <span className="text-[8.5px] text-[#34A77A]/70 font-semibold uppercase tracking-wider leading-none">True Negative (TN)</span>
                   <span className="text-xl font-bold font-mono text-white mt-1">{advanced.confusionMatrix?.tn}</span>
                   <p className="text-[9px] text-[#8892A4]">Correct SELL setups</p>
                 </div>
@@ -566,14 +566,14 @@ export function Accuracy() {
                 {/* BUY Win Rate */}
                 <div className="space-y-2">
                   <div className="flex justify-between items-baseline text-xs font-semibold">
-                    <span className="text-[#00D084] uppercase tracking-wider flex items-center gap-1.5 text-[11px]">
+                    <span className="text-[#34A77A] uppercase tracking-wider flex items-center gap-1.5 text-[11px]">
                       <Zap size={11} fill="currentColor" /> Accumulation (BUY) Win Rate
                     </span>
                     <span className="font-data font-black text-white text-[13px]">{advanced.winRateBySignal?.buy?.winRate}%</span>
                   </div>
                   <div className="w-full bg-slate-950 h-3 rounded-full border border-white/[0.03] overflow-hidden p-0.5">
                     <div 
-                      className="bg-gradient-to-r from-emerald-500 to-[#00D084] h-full rounded-full transition-all duration-1000"
+                      className="bg-gradient-to-r from-emerald-500 to-[#34A77A] h-full rounded-full transition-all duration-1000"
                       style={{ width: `${advanced.winRateBySignal?.buy?.winRate || 0}%` }}
                     />
                   </div>
@@ -586,14 +586,14 @@ export function Accuracy() {
                 {/* SELL Win Rate */}
                 <div className="space-y-2">
                   <div className="flex justify-between items-baseline text-xs font-semibold">
-                    <span className="text-[#FF4757] uppercase tracking-wider flex items-center gap-1.5 text-[11px]">
+                    <span className="text-[#E05252] uppercase tracking-wider flex items-center gap-1.5 text-[11px]">
                       <AlertTriangle size={11} /> Distribution (SELL) Win Rate
                     </span>
                     <span className="font-data font-black text-white text-[13px]">{advanced.winRateBySignal?.sell?.winRate}%</span>
                   </div>
                   <div className="w-full bg-slate-950 h-3 rounded-full border border-white/[0.03] overflow-hidden p-0.5">
                     <div 
-                      className="bg-gradient-to-r from-rose-500 to-[#FF4757] h-full rounded-full transition-all duration-1000"
+                      className="bg-gradient-to-r from-rose-500 to-[#E05252] h-full rounded-full transition-all duration-1000"
                       style={{ width: `${advanced.winRateBySignal?.sell?.winRate || 0}%` }}
                     />
                   </div>
@@ -653,7 +653,7 @@ export function Accuracy() {
                         }}
                         formatter={(v: any) => [`${v}%`, 'Accuracy']}
                       />
-                      <ReferenceLine y={50} stroke="#FF4757" strokeDasharray="3 3" label={{ value: "Random Baseline", fill: "#FF4757", fontSize: 8, position: 'top' }} />
+                      <ReferenceLine y={50} stroke="#E05252" strokeDasharray="3 3" label={{ value: "Random Baseline", fill: "#E05252", fontSize: 8, position: 'top' }} />
                       <Line 
                         type="monotone" 
                         dataKey="accuracy" 
@@ -848,9 +848,9 @@ export function Accuracy() {
                     <th className="py-2.5 px-3">ASSET</th>
                     <th className="py-2.5 px-3">SIGNAL</th>
                     <th className="py-2.5 px-3">ENTRY PRICE</th>
-                    <th className="py-2.5 px-3">VAL STATUS</th>
-                    <th className="py-2.5 px-3 text-right">OUTCOME ALPHA DELTA</th>
-                    <th className="py-2.5 px-3 text-right text-amber-500">CUMULATIVE P&amp;L</th>
+                    <th className="py-2.5 px-3">Validation Status</th>
+                    <th className="py-2.5 px-3 text-right">Outcome Gain/Loss</th>
+                    <th className="py-2.5 px-3 text-right text-amber-500">Cumulative P&amp;L</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/[0.02]">
@@ -862,9 +862,9 @@ export function Accuracy() {
                       <td className="py-3 px-3">
                         <span className={`px-2 py-0.5 rounded font-bold text-[9px] ${
                           row.action === 'BUY' 
-                            ? 'bg-[#00D084]/15 text-[#00D084] border border-[#00D084]/25' 
+                            ? 'bg-[#34A77A]/15 text-[#34A77A] border border-[#34A77A]/25' 
                             : row.action === 'SELL' 
-                              ? 'bg-[#FF4757]/15 text-[#FF4757] border border-[#FF4757]/25' 
+                              ? 'bg-[#E05252]/15 text-[#E05252] border border-[#E05252]/25' 
                               : 'bg-white/[0.03] text-slate-350 border border-white/[0.06]'
                         }`}>
                           {row.action}
@@ -872,14 +872,14 @@ export function Accuracy() {
                       </td>
                       <td className="py-3 px-3 font-mono text-[#8892A4]">{row.price}</td>
                       <td className="py-3 px-3">
-                        <span className={`font-bold uppercase tracking-wider text-[10px] ${row.outcome === 'CORRECT' ? 'text-[#00D084]' : 'text-[#FF4757]'}`}>
+                        <span className={`font-bold uppercase tracking-wider text-[10px] ${row.outcome === 'CORRECT' ? 'text-[#34A77A]' : 'text-[#E05252]'}`}>
                           {row.outcome}
                         </span>
                       </td>
-                      <td className={`py-3 px-3 font-mono text-right font-semibold ${row.gain?.startsWith('+') ? 'text-[#00D084]' : (row.gain === '0.0%' ? 'text-[#4A5568]' : 'text-[#FF4757]')}`}>
+                      <td className={`py-3 px-3 font-mono text-right font-semibold ${row.gain?.startsWith('+') ? 'text-[#34A77A]' : (row.gain === '0.0%' ? 'text-[#4A5568]' : 'text-[#E05252]')}`}>
                         {row.gain}
                       </td>
-                      <td className={`py-3 px-3 font-mono text-right font-bold ${row.cumulative >= 0 ? 'text-[#00D084]' : 'text-[#FF4757]'}`}>
+                      <td className={`py-3 px-3 font-mono text-right font-bold ${row.cumulative >= 0 ? 'text-[#34A77A]' : 'text-[#E05252]'}`}>
                         {row.cumulative > 0 ? `+${row.cumulative}%` : `${row.cumulative}%`}
                       </td>
                     </tr>

@@ -267,22 +267,22 @@ export function Dashboard() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
         <RefreshCw size={36} className="text-[#D4A843] animate-spin" />
-        <p className="font-data text-xs text-[#8892A4] animate-pulse uppercase tracking-widest">FETCHING_DESK_METRICS...</p>
+        <p className="font-data text-xs text-[#8892A4] animate-pulse uppercase tracking-widest">Loading Workspace Data...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[45vh] max-w-md mx-auto p-8 rounded-2xl bg-[#0D1018] border border-[#FF4757]/20 shadow-xl">
-        <AlertCircle size={44} className="text-[#FF4757] mb-3" />
+      <div className="flex flex-col items-center justify-center min-h-[45vh] max-w-md mx-auto p-8 rounded-2xl bg-[#0D1018] border border-[#E05252]/20 shadow-xl">
+        <AlertCircle size={44} className="text-[#E05252] mb-3" />
         <h3 className="text-sm font-data text-white mb-2 uppercase tracking-wider">Feeds Offline</h3>
         <p className="text-[#8892A4] text-xs text-center font-body mb-5">{error}</p>
         <button 
           onClick={() => loadData()}
-          className="px-4 py-2 bg-[#FF4757]/10 text-[#FF4757] border border-[#FF4757]/30 rounded-lg hover:bg-[#FF4757]/20 transition-all font-data text-[11px] tracking-wider uppercase"
+          className="px-4 py-2 bg-[#E05252]/10 text-[#E05252] border border-[#E05252]/30 rounded-lg hover:bg-[#E05252]/20 transition-all font-data text-[11px] tracking-wider uppercase"
         >
-          RECONNECT_FEED
+          Reconnect Feed
         </button>
       </div>
     );
@@ -354,7 +354,7 @@ export function Dashboard() {
             <span className="text-[8px] px-1.5 py-0.5 bg-yellow-500/10 text-yellow-500 rounded font-mono shrink-0">CACHED</span>
           )}
           {status === 'LIVE' && (
-            <span className="text-[8px] px-1.5 py-0.5 bg-[#00D084]/10 text-[#00D084] rounded font-mono shrink-0">LIVE</span>
+            <span className="text-[8px] px-1.5 py-0.5 bg-[#34A77A]/10 text-[#34A77A] rounded font-mono shrink-0">LIVE</span>
           )}
           {status === 'UNAVAILABLE' && (
             <span className="text-[8px] px-1.5 py-0.5 bg-red-500/10 text-red-500 rounded font-mono shrink-0">⚠️ Data unavailable</span>
@@ -404,12 +404,12 @@ export function Dashboard() {
             </h2>
             
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-[#8892A4] font-body">
-              <span className="inline-flex items-center gap-1.5 font-bold text-[#00D084]">
+              <span className="inline-flex items-center gap-1.5 font-bold text-[#34A77A]">
                 <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00D084] opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00D084]"></span>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#34A77A] opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#34A77A]"></span>
                 </span>
-                LIVE MARKETS: CONCORDANCE MATCHED
+                Live Markets Consensus Active
               </span>
               <span className="text-[#4A5568] hidden sm:inline">|</span>
               <span className="text-[11px] text-[#8892A4] flex items-center gap-1">
@@ -425,7 +425,7 @@ export function Dashboard() {
             className="flex items-center gap-2 px-4 py-2.5 bg-[rgba(255,255,255,0.032)] hover:bg-[rgba(255,255,255,0.065)] text-[#E8C070] rounded-xl border border-[#D4A843]/20 text-[11px] font-data tracking-wide uppercase transition-all shrink-0 cursor-pointer"
           >
             <RefreshCw size={11} className={refreshing ? 'animate-spin' : ''} />
-            {refreshing ? 'SYNCING_METRICS...' : 'SYNC_TRADERS_DESK'}
+            {refreshing ? 'Syncing...' : 'Sync Workspace'}
           </button>
         </div>
 
@@ -443,7 +443,7 @@ export function Dashboard() {
           {/* Card 2: Capital at risk */}
           <div className="p-4 bg-white/[0.01] border border-white/[0.03] rounded-xl">
             <span className="font-data text-[9px] text-[#4A5568] uppercase block tracking-wider font-semibold">Max trade Risk</span>
-            <span className="font-data text-2xl font-bold text-[#FF4757] mt-1.5 block">
+            <span className="font-data text-2xl font-bold text-[#E05252] mt-1.5 block">
               {formatCompactRupee((calcCapital * calcRiskPct) / 100)}
             </span>
             <span className="text-[10px] text-[#8892A4] mt-1 block font-body">Cap @ risk ({calcRiskPct}%)</span>
@@ -461,7 +461,7 @@ export function Dashboard() {
           {/* Card 4: Watchlist */}
           <div className="p-4 bg-white/[0.01] border border-white/[0.03] rounded-xl">
             <span className="font-data text-[9px] text-[#4A5568] uppercase block tracking-wider font-semibold">Accurate Conviction</span>
-            <span className="font-data text-2xl font-bold text-[#00D084] mt-1.5 block">
+            <span className="font-data text-2xl font-bold text-[#34A77A] mt-1.5 block">
               {averageConfidence}%
             </span>
             <span className="text-[10px] text-[#8892A4] mt-1 block font-body">30D ML backtest score</span>
@@ -476,7 +476,7 @@ export function Dashboard() {
           <div>
             <div className="flex items-center justify-between border-b border-[rgba(255,255,255,0.04)] pb-3.5 mb-4">
               <div className="flex items-center gap-2">
-                <Activity className="text-[#00D084]" size={16} />
+                <Activity className="text-[#34A77A]" size={16} />
                 <div>
                   <h3 className="font-display font-semibold text-sm text-[#F0F4FF] tracking-tight">Active Swing Scanner</h3>
                   <p className="text-[9px] text-[#4A5568] font-data uppercase mt-0.5">Automated filter parameters</p>
@@ -647,8 +647,8 @@ export function Dashboard() {
               return (
                 <>
                   <div className="flex justify-between items-center text-[10px] uppercase border-b border-[rgba(255,255,255,0.04)] pb-2">
-                    <span className="text-[#4A5568]">RISK PERsetup LIMIT:</span>
-                    <span className="text-[#FF4757] font-bold">₹{maxRiskCapital.toFixed(2)} ({calcRiskPct}%)</span>
+                    <span className="text-[#4A5568]">Risk Limit Per Setup:</span>
+                    <span className="text-[#E05252] font-bold">₹{maxRiskCapital.toFixed(2)} ({calcRiskPct}%)</span>
                   </div>
 
                   <div className="flex justify-between items-center py-1">
@@ -662,12 +662,12 @@ export function Dashboard() {
                   </div>
 
                   <div className="grid grid-cols-3 gap-2 text-[9.5px] pt-3.5 border-t border-[rgba(255,255,255,0.04)] text-center font-bold">
-                    <div className="bg-[#FF4757]/10 p-2 rounded-lg border border-[#FF4757]/20">
-                      <span className="text-[#FF4757] block text-[8px] uppercase">STOP LOSS</span>
+                    <div className="bg-[#E05252]/10 p-2 rounded-lg border border-[#E05252]/20">
+                      <span className="text-[#E05252] block text-[8px] uppercase">STOP LOSS</span>
                       <span className="text-[#F0F4FF] mt-0.5 block font-data text-xs">₹{slPrice.toFixed(1)}</span>
                     </div>
-                    <div className="bg-[#00D084]/10 p-2 rounded-lg border border-[#00D084]/20">
-                      <span className="text-[#00D084] block text-[8px] uppercase">TGT 1 (1:2)</span>
+                    <div className="bg-[#34A77A]/10 p-2 rounded-lg border border-[#34A77A]/20">
+                      <span className="text-[#34A77A] block text-[8px] uppercase">TGT 1 (1:2)</span>
                       <span className="text-[#F0F4FF] mt-0.5 block font-data text-xs">₹{tgt1.toFixed(1)}</span>
                     </div>
                     <div className="bg-[#D4A843]/10 p-2 rounded-lg border border-[#D4A843]/20">
@@ -849,7 +849,7 @@ export function Dashboard() {
                     <div className="flex justify-between items-end mb-4 pt-1">
                       {typeof price === 'number' && !isNaN(price) ? (
                         <div>
-                          <span className="text-[9px] text-[#4A5568] font-data block uppercase">EXCHANGE price</span>
+                          <span className="text-[9px] text-[#4A5568] font-data block uppercase">Market Price</span>
                           <span className="text-lg font-data font-semibold text-white">₹{price.toFixed(2)}</span>
                         </div>
                       ) : (
@@ -862,7 +862,7 @@ export function Dashboard() {
                     </div>
 
                     <div className="space-y-1.5 pt-2 border-t border-[rgba(255,255,255,0.04)]">
-                      <ConfidenceBar confidence={pred.confidence * 100} label="Multi-Agent Concordance Index" />
+                      <ConfidenceBar confidence={pred.confidence * 100} label="Consensus Concordance Match" />
                     </div>
                   </div>
 
@@ -890,7 +890,7 @@ export function Dashboard() {
           <div className="flex items-center gap-2 border-b border-[rgba(255,255,255,0.04)] pb-4 mb-5">
             <Globe className="text-[#D4A843]" size={15} />
             <div>
-              <h3 className="font-display font-semibold text-base text-[#F0F4FF] tracking-tight">Macroeconomic Indicator Datagrid</h3>
+              <h3 className="font-display font-semibold text-base text-[#F0F4FF] tracking-tight">Macro Indicators</h3>
               <p className="text-[10px] text-[#4A5568] uppercase font-data mt-0.5">Global parity pricing factors</p>
             </div>
           </div>
@@ -905,21 +905,21 @@ export function Dashboard() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 pt-4 border-t border-[rgba(255,255,255,0.04)] text-xs font-data">
             <div className="flex items-center gap-2">
-              <span className="text-[#4A5568] uppercase">Commodity Gold Direction:</span>
+              <span className="text-[#4A5568] uppercase">Gold:</span>
               <span className={`font-bold px-2 py-0.5 rounded text-[10px] uppercase ${
                 macro.impact_on_gold.toUpperCase() === 'BUY' || macro.impact_on_gold.toUpperCase().includes('BULL')
-                  ? 'bg-[#00D084]/15 text-[#00D084]' 
-                  : 'bg-[#FF4757]/15 text-[#FF4757]'
+                  ? 'bg-[#34A77A]/15 text-[#34A77A]' 
+                  : 'bg-[#E05252]/15 text-[#E05252]'
               }`}>
                 {macro.impact_on_gold}
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-[#4A5568] uppercase">Commodity Silver Direction:</span>
+              <span className="text-[#4A5568] uppercase">Silver:</span>
               <span className={`font-bold px-2 py-0.5 rounded text-[10px] uppercase ${
                 macro.impact_on_silver.toUpperCase() === 'BUY' || macro.impact_on_silver.toUpperCase().includes('BULL')
-                  ? 'bg-[#00D084]/15 text-[#00D084]' 
-                  : 'bg-[#FF4757]/15 text-[#FF4757]'
+                  ? 'bg-[#34A77A]/15 text-[#34A77A]' 
+                  : 'bg-[#E05252]/15 text-[#E05252]'
               }`}>
                 {macro.impact_on_silver}
               </span>

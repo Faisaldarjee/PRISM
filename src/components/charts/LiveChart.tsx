@@ -170,11 +170,11 @@ export const LiveChart: React.FC<LiveChartProps> = ({
 
     // Add Candlestick series
     const candlestickSeries = chart.addSeries(CandlestickSeries, {
-      upColor: '#00D084',
-      downColor: '#FF4757',
+      upColor: '#34A77A',
+      downColor: '#E05252',
       borderVisible: false,
-      wickUpColor: '#00D084',
-      wickDownColor: '#FF4757',
+      wickUpColor: '#34A77A',
+      wickDownColor: '#E05252',
     });
     candleSeriesRef.current = candlestickSeries as any;
 
@@ -306,7 +306,7 @@ export const LiveChart: React.FC<LiveChartProps> = ({
         try {
           const line = candlestickSeries.createPriceLine({
             price,
-            color: '#00D084',
+            color: '#34A77A',
             lineWidth: 1.5,
             lineStyle: LineStyle.Dashed,
             axisLabelVisible: true,
@@ -323,7 +323,7 @@ export const LiveChart: React.FC<LiveChartProps> = ({
         try {
           const line = candlestickSeries.createPriceLine({
             price,
-            color: '#FF4757',
+            color: '#E05252',
             lineWidth: 1.5,
             lineStyle: LineStyle.Dashed,
             axisLabelVisible: true,
@@ -342,7 +342,7 @@ export const LiveChart: React.FC<LiveChartProps> = ({
         try {
           const highLine = candlestickSeries.createPriceLine({
             price: ob.high,
-            color: '#00D084',
+            color: '#34A77A',
             lineWidth: 1,
             lineStyle: LineStyle.Solid,
             axisLabelVisible: true,
@@ -350,7 +350,7 @@ export const LiveChart: React.FC<LiveChartProps> = ({
           });
           const lowLine = candlestickSeries.createPriceLine({
             price: ob.low,
-            color: '#00D084',
+            color: '#34A77A',
             lineWidth: 1,
             lineStyle: LineStyle.Dashed,
             axisLabelVisible: false,
@@ -364,7 +364,7 @@ export const LiveChart: React.FC<LiveChartProps> = ({
         try {
           const highLine = candlestickSeries.createPriceLine({
             price: ob.high,
-            color: '#FF4757',
+            color: '#E05252',
             lineWidth: 1,
             lineStyle: LineStyle.Dashed,
             axisLabelVisible: false,
@@ -372,7 +372,7 @@ export const LiveChart: React.FC<LiveChartProps> = ({
           });
           const lowLine = candlestickSeries.createPriceLine({
             price: ob.low,
-            color: '#FF4757',
+            color: '#E05252',
             lineWidth: 1,
             lineStyle: LineStyle.Solid,
             axisLabelVisible: true,

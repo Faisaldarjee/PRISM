@@ -1,5 +1,5 @@
-import { getApps, initializeApp } from 'firebase-admin/app';
-import { getFirestore, FieldValue } from 'firebase-admin/firestore';
+import { FieldValue } from 'firebase-admin/firestore';
+import { initializeFirebaseAdmin, getFirestoreAdmin } from './firebaseAdminHelper';
 import { db, compilePrediction, getPricesHistory } from './serverApi';
 import { sendSignalEmail, sendDailySummaryEmail, sendEarningsAlertEmail } from './emailService';
 import { sendPushNotification } from './fcmService';
@@ -73,7 +73,7 @@ async function dispatchNotifications(
   // 1. In-App Notifications Channel
   if (prefs.channelInApp !== false) {
     try {
-      await getFirestore()
+      await getFirestoreAdmin()
         .collection('users')
         .doc(userId)
         .collection('notifications')
@@ -145,7 +145,7 @@ async function dispatchCustomAlert(
   // 1. In-App Notifications Channel
   if (prefs.channelInApp !== false) {
     try {
-      await getFirestore()
+      await getFirestoreAdmin()
         .collection('users')
         .doc(userId)
         .collection('notifications')
@@ -208,12 +208,9 @@ async function dispatchCustomAlert(
 export async function checkAndSendNotifications() {
   console.log('[NotificationEngine] Starting active signal sweep across assets...');
   
-  if (getApps().length === 0) {
-    const projectId = process.env.VITE_FIREBASE_PROJECT_ID || 'prismlocal';
-    initializeApp({ projectId });
-  }
+  initializeFirebaseAdmin();
 
-  const firestore = getFirestore();
+  const firestore = getFirestoreAdmin();
   
   let usersSnap;
   try {
@@ -350,12 +347,9 @@ export async function checkAndSendNotifications() {
 export async function sendDailySummary() {
   console.log('[NotificationEngine] Assembling daily digest files for dispatch...');
   
-  if (getApps().length === 0) {
-    const projectId = process.env.VITE_FIREBASE_PROJECT_ID || 'prismlocal';
-    initializeApp({ projectId });
-  }
+  initializeFirebaseAdmin();
 
-  const firestore = getFirestore();
+  const firestore = getFirestoreAdmin();
   
   let usersSnap;
   try {

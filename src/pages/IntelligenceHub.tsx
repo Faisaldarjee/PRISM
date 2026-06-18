@@ -198,8 +198,8 @@ export function IntelligenceHub() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center p-20 space-y-4 text-slate-400">
-        <Activity className="animate-spin text-[#00D084]" size={40} />
-        <span className="font-mono text-xs uppercase tracking-widest text-[#00D084]">Loading Real-Time Intelligence Suite...</span>
+        <Activity className="animate-spin text-[#34A77A]" size={40} />
+        <span className="font-mono text-xs uppercase tracking-widest text-[#34A77A]">Loading Real-Time Intelligence Suite...</span>
       </div>
     );
   }
@@ -261,7 +261,7 @@ export function IntelligenceHub() {
 
           <div className="flex flex-col items-center justify-center py-5">
             <span className={`text-2xl font-black tracking-widest font-display text-center ${
-              masterSummary?.marketMood?.includes('GREED') ? 'text-[#00D084]' : 'text-rose-400'
+              masterSummary?.marketMood?.includes('GREED') ? 'text-[#34A77A]' : 'text-rose-400'
             }`}>
               {masterSummary?.marketMood?.replace('_', ' ')}
             </span>
@@ -285,7 +285,7 @@ export function IntelligenceHub() {
                 <h4 className="font-display font-semibold text-xs text-white uppercase tracking-widest">Global Macro Assessment</h4>
               </div>
               <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-black ${
-                macroData?.globalSignal === 'BULLISH' ? 'bg-[#00D084]/10 text-[#00D084]' : 'bg-rose-500/10 text-rose-400'
+                macroData?.globalSignal === 'BULLISH' ? 'bg-[#34A77A]/10 text-[#34A77A]' : 'bg-[#E05252]/10 text-[#E05252]'
               }`}>
                 MACRO: {macroData?.globalSignal}
               </span>
@@ -335,7 +335,7 @@ export function IntelligenceHub() {
               <div className="flex justify-between items-center text-xs font-mono">
                 <span className="text-gray-400 uppercase">Institutional Signal:</span>
                 <span className={`font-bold px-2 py-0.5 rounded text-[10px] ${
-                  flowSignal?.signal === 'BULLISH' ? 'bg-[#00D084]/15 text-[#00D084]' : 'bg-rose-500/15 text-rose-400'
+                  flowSignal?.signal === 'BULLISH' ? 'bg-[#34A77A]/15 text-[#34A77A]' : 'bg-rose-500/15 text-rose-400'
                 }`}>
                   {flowSignal?.signal}
                 </span>
@@ -409,7 +409,7 @@ export function IntelligenceHub() {
 
           <div className="space-y-4">
             {masterSummary?.opportunities.map((opp, idx) => (
-              <div key={idx} className="bg-gradient-to-r from-emerald-950/20 to-black/20 border border-[#00D084]/10 p-4 rounded-xl relative group">
+              <div key={idx} className="bg-gradient-to-r from-emerald-950/20 to-black/20 border border-[#34A77A]/10 p-4 rounded-xl relative group">
                 <div className="absolute top-3 right-3 text-[10px] text-emerald-400 font-mono tracking-widest bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
                   {opp.confidence}% CONFIDENCE
                 </div>
@@ -465,7 +465,7 @@ export function IntelligenceHub() {
                 </div>
                 <div className="text-right">
                   <span className="text-zinc-300 font-semibold block">{new Date(ev.eventDate).toLocaleDateString()}</span>
-                  <span className="text-[#00D084] text-[9.5px] font-bold block uppercase">{ev.consensusRating} Consensus</span>
+                  <span className="text-[#34A77A] text-[9.5px] font-bold block uppercase">{ev.consensusRating} Consensus</span>
                 </div>
               </div>
             ))}

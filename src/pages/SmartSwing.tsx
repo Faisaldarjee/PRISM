@@ -241,10 +241,13 @@ export function SmartSwing() {
             <span className="px-2 py-0.5 rounded text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/20 uppercase font-mono tracking-wider font-bold animate-pulse">
               Scanner Active
             </span>
-            <span className="text-gray-500 text-xs font-mono">• 30m Real-time Delay Bounds</span>
+            <span className="text-[#8892A4] text-xs font-sans font-medium flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#D4A843]/60 inline-block" />
+              30-Min Delayed Feed
+            </span>
           </div>
           <h1 className="font-display font-bold text-3xl text-white tracking-tight">
-            Smart Swing Intelligence
+            Smart Swing
           </h1>
           <p className="text-sm text-[#8892A4] mt-1 font-body">
             "Sector → Stock → Trade Plan" inside a zero-latency continuous quantitative flow.
@@ -254,7 +257,7 @@ export function SmartSwing() {
         <div className="flex items-center gap-3 self-start md:self-center">
           {cachedTime && (
             <span className="text-gray-500 text-[11px] font-mono whitespace-nowrap">
-              LAST SCAN: {cachedTime}
+              Last Scanned: {cachedTime}
             </span>
           )}
           <button
@@ -266,7 +269,7 @@ export function SmartSwing() {
             className="flex items-center gap-2 px-3 py-1.5 bg-white/[0.02] border border-white/[0.06] text-xs font-data text-slate-300 rounded-xl hover:text-white hover:bg-white/[0.05] transition-all cursor-pointer"
           >
             <RefreshCw size={12} className={(loadingSectors || loadingSetups) ? 'animate-spin' : ''} />
-            SCANNER REFRESH
+            Refresh Scanner
           </button>
         </div>
       </div>
@@ -347,7 +350,7 @@ export function SmartSwing() {
                       {/* 5D Perf */}
                       <div className="flex items-baseline gap-1.5">
                         <span className={`font-mono text-[15.5px] font-bold ${
-                          sec.priceChange5D >= 0 ? 'text-[#00D084]' : 'text-[#FF4757]'
+                          sec.priceChange5D >= 0 ? 'text-[#34A77A]' : 'text-[#E05252]'
                         }`}>
                           {formatChange(sec.priceChange5D)}
                         </span>
@@ -390,7 +393,7 @@ export function SmartSwing() {
       <section id="opportunities-section" className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/[0.03] pb-2 gap-2">
           <div className="flex items-center gap-2">
-            <TrendingUp size={16} className="text-[#00D084]" />
+            <TrendingUp size={16} className="text-[#34A77A]" />
             <h2 className="font-display font-semibold text-lg text-white">
               {selectedSector 
                 ? `Swing Opportunities - ${selectedSector.name} ${SECTOR_EMOJIS[selectedSector.sector] || ''}` 
@@ -469,7 +472,8 @@ export function SmartSwing() {
                 return (
                   <div
                     key={setup.symbol}
-                    className={`flex-shrink-0 w-[calc(100vw-3rem)] md:w-auto snap-center whitespace-normal glass-card p-6 rounded-2xl flex flex-col justify-between transition-all duration-300 relative border ${
+                    onClick={() => initiateDeepDive(setup)}
+                    className={`flex-shrink-0 w-[calc(100vw-3rem)] md:w-auto snap-center whitespace-normal glass-card p-6 rounded-2xl flex flex-col justify-between hover:bg-[#0D0F14] cursor-pointer transition-all duration-150 relative border ${
                       isBuy
                         ? 'border-emerald-500/25 bg-slate-950/80 shadow-[0_0_15px_rgba(16,185,129,0.06)]'
                         : isSell
@@ -515,7 +519,7 @@ export function SmartSwing() {
                           ₹{setup.lastPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                         </span>
                         <span className={`font-mono text-xs font-semibold ${
-                          setup.changePercent >= 0 ? 'text-[#00D084]' : 'text-[#FF4757]'
+                          setup.changePercent >= 0 ? 'text-[#34A77A]' : 'text-[#E05252]'
                         }`}>
                           {formatChange(setup.changePercent)}
                         </span>
@@ -607,13 +611,14 @@ export function SmartSwing() {
 
                       {/* Candle Patterns */}
                       {setup.detected_patterns && setup.detected_patterns.length > 0 && (
-                        <div className="mb-4">
-                          <span className="text-[9px] uppercase font-mono tracking-wider text-gray-500 block mb-1.5">
-                            Pattern Recognition:
+                        <div className="mb-4 flex flex-col gap-1">
+                          <span className="text-[11px] uppercase font-sans font-medium text-[#8892A4] block">
+                            Patterns Found
                           </span>
-                          <div className="inline-flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[11px] font-mono font-medium px-2.5 py-1 rounded-md">
-                            <Cpu size={11} className="shrink-0" />
-                            <span>{setup.detected_patterns[0].replace(/ \(.*\)/, '')}</span>
+                          <div>
+                            <span className="text-[10px] font-sans font-medium text-[#D4A843] bg-[#D4A843]/8 border border-[#D4A843]/20 px-2 py-0.5 rounded">
+                              Pattern Match: {setup.detected_patterns[0].replace(/ \(.*\)/, '')}
+                            </span>
                           </div>
                         </div>
                       )}
@@ -804,11 +809,11 @@ export function SmartSwing() {
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       
                       {/* STOP LOSS */}
-                      <div className="p-3 bg-[#FF4757]/5 border border-[#FF4757]/15 rounded-lg text-center">
-                        <span className="text-[9px] text-[#FF4757] block uppercase font-mono font-medium tracking-wide mb-1">
+                      <div className="p-3 bg-[#E05252]/5 border border-[#E05252]/15 rounded-lg text-center">
+                        <span className="text-[9px] text-[#E05252] block uppercase font-mono font-medium tracking-wide mb-1">
                           STOP LOSS (HARD)
                         </span>
-                        <span className="text-sm font-bold text-[#FF4757] font-mono">
+                        <span className="text-sm font-bold text-[#E05252] font-mono">
                           ₹{Math.round(deepDiveStock.trade_plan?.stop_loss || deepDiveStock.stopLoss)}
                         </span>
                         <span className="text-[9px] block text-rose-500/80 font-mono mt-0.5">
