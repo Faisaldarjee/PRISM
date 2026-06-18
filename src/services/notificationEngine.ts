@@ -119,7 +119,7 @@ async function dispatchNotifications(
   // 3. Browser Push Alerts Channel (FCM)
   if (prefs.channelPush && fcmToken) {
     try {
-      const title = `${signal === 'BUY' ? '🟢' : '🔴'} PRISM Signal: ${symbol}`;
+      const title = `${signal === 'BUY' ? '🟢' : '🔴'} PRISMX Signal: ${symbol}`;
       const success = await sendPushNotification(fcmToken, title, description, { symbol, signal });
       logNotification(userId, symbol, signal, 'push', success ? 1 : 0);
     } catch (e: any) {
@@ -192,7 +192,7 @@ async function dispatchCustomAlert(
   // 3. Browser Push Alerts Channel
   if (prefs.channelPush && fcmToken) {
     try {
-      const title = `⚠️ PRISM Alert: ${symbol}`;
+      const title = `⚠️ PRISMX Alert: ${symbol}`;
       const success = await sendPushNotification(fcmToken, title, description, { symbol, type });
       logNotification(userId, symbol, signalKey, 'push', success ? 1 : 0);
     } catch (e: any) {
@@ -254,7 +254,7 @@ export async function checkAndSendNotifications() {
         
         // Trigger 1: High confidence BUY parameters met
         if (signal === 'BUY' && confidence >= minConfidence && conviction === 'HIGH') {
-          const description = `🟢 ${symbol} — Strong BUY Signal\nConfidence: ${confidence}% | Entry: ₹${price}\nADX ${prediction.technicals?.adx || '28.6'} + BB Squeeze confirmed\nCheck PRISM for full trade plan`;
+          const description = `🟢 ${symbol} — Strong BUY Signal\nConfidence: ${confidence}% | Entry: ₹${price}\nADX ${prediction.technicals?.adx || '28.6'} + BB Squeeze confirmed\nCheck PRISMX for full trade plan`;
           
           await dispatchNotifications(userId, email, symbol, 'BUY', description, price, prefs, profile.fcmToken, prediction);
         }

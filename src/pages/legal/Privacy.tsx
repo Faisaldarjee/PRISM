@@ -27,14 +27,14 @@ export default function Privacy() {
               <ShieldCheck size={24} />
             </div>
             <div>
-              <span className="font-data text-[10px] text-[#4A5568] tracking-widest uppercase block">PRISM SECURITY</span>
+              <span className="font-data text-[10px] text-[#4A5568] tracking-widest uppercase block">PRISMX SECURITY</span>
               <h1 className="text-2xl font-black uppercase text-white font-display tracking-tight mt-0.5">Privacy Directive</h1>
             </div>
           </div>
 
           <div className="space-y-6 text-[#8892A4] text-[13.5px] leading-relaxed">
             <p>
-              At <strong className="text-white">PRISM</strong>, we believe data sovereignty and confidentiality are paramount. This privacy statement outlines the specific metrics we collect, store, and utilize.
+              At <strong className="text-white">PRISMX</strong>, we believe data sovereignty and confidentiality are paramount. This privacy statement outlines the specific metrics we collect, store, and utilize.
             </p>
 
             <div className="space-y-2">

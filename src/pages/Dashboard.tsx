@@ -384,7 +384,7 @@ export function Dashboard() {
           <div className="space-y-1 text-left">
             <p className="font-semibold uppercase tracking-wider text-[10px] font-data text-[#D4A843]">Market Feed Congested</p>
             <p className="text-zinc-400 font-body text-xs leading-relaxed">
-              We are currently experiencing transient rate limits on our market intelligence agents. PRISM has gracefully transitioned your desk to local fallback snapshots and stable cached rulesets. Core charts and indices remain fully operational.
+              We are currently experiencing transient rate limits on our market intelligence agents. PRISMX has gracefully transitioned your desk to local fallback snapshots and stable cached rulesets. Core charts and indices remain fully operational.
             </p>
           </div>
         </div>
@@ -397,7 +397,7 @@ export function Dashboard() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div className="space-y-1">
             <span className="font-data text-[10px] text-[#D4A843] uppercase tracking-widest block font-medium">
-              PRISMATIC RISK INTELLIGENCE MATRIX · SYSTEMATIC ANALYSIS
+              PRISMX RISK INTELLIGENCE MATRIX · SYSTEMATIC ANALYSIS
             </span>
             <h2 className="text-2xl font-medium tracking-tight text-[#F0F4FF] font-display">
               Good morning, {username}

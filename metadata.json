@@ -1,6 +1,6 @@
 {
-  "name": "Prism",
-  "description": "PRISM - Predictive Risk Intelligence and Strategy Matrix. Indian equities and commodity swing trade templates.",
+  "name": "PRISMX",
+  "description": "PRISMX - Predictive Risk Intelligence and Strategy Matrix. Indian equities and commodity swing trade templates.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

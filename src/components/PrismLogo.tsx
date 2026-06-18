@@ -196,11 +196,11 @@ export const PrismLogo: React.FC<PrismLogoProps> = ({
                 letterSpacing: '0.28em'
               }}
             >
-              PRISM
+              PRISMX
             </span>
           </div>
           {/* Thin, elegant horizontal gold/bronze separator line matching the user's design */}
-          <div className="w-[112px] h-[0.5px] bg-gradient-to-r from-transparent via-[#E5BF5E]/40 to-transparent my-1.5" />
+          <div className="w-[125px] h-[0.5px] bg-gradient-to-r from-transparent via-[#E5BF5E]/40 to-transparent my-1.5" />
           <span 
             className="block uppercase whitespace-nowrap text-[#D4A843]/90"
             style={{ 

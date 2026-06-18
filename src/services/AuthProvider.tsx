@@ -149,11 +149,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           {
             notificationId: 'n_welcome',
             userId: 'guest',
-            symbol: 'PRISM',
+            symbol: 'PRISMX',
             signal: 'WELCOME',
             price: 0,
             description: 'Your guest workspace is ready. Explore the Smart Swing scanner or search any NSE stock.',
-            title: 'Welcome to PRISM',
+            title: 'Welcome to PRISMX',
             message: 'Your guest workspace is ready. Explore the Smart Swing scanner or search any NSE stock.',
             type: 'WELCOME',
             timestamp: new Date(),
@@ -592,11 +592,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         let description = '';
         if (pred.signal === 'BUY') {
-          description = `🔥 SMART ALERT: ${symbolUpper} interest trigger active! PRISM systems recommend buying ${symbolUpper} directly supporting long-term accumulation near current price ₹${currentPrice.toLocaleString('en-IN')}. Confidence: ${pred.confidence}%.`;
+          description = `🔥 SMART ALERT: ${symbolUpper} interest trigger active! PRISMX systems recommend buying ${symbolUpper} directly supporting long-term accumulation near current price ₹${currentPrice.toLocaleString('en-IN')}. Confidence: ${pred.confidence}%.`;
         } else if (pred.signal === 'SELL') {
           description = `⚠️ RISK UPDATE: ${symbolUpper} is entering profit booking or overbought territories around ₹${currentPrice.toLocaleString('en-IN')}. Consider holding purchases or booking partial swing targets.`;
         } else {
-          description = `💼 STATUS PREVIEW: ${symbolUpper} is currently trending NEUTRAL. PRISM systems indicate standard accumulation conditions are active.`;
+          description = `💼 STATUS PREVIEW: ${symbolUpper} is currently trending NEUTRAL. PRISMX systems indicate standard accumulation conditions are active.`;
         }
 
         if (user) {

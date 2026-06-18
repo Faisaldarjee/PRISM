@@ -34,13 +34,13 @@ export default function Terms() {
 
           <div className="space-y-6 text-[#8892A4] text-[13.5px] leading-relaxed">
             <p>
-              Please read these Terms of Service carefully before utilizing <strong className="text-white">PRISM</strong>. Access to this platform is conditioned on your strict acceptance of and compliance with these terms.
+              Please read these Terms of Service carefully before utilizing <strong className="text-white">PRISMX</strong>. Access to this platform is conditioned on your strict acceptance of and compliance with these terms.
             </p>
 
             <div className="space-y-2">
               <h3 className="font-display font-semibold text-[15px] text-white uppercase tracking-wider">01. Platform Definition</h3>
               <p>
-                PRISM is purely an <strong className="text-white">educational study and research simulation playground</strong>. All signals, consensus indices, ATR position allocations, and technical indicators are generated for demonstration, research, and learning purposes only.
+                PRISMX is purely an <strong className="text-white">educational study and research simulation playground</strong>. All signals, consensus indices, ATR position allocations, and technical indicators are generated for demonstration, research, and learning purposes only.
               </p>
             </div>
 

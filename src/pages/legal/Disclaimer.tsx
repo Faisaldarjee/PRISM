@@ -34,13 +34,13 @@ export default function Disclaimer() {
 
           <div className="space-y-6 text-[#8892A4] text-[13.5px] leading-relaxed">
             <p>
-              In accordance with SEBI compliance directives for educational software systems, <strong className="text-white">PRISM</strong> provides the following standard trade safety notices:
+              In accordance with SEBI compliance directives for educational software systems, <strong className="text-white">PRISMX</strong> provides the following standard trade safety notices:
             </p>
 
             <div className="space-y-2">
               <h3 className="font-display font-semibold text-[15px] text-white uppercase tracking-wider">01. Not SEBI Registered</h3>
               <p>
-                PRISM is <strong className="text-white">NOT registered</strong> with the Securities and Exchange Board of India (SEBI) under any portfolio allocation, advisory, investment advisory, or research analyst license schemes. No signals, predictions, consensus indexes, or AI morning briefings constitute legal, fiscal, or SEBI-sanctioned actionable trading material.
+                PRISMX is <strong className="text-white">NOT registered</strong> with the Securities and Exchange Board of India (SEBI) under any portfolio allocation, advisory, investment advisory, or research analyst license schemes. No signals, predictions, consensus indexes, or AI morning briefings constitute legal, fiscal, or SEBI-sanctioned actionable trading material.
               </p>
             </div>
 

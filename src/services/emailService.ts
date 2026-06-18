@@ -24,7 +24,7 @@ export async function sendSignalEmail(userEmail: string, notification: any) {
     return false;
   }
 
-  const subject = `${colorEmoji} ${symbol} — ${signalText} Signal | PRISM`;
+  const subject = `${colorEmoji} ${symbol} — ${signalText} Signal | PRISMX`;
   
   const entryZone = notification.entryZone || `₹${(notification.price * 0.995).toFixed(2)} - ₹${(notification.price * 1.005).toFixed(2)}`;
   const stopLoss = notification.stopLoss || (notification.price * 0.95).toFixed(2);
@@ -36,7 +36,7 @@ export async function sendSignalEmail(userEmail: string, notification: any) {
   const html = `
     <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #030712; color: #f8fafc; padding: 40px 20px; max-width: 600px; margin: 0 auto; border-radius: 16px; border: 1px solid #1e293b;">
       <div style="text-align: center; border-bottom: 2px solid #1e293b; padding-bottom: 20px; margin-bottom: 30px;">
-        <h1 style="color: #3b82f6; margin: 0; font-size: 28px; font-weight: 800; letter-spacing: 2px;">PRISM AI</h1>
+        <h1 style="color: #3b82f6; margin: 0; font-size: 28px; font-weight: 800; letter-spacing: 2px;">PRISMX AI</h1>
         <p style="color: #94a3b8; margin: 5px 0 0; font-size: 12px; font-family: monospace; text-transform: uppercase;">Smart Signal Alert</p>
       </div>
       
@@ -79,17 +79,17 @@ export async function sendSignalEmail(userEmail: string, notification: any) {
       <div style="background-color: #0f172a; padding: 20px; border-radius: 8px; border: 1px solid #1e293b; margin-bottom: 30px;">
         <h4 style="margin: 0 0 10px; color: #3b82f6; text-transform: uppercase; font-size: 12px; letter-spacing: 1px;">WHY THIS SIGNAL:</h4>
         <p style="margin: 0; color: #cbd5e1; font-size: 13px; line-height: 1.6;">
-          ${notification.description || 'PRISM scanner detected a significant price divergence breakout with increased institutional momentum backing.'}
+          ${notification.description || 'PRISMX scanner detected a significant price divergence breakout with increased institutional momentum backing.'}
         </p>
       </div>
       
       <div style="text-align: center; margin-bottom: 30px;">
-        <a href="${process.env.APP_URL || 'https://prism.ai'}" style="background-color: #2563eb; color: #ffffff; padding: 12px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block; font-size: 14px;">View Full Analysis &rarr;</a>
+        <a href="${process.env.APP_URL || 'https://prismx.ai'}" style="background-color: #2563eb; color: #ffffff; padding: 12px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block; font-size: 14px;">View Full Analysis &rarr;</a>
       </div>
       
       <div style="border-top: 1px solid #1e293b; padding-top: 20px; text-align: center; color: #64748b; font-size: 11px;">
         <p style="margin: 0 0 10px;">Not financial advice. Educational tool only.</p>
-        <p style="margin: 0;"><a href="${process.env.APP_URL || 'https://prism.ai'}/settings" style="color: #3b82f6; text-decoration: none;">Unsubscribe</a></p>
+        <p style="margin: 0;"><a href="${process.env.APP_URL || 'https://prismx.ai'}/settings" style="color: #3b82f6; text-decoration: none;">Unsubscribe</a></p>
       </div>
     </div>
   `;
@@ -118,7 +118,7 @@ export async function sendDailySummaryEmail(userEmail: string, summaries: any[])
   }
 
   const todayStr = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
-  const subject = `📊 PRISM Daily Summary — ${todayStr}`;
+  const subject = `📊 PRISMX Daily Summary — ${todayStr}`;
   
   const setupsHtml = summaries && summaries.length > 0 
     ? summaries.slice(0, 3).map(s => `
@@ -134,7 +134,7 @@ export async function sendDailySummaryEmail(userEmail: string, summaries: any[])
   const html = `
     <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #030712; color: #f8fafc; padding: 40px 20px; max-width: 600px; margin: 0 auto; border-radius: 16px; border: 1px solid #1e293b;">
       <div style="text-align: center; border-bottom: 2px solid #1e293b; padding-bottom: 20px; margin-bottom: 30px;">
-        <h1 style="color: #3b82f6; margin: 0; font-size: 28px; font-weight: 800; letter-spacing: 2px;">PRISM AI</h1>
+        <h1 style="color: #3b82f6; margin: 0; font-size: 28px; font-weight: 800; letter-spacing: 2px;">PRISMX AI</h1>
         <p style="color: #94a3b8; margin: 5px 0 0; font-size: 12px; font-family: monospace; text-transform: uppercase;">Daily Markets Summary</p>
       </div>
       
@@ -148,12 +148,12 @@ export async function sendDailySummaryEmail(userEmail: string, summaries: any[])
       </div>
       
       <div style="text-align: center; margin-top: 30px; margin-bottom: 30px;">
-        <a href="${process.env.APP_URL || 'https://prism.ai'}" style="background-color: #2563eb; color: #ffffff; padding: 12px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block; font-size: 14px;">Open PRISM Dashboard &rarr;</a>
+        <a href="${process.env.APP_URL || 'https://prismx.ai'}" style="background-color: #2563eb; color: #ffffff; padding: 12px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block; font-size: 14px;">Open PRISMX Dashboard &rarr;</a>
       </div>
       
       <div style="border-top: 1px solid #1e293b; padding-top: 20px; text-align: center; color: #64748b; font-size: 11px;">
         <p style="margin: 0 0 10px;">Not financial advice. Educational tool only.</p>
-        <p style="margin: 0;"><a href="${process.env.APP_URL || 'https://prism.ai'}/settings" style="color: #3b82f6; text-decoration: none;">Unsubscribe</a></p>
+        <p style="margin: 0;"><a href="${process.env.APP_URL || 'https://prismx.ai'}/settings" style="color: #3b82f6; text-decoration: none;">Unsubscribe</a></p>
       </div>
     </div>
   `;
@@ -184,12 +184,12 @@ export async function sendEarningsAlertEmail(userEmail: string, event: any) {
   const symbol = event.symbol?.replace('.NS', '') || 'ASSET';
   const companyName = event.companyName || 'Watchlist Company';
   const eventDateStr = event.date || 'Soon';
-  const subject = `⚠️ ${symbol} results in ${event.daysAway || 2} days | PRISM`;
+  const subject = `⚠️ ${symbol} results in ${event.daysAway || 2} days | PRISMX`;
   
   const html = `
     <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #030712; color: #f8fafc; padding: 40px 20px; max-width: 600px; margin: 0 auto; border-radius: 16px; border: 1px solid #1e293b;">
       <div style="text-align: center; border-bottom: 2px solid #1e293b; padding-bottom: 20px; margin-bottom: 30px;">
-        <h1 style="color: #3b82f6; margin: 0; font-size: 28px; font-weight: 800; letter-spacing: 2px;">PRISM AI</h1>
+        <h1 style="color: #3b82f6; margin: 0; font-size: 28px; font-weight: 800; letter-spacing: 2px;">PRISMX AI</h1>
         <p style="color: #94a3b8; margin: 5px 0 0; font-size: 12px; font-family: monospace; text-transform: uppercase;">Upcoming Volatility Event</p>
       </div>
       

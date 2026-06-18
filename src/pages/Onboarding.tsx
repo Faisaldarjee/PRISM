@@ -95,7 +95,7 @@ export default function Onboarding({ onComplete, onSkip, onCancel }: OnboardingP
           </button>
           <span className="text-[#4A5568] hidden sm:inline">|</span>
           <span className="font-display font-semibold text-sm tracking-[0.1em] text-[#8892A4] hidden sm:inline">
-            PRISM <span className="text-[#E8C070]">ONBOARDING</span>
+            PRISMX <span className="text-[#E8C070]">ONBOARDING</span>
           </span>
         </div>
 

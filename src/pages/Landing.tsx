@@ -664,7 +664,7 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
           </div>
 
           <div className="text-[10px] font-body text-center md:text-right max-w-sm leading-relaxed text-slate-500">
-            <span className="text-[#E8C070] font-bold">DISCLAIMER:</span> PRISM is an educational research and analytics suite, NOT a SEBI-registered investment advisor. All metrics and simulated models are provided for study purposes only.
+            <span className="text-[#E8C070] font-bold">DISCLAIMER:</span> PRISMX is an educational research and analytics suite, NOT a SEBI-registered investment advisor. All metrics and simulated models are provided for study purposes only.
           </div>
         </div>
       </footer>

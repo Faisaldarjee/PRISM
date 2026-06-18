@@ -222,7 +222,7 @@ export function IntelligenceHub() {
           <div className="space-y-1 text-left">
             <p className="font-semibold uppercase tracking-wider text-[10px] font-data text-[#D4A843]">Workspace Feed Congested</p>
             <p className="text-zinc-400 font-body text-xs leading-relaxed">
-              We are currently experiencing transient rate limits on our market intelligence agents. PRISM has gracefully transitioned your desk to local fallback snapshots and stable cached rulesets. Core charts and indices remain fully operational.
+              We are currently experiencing transient rate limits on our market intelligence agents. PRISMX has gracefully transitioned your desk to local fallback snapshots and stable cached rulesets. Core charts and indices remain fully operational.
             </p>
           </div>
         </div>

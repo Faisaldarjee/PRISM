@@ -17,7 +17,7 @@ async function getCandles(symbol: string, limit: number) {
 }
 
 async function runRealityChecker() {
-  console.log('Starting PRISM E2E Reality Check...\n');
+  console.log('Starting PRISMX E2E Reality Check...\n');
   let passCount = 0;
 
   // TEST 1: NSE Quote
@@ -106,7 +106,7 @@ async function runRealityChecker() {
 
   const percentage = (passCount / 5) * 100;
 
-  console.log('\n=== PRISM REALITY CHECK ===');
+  console.log('\n=== PRISMX REALITY CHECK ===');
   console.log(`TEST 1 NSE Quote:     ${test1Pass ? 'PASS ✅' : 'FAIL ❌'}`);
   console.log(`TEST 2 News Feed:     ${test2Pass ? 'PASS ✅' : 'FAIL ❌'}`);
   console.log(`TEST 3 Scanner:       ${test3Pass ? 'PASS ✅' : 'FAIL ❌'}`);

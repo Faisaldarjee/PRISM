@@ -574,7 +574,7 @@ function AppContent() {
           <div className="py-1 px-2.5 bg-[rgba(255,255,255,0.02)] rounded-lg border border-transparent flex items-center justify-between">
             <span className="text-[8.5px] text-[#4A5568] font-data uppercase tracking-wider leading-none">SIGNALS</span>
             <div className="flex items-center gap-1 text-[9.5px] font-data font-bold text-[#34A77A] leading-none">
-              Prism Active
+              PrismX Active
             </div>
           </div>
         </div>
