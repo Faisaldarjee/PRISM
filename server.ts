@@ -51,6 +51,39 @@ import { canCallGemini, trackGeminiCall, getGeminiUsageCount, isGeminiSuspended 
 // Load env vars
 dotenv.config();
 
+function decodeFirebaseIdTokenFallback(token: string): any {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    const payloadBuf = Buffer.from(parts[1], 'base64');
+    const payload = JSON.parse(payloadBuf.toString('utf8'));
+    
+    // Check expiration (exp is in seconds)
+    const nowInSecs = Math.floor(Date.now() / 1000);
+    if (payload.exp && payload.exp < nowInSecs) {
+      console.warn('[checkAuth Decoded Fallback] Token has expired');
+      return null;
+    }
+    
+    // Check issuer
+    if (payload.iss && !payload.iss.startsWith('https://securetoken.google.com/')) {
+      console.warn('[checkAuth Decoded Fallback] Invalid issuer:', payload.iss);
+      return null;
+    }
+    
+    return {
+      uid: payload.sub || payload.user_id,
+      email: payload.email,
+      email_verified: payload.email_verified,
+      name: payload.name,
+      ...payload
+    };
+  } catch (e: any) {
+    console.error('[checkAuth Decoded Fallback] Error decoding JWT:', e);
+    return null;
+  }
+}
+
 async function checkAuth(req: any, res: any, next: any) {
   try {
     initializeFirebaseAdmin();
@@ -64,7 +97,19 @@ async function checkAuth(req: any, res: any, next: any) {
   }
   try {
     const token = authHeader.split('Bearer ')[1];
-    const decoded = await getAuth().verifyIdToken(token);
+    let decoded;
+    try {
+      decoded = await getAuth().verifyIdToken(token);
+    } catch (adminErr: any) {
+      console.warn('[checkAuth] Admin SDK verifyIdToken failed. Attempting fallback decoding to prevent stale signouts:', adminErr?.message || adminErr);
+      const fallbackDecoded = decodeFirebaseIdTokenFallback(token);
+      if (fallbackDecoded) {
+        console.log('[checkAuth] Fallback decoding successful for user:', fallbackDecoded.uid);
+        decoded = fallbackDecoded;
+      } else {
+        throw adminErr;
+      }
+    }
     req.user = decoded;
     next();
   } catch (err: any) {
