@@ -7,17 +7,53 @@ interface AdUnitProps {
 }
 
 export default function AdUnit({ slot, format = 'auto', className = '' }: AdUnitProps) {
-  const adRef = useRef<HTMLModElement>(null);
+  const adRef = useRef<HTMLElement>(null);
   const initialized = useRef(false);
 
   useEffect(() => {
     if (initialized.current) return;
-    initialized.current = true;
-    try {
-      ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
-    } catch (e) {
-      console.error('AdSense error:', e);
+    const insNode = adRef.current;
+    if (!insNode) return;
+
+    const pushAd = () => {
+      if (initialized.current) return;
+      initialized.current = true;
+      try {
+        ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
+      } catch (e) {
+        console.error('AdSense error:', e);
+      }
+    };
+
+    // If offsetWidth is already set and > 0, push immediately
+    if (insNode.offsetWidth > 0) {
+      pushAd();
+      return;
     }
+
+    // Otherwise, observe until element size is resolved
+    let observer: ResizeObserver | null = null;
+    try {
+      observer = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          if (entry.contentRect.width > 0) {
+            pushAd();
+            observer?.disconnect();
+            break;
+          }
+        }
+      });
+      observer.observe(insNode);
+    } catch (e) {
+      // Fallback if ResizeObserver is not supported in window/tests
+      pushAd();
+    }
+
+    return () => {
+      if (observer) {
+        observer.disconnect();
+      }
+    };
   }, []);
 
   return (

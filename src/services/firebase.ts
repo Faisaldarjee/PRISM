@@ -23,17 +23,31 @@ const cleanEnvVar = (value: any): string => {
   return trimmed.trim();
 };
 
-const rawProjectId = cleanEnvVar(import.meta.env.VITE_FIREBASE_PROJECT_ID) || appletConfig.projectId;
-const resolvedProjectId = rawProjectId || 'prismlocal';
-const defaultAuthDomain = cleanEnvVar(import.meta.env.VITE_FIREBASE_AUTH_DOMAIN) || appletConfig.authDomain || `${resolvedProjectId}.firebaseapp.com`;
+const getResolvedProjectId = (): string => {
+  const configId = appletConfig.projectId;
+  const envId = cleanEnvVar(import.meta.env.VITE_FIREBASE_PROJECT_ID);
+  
+  if (configId && configId !== 'bangonlocal' && configId !== 'prismlocal') {
+    return configId;
+  }
+  if (envId && envId !== 'bangonlocal' && envId !== 'prismlocal') {
+    return envId;
+  }
+  return configId || envId || 'prismlocal';
+};
+
+const resolvedProjectId = getResolvedProjectId();
+const isConfigReal = appletConfig.projectId && appletConfig.projectId !== 'bangonlocal' && appletConfig.projectId !== 'prismlocal';
+
+const defaultAuthDomain = (isConfigReal ? appletConfig.authDomain : null) || cleanEnvVar(import.meta.env.VITE_FIREBASE_AUTH_DOMAIN) || appletConfig.authDomain || `${resolvedProjectId}.firebaseapp.com`;
 
 const firebaseConfig = {
-  apiKey: cleanEnvVar(import.meta.env.VITE_FIREBASE_API_KEY) || appletConfig.apiKey,
+  apiKey: (isConfigReal ? appletConfig.apiKey : null) || cleanEnvVar(import.meta.env.VITE_FIREBASE_API_KEY) || appletConfig.apiKey,
   authDomain: defaultAuthDomain,
   projectId: resolvedProjectId,
-  storageBucket: cleanEnvVar(import.meta.env.VITE_FIREBASE_STORAGE_BUCKET) || appletConfig.storageBucket,
-  messagingSenderId: cleanEnvVar(import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID) || appletConfig.messagingSenderId,
-  appId: cleanEnvVar(import.meta.env.VITE_FIREBASE_APP_ID) || appletConfig.appId,
+  storageBucket: (isConfigReal ? appletConfig.storageBucket : null) || cleanEnvVar(import.meta.env.VITE_FIREBASE_STORAGE_BUCKET) || appletConfig.storageBucket,
+  messagingSenderId: (isConfigReal ? appletConfig.messagingSenderId : null) || cleanEnvVar(import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID) || appletConfig.messagingSenderId,
+  appId: (isConfigReal ? appletConfig.appId : null) || cleanEnvVar(import.meta.env.VITE_FIREBASE_APP_ID) || appletConfig.appId,
 };
 
 console.log('[Firebase Init] config keys loaded:', Object.keys(firebaseConfig).reduce((acc, key) => {
@@ -78,8 +92,11 @@ interface FirestoreErrorInfo {
 }
 
 export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  const errorMsg = error instanceof Error ? error.message : String(error);
+  const isOffline = errorMsg.toLowerCase().includes('offline') || errorMsg.toLowerCase().includes('failed to get document');
+  
   const errInfo: FirestoreErrorInfo = {
-    error: error instanceof Error ? error.message : String(error),
+    error: errorMsg,
     authInfo: {
       userId: auth.currentUser?.uid,
       email: auth.currentUser?.email,
@@ -94,6 +111,11 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
     operationType,
     path
   };
-  console.error('Firestore Error: ', JSON.stringify(errInfo));
+
+  if (isOffline) {
+    console.warn('[Firestore Offline Support] Handled connection offline state: ', JSON.stringify(errInfo));
+  } else {
+    console.error('Firestore Error: ', JSON.stringify(errInfo));
+  }
   throw new Error(JSON.stringify(errInfo));
 }

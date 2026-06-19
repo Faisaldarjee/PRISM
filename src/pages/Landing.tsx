@@ -530,7 +530,7 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
             <div className="flex flex-col gap-3">
               <span className="font-data text-[11px] text-[#E8C070] font-black tracking-widest block">01 · INITIAL ACCESS</span>
               <h4 className="font-display font-medium text-[14px] text-[#F0F4FF]">Start Instantly</h4>
-              <p className="text-[#8892A4] text-[12.5px] leading-relaxed font-body">No sign-up barriers. The entire terminal sandbox opens instantly in free guest test mode.</p>
+              <p className="text-[#8892A4] text-[12.5px] leading-relaxed font-body">No long sign-up barriers. Create a free account to unlock your personalized market workspace instantly.</p>
             </div>
 
             <div className="flex flex-col gap-3">
@@ -576,24 +576,24 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
               <h3 className="font-display text-4.5xl font-semibold text-[#F0F4FF] mb-1">
                 ₹0 <span className="text-xs font-data text-[#8892A4] font-normal">/ month</span>
               </h3>
-              <p className="text-[12.5px] text-[#8892A4] mb-6 font-body">All core features available. Set up custom workspaces locally.</p>
+              <p className="text-[12.5px] text-[#8892A4] mb-6 font-body">All core features available with standard limits and ad-support.</p>
               
               <ul className="space-y-3.5 text-[13px] border-t border-[rgba(255,255,255,0.04)] pt-6 mb-8 font-body">
                 <li className="flex items-start gap-2.5">
                   <Check size={14} className="text-[#34A77A] mt-0.5 shrink-0" />
-                  <span>Consensus Swing Scanners List</span>
+                  <span>5 Live Scanner Results</span>
                 </li>
                 <li className="flex items-start gap-2.5">
                   <Check size={14} className="text-[#34A77A] mt-0.5 shrink-0" />
-                  <span>ATR Volatility Sizer Module</span>
+                  <span>3 Watchlist Symbols Limit</span>
                 </li>
                 <li className="flex items-start gap-2.5">
                   <Check size={14} className="text-[#34A77A] mt-0.5 shrink-0" />
-                  <span>Local Guest Mode Sandbox</span>
+                  <span>Interactive Basic Charts</span>
                 </li>
                 <li className="flex items-start gap-2.5">
                   <Check size={14} className="text-[#34A77A] mt-0.5 shrink-0" />
-                  <span>Cloud sync after safe signup</span>
+                  <span>Fully Functional ATR Sizer</span>
                 </li>
               </ul>
             </div>
@@ -609,33 +609,33 @@ export default function Landing({ onEnterGuestMode, onOpenAuth }: LandingProps) 
           {/* PRO Tier Card */}
           <div className="gold-card p-8 flex flex-col justify-between relative border border-[#D4A843]/20">
             <div className="absolute -top-3.5 right-6 py-1 px-3 bg-[#D4A843] text-[#05070C] font-data text-[9px] font-black uppercase tracking-wider rounded-full select-none">
-              FREE BETA
+              EARLY ACCESS
             </div>
 
             <div>
               <span className="font-data text-[11px] text-[#E8C070] uppercase tracking-wider block mb-2">Pro Plan</span>
               <h3 className="font-display text-4.5xl font-semibold text-[#E8C070] mb-1">
-                BETA_FREE <span className="text-xs font-data text-[#8892A4] font-normal">/ COMING_SOON</span>
+                ₹199 <span className="text-xs font-data text-[#8892A4] font-normal">/ month</span>
               </h3>
-              <p className="text-[12.5px] text-[#8892A4] mb-3 font-body">Pro Cloud Persist capabilities are currently in developmental beta testing.</p>
-              <p className="text-[11px] font-semibold text-[#34A77A] mb-6">Currently free during beta. No payment integration setup.</p>
+              <p className="text-[12.5px] text-[#8892A4] mb-3 font-body">Full power of algorithms and unrestricted dashboard workstation capabilities.</p>
+              <p className="text-[11px] font-semibold text-[#34A77A] mb-6">First 100 users get 1 month of premium Pro free! 🎉</p>
               
               <ul className="space-y-3.5 text-[13px] border-t border-[#D4A843]/15 pt-6 mb-8 font-body">
                 <li className="flex items-start gap-2.5 text-slate-400">
                   <Check size={14} className="text-[#34A77A] mt-0.5 shrink-0" />
-                  <span>Advanced Cloud Watchlist sync</span>
+                  <span>Unlimited Scanner results scan</span>
                 </li>
                 <li className="flex items-start gap-2.5 text-slate-400">
                   <Check size={14} className="text-[#34A77A] mt-0.5 shrink-0" />
-                  <span>High-speed automated price target exports</span>
+                  <span>Unlimited Cloud Watchlist symbols</span>
                 </li>
                 <li className="flex items-start gap-2.5 text-slate-400">
                   <Check size={14} className="text-[#34A77A] mt-0.5 shrink-0" />
-                  <span>Premium Gemini macro brief confluences</span>
+                  <span>Consolidating SMC (Smart Money) Engines</span>
                 </li>
                 <li className="flex items-start gap-2.5 text-slate-400">
                   <Check size={14} className="text-[#34A77A] mt-0.5 shrink-0" />
-                  <span>Real-time custom email threshold notifications</span>
+                  <span>Morning Macro Summaries & AI signals</span>
                 </li>
               </ul>
             </div>

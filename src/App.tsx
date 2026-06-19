@@ -18,6 +18,8 @@ import { AuthModal } from './components/AuthModal';
 import { NotificationPreferences } from './components/NotificationPreferences';
 import ProBanner from './components/ProBanner';
 import { importAsset } from './api';
+import { useProStatus } from './hooks/useProStatus';
+import ProtectedRoute from './components/ProtectedRoute';
 import { 
   TrendingUp, 
   Layers, 
@@ -96,9 +98,7 @@ function AppContent() {
   const [notifOpen, setNotifOpen] = useState(false);
   const [showInterestSettings, setShowInterestSettings] = useState(false);
 
-  const [guestMode, setGuestMode] = useState(() => {
-    return localStorage.getItem('prism_guest_mode') === 'true';
-  });
+  const { isPro, plan, earlyAccessNumber, daysRemaining } = useProStatus();
 
   // One-time migration from old brand keys (bangon_*) to new (prism_*)
   useEffect(() => {
@@ -190,54 +190,18 @@ function AppContent() {
     }
   }, [user, userProfile, updateOnboardingSettings]);
 
-  // Close modals and clean guest flags upon sign in
+  // Close modals upon sign in
   useEffect(() => {
     if (user) {
       setAuthModalOpen(false);
-      setGuestMode(false);
-      localStorage.removeItem('prism_guest_mode');
     }
   }, [user]);
-
-  // Merge guest custom assets to logged-in user profile on sign in
-  useEffect(() => {
-    if (user && userProfile) {
-      const guestCustom = localStorage.getItem('guest_custom_assets');
-      if (guestCustom) {
-        try {
-          const parsed = JSON.parse(guestCustom) as string[];
-          if (parsed && parsed.length > 0) {
-            const syncSeq = async () => {
-              for (const sym of parsed) {
-                try {
-                  await addCustomAsset(sym);
-                } catch (e) {
-                  console.error('Error syncing guest custom asset:', e);
-                }
-              }
-              localStorage.removeItem('guest_custom_assets');
-            };
-            syncSeq();
-          }
-        } catch (e) {}
-      }
-    }
-  }, [user, userProfile]);
 
   // Synchronously heal/pre-register custom imported assets on the server
   useEffect(() => {
     const customList: string[] = [];
     if (user && userProfile && userProfile.customAssets) {
       customList.push(...userProfile.customAssets);
-    } else if (!user) {
-      // In guest mode, read from localStorage
-      const guestCustom = localStorage.getItem('guest_custom_assets');
-      if (guestCustom) {
-        try {
-          const parsed = JSON.parse(guestCustom) as string[];
-          customList.push(...parsed);
-        } catch (e) {}
-      }
     }
 
     if (customList.length > 0) {
@@ -257,13 +221,10 @@ function AppContent() {
   }, [user, userProfile?.customAssets]);
 
   const handleLogout = async () => {
-    localStorage.removeItem('prism_guest_mode');
     localStorage.removeItem('prism_onboarded');
     localStorage.removeItem('prism_capital');
     localStorage.removeItem('prism_risk');
     localStorage.removeItem('prism_focus_markets');
-    localStorage.removeItem('guest_custom_assets');
-    setGuestMode(false);
     setOnboarded(false);
     await logOut();
   };
@@ -310,7 +271,7 @@ function AppContent() {
 
   const isLandingOnlyRoute = location.pathname === '/landing' || location.pathname === '/home';
 
-  if (isLandingOnlyRoute || (!user && !guestMode)) {
+  if (isLandingOnlyRoute || !user) {
     return (
       <>
         <Landing 
@@ -318,9 +279,7 @@ function AppContent() {
             if (user) {
               navigate('/');
             } else {
-              localStorage.setItem('prism_guest_mode', 'true');
-              setGuestMode(true);
-              navigate('/');
+              setAuthModalOpen(true);
             }
           }} 
           onOpenAuth={() => setAuthModalOpen(true)} 
@@ -369,9 +328,6 @@ function AppContent() {
         onCancel={() => {
           if (user) {
             handleLogout();
-          } else {
-            localStorage.removeItem('prism_guest_mode');
-            setGuestMode(false);
           }
         }}
       />
@@ -439,7 +395,19 @@ function AppContent() {
                     <h4 className="text-xs font-semibold text-[#F0F4FF] truncate font-body">
                       {userProfile?.displayName || user.email?.split('@')[0]}
                     </h4>
-                    <span className="text-[8.5px] text-[#D4A843] font-data border border-[#D4A843]/20 px-1 py-0.2 rounded bg-[#D4A843]/5 uppercase tracking-wide">PRO PLAN</span>
+                    {plan === 'pro_early' ? (
+                      <span className="text-[8.5px] text-[#D4A843] font-data border border-[#D4A843]/20 px-1.5 py-0.5 rounded bg-[#D4A843]/5 uppercase tracking-wide inline-block leading-none mt-1">
+                        Early access #{earlyAccessNumber} {daysRemaining !== null ? `(${daysRemaining}d left)` : ''}
+                      </span>
+                    ) : plan === 'pro_paid' ? (
+                      <span className="text-[8.5px] text-[#D4A843] font-data border border-[#D4A843]/20 px-1.5 py-0.5 rounded bg-[#D4A843]/5 uppercase tracking-wide inline-block leading-none mt-1">
+                        PRO ACTIVE
+                      </span>
+                    ) : (
+                      <span className="text-[8.5px] text-slate-500 font-data border border-slate-800 px-1.5 py-0.5 rounded bg-slate-950 uppercase tracking-wide inline-block leading-none mt-1">
+                        FREE MEMBERSHIP
+                      </span>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center gap-1.5 pt-1">
@@ -459,14 +427,10 @@ function AppContent() {
                 </div>
               </>
             ) : (
-              <div className="space-y-2 text-center">
-                <div className="space-y-0.5">
-                  <h4 className="text-[11px] font-medium text-[#8892A4] font-body tracking-tight">GUEST_MODE_ACTIVE</h4>
-                  <p className="text-[9px] text-[#4A5568] font-data leading-normal">Data is cached locally</p>
-                </div>
+              <div className="space-y-2 text-center animate-pulse">
                 <button 
                   onClick={() => setAuthModalOpen(true)}
-                  className="w-full py-1.5 bg-[#D4A843] hover:bg-[#E8C070] text-[#05070C] text-[10.5px] font-data tracking-wider rounded-lg cursor-pointer transition-all active:scale-[0.98] shadow-md shadow-[#D4A843]/10"
+                  className="w-full py-1.5 bg-[#D4A843] hover:bg-[#E8C070] text-[#05070C] text-[10.5px] font-data tracking-wider rounded-lg cursor-pointer transition-all active:scale-[0.98] shadow-md shadow-[#D4A843]/10 font-bold"
                 >
                   SECURE_CLOUD_SYNC
                 </button>
@@ -746,13 +710,13 @@ function AppContent() {
 
         <main className="max-w-7xl mx-auto p-6 lg:p-10 space-y-8">
           <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/smart-swing" element={<SmartSwing />} />
-            <Route path="/intelligence" element={<IntelligenceHub />} />
-            <Route path="/assets" element={<AssetsList />} />
-            <Route path="/asset/:symbol" element={<AssetDetail />} />
-            <Route path="/sip" element={<SipTracker />} />
-            <Route path="/accuracy" element={<Accuracy />} />
+            <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/smart-swing" element={<ProtectedRoute><SmartSwing /></ProtectedRoute>} />
+            <Route path="/intelligence" element={<ProtectedRoute><IntelligenceHub /></ProtectedRoute>} />
+            <Route path="/assets" element={<ProtectedRoute><AssetsList /></ProtectedRoute>} />
+            <Route path="/asset/:symbol" element={<ProtectedRoute><AssetDetail /></ProtectedRoute>} />
+            <Route path="/sip" element={<ProtectedRoute><SipTracker /></ProtectedRoute>} />
+            <Route path="/accuracy" element={<ProtectedRoute><Accuracy /></ProtectedRoute>} />
           </Routes>
         </main>
       </div>

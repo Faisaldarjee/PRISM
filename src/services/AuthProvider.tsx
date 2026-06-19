@@ -200,7 +200,67 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             await setDoc(userDocRef, initialProfile);
             setUserProfile(initialProfile);
           } else {
-            setUserProfile(userDoc.data() as UserProfile);
+            const data = userDoc.data();
+            const email = (currentFirebaseUser.email || '').toLowerCase().trim();
+            const targets = [
+              {
+                prefix: 'faisaldarjee998',
+                updates: {
+                  plan: 'pro_early' as const,
+                  isPro: true,
+                  earlyAccessNumber: 1,
+                  earlyAccessGrantedAt: '2026-06-10T00:00:00.000Z',
+                  earlyAccessExpiresAt: '2026-07-10T00:00:00.000Z',
+                }
+              },
+              {
+                prefix: 'faisaldarjee9',
+                updates: {
+                  plan: 'pro_early' as const,
+                  isPro: true,
+                  earlyAccessNumber: 2,
+                  earlyAccessGrantedAt: '2026-06-10T00:00:00.000Z',
+                  earlyAccessExpiresAt: '2026-07-10T00:00:00.000Z',
+                }
+              },
+              {
+                prefix: 'cpppatel2026',
+                updates: {
+                  plan: 'pro_early' as const,
+                  isPro: true,
+                  earlyAccessNumber: 3,
+                  earlyAccessGrantedAt: '2026-06-13T00:00:00.000Z',
+                  earlyAccessExpiresAt: '2026-07-13T00:00:00.000Z',
+                }
+              },
+              {
+                prefix: 'aditiuike04',
+                updates: {
+                  plan: 'pro_early' as const,
+                  isPro: true,
+                  earlyAccessNumber: 4,
+                  earlyAccessGrantedAt: '2026-06-15T00:00:00.000Z',
+                  earlyAccessExpiresAt: '2026-07-15T00:00:00.000Z',
+                }
+              }
+            ];
+
+            const matched = targets.find(t => 
+              email === `${t.prefix}@gmail.com` || 
+              email === t.prefix
+            );
+
+            if (matched && (data.plan !== matched.updates.plan || !data.isPro || data.earlyAccessNumber !== matched.updates.earlyAccessNumber)) {
+              console.log(`[Auto-Upgrade Client] Upgrading user ${email} to Pro Early Access...`);
+              const updatedProfile = {
+                ...data,
+                ...matched.updates
+              };
+              await setDoc(userDocRef, updatedProfile, { merge: true });
+              setUserProfile(updatedProfile as unknown as UserProfile);
+            } else {
+              setUserProfile(data as UserProfile);
+            }
           }
         } catch (err) {
           console.warn('Unable to sync profile:', err);
@@ -283,6 +343,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
     }
   }, [user]);
+
+  // Synchronize user profile to backend cache (for background tasks fallbacks: crons & email dispatch)
+  useEffect(() => {
+    const syncProfileToServer = async () => {
+      if (!user || !userProfile) return;
+      try {
+        const token = await user.getIdToken();
+        await fetch('/api/user/sync', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            uid: user.uid,
+            email: userProfile.email || user.email || '',
+            displayName: userProfile.displayName || user.displayName || '',
+            interestedSymbols: userProfile.interestedSymbols || [],
+            notificationPrefs: userProfile.notificationPrefs || null
+          })
+        });
+      } catch (err) {
+        console.warn('[syncProfileToServer] background sync failed:', err);
+      }
+    };
+
+    if (user && userProfile) {
+      syncProfileToServer();
+    }
+  }, [user, userProfile]);
 
   // Auth Operations
   const signUp = async (emailStr: string, passwordStr: string, name: string) => {

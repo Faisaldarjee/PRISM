@@ -112,6 +112,7 @@ export function SmartSwing() {
   const { isPro } = useProStatus();
   const [sectors, setSectors] = useState<SectorMomentum[]>([]);
   const [setups, setSetups] = useState<SwingSetup[]>([]);
+  const displayedSetups = isPro ? setups : setups.slice(0, 5);
   const [selectedSector, setSelectedSector] = useState<SectorMomentum | null>(null);
   
   const [loadingSectors, setLoadingSectors] = useState<boolean>(true);
@@ -561,7 +562,7 @@ export function SmartSwing() {
             </p>
 
             <div className="flex overflow-x-auto md:grid md:grid-cols-3 gap-6 pb-4 md:pb-0 scrollbar-none snap-x snap-mandatory">
-              {setups.map((setup, index) => {
+              {displayedSetups.map((setup, index) => {
                 const isBuy = setup.signal === 'BUY';
                 const isSell = setup.signal === 'SELL';
                 const isDeepDived = deepDiveStock?.symbol === setup.symbol;
@@ -777,6 +778,41 @@ export function SmartSwing() {
                   </React.Fragment>
                 );
               })}
+
+              {!isPro && setups.length > 5 && (
+                <div className="flex-shrink-0 w-[calc(100vw-3rem)] md:w-auto snap-center whitespace-normal glass-card p-6 rounded-2xl flex flex-col justify-between border border-dashed border-amber-500/40 bg-gradient-to-b from-amber-500/[0.02] to-amber-500/[0.08] relative overflow-hidden shadow-lg select-none">
+                  {/* Glowing background */}
+                  <div className="absolute top-0 right-0 w-[150px] h-[150px] bg-amber-500/10 rounded-full blur-[40px] pointer-events-none -mr-10 -mt-10" />
+                  
+                  <div className="flex flex-col items-center justify-center text-center p-4 my-auto space-y-4">
+                    <div className="p-3 bg-amber-500/15 border border-amber-500/30 rounded-full text-amber-500">
+                      <Award size={24} className="animate-pulse" />
+                    </div>
+                    <div>
+                      <h4 className="font-display font-medium text-white text-base leading-snug">
+                        Unlock {setups.length - 5} More Premium Setups
+                      </h4>
+                      <p className="text-[11px] text-[#8892A4] mt-1.5 leading-relaxed font-body">
+                        Upgrade to PRISM PRO to access all scanned high-probability opportunities, institutional smart money levels, and advanced sentiment breakdowns.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        const billingTab = document.getElementById('billing-tab');
+                        if (billingTab) {
+                          billingTab.click();
+                        } else {
+                          // Scroll to top/sidebar info
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }
+                      }}
+                      className="w-full py-2.5 px-4 bg-[#D4A843] hover:bg-[#E8C070] text-[#0d0e12] text-[11px] font-bold rounded-xl transition-all shadow-md uppercase tracking-wider font-mono cursor-pointer animate-pulse"
+                    >
+                      🌟 Upgrade to PRISM PRO
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

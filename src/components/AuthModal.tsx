@@ -68,6 +68,9 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
             onClose();
           }, 1000);
         } catch (err: any) {
+          if (err.code === 'auth/operation-not-allowed') {
+            throw err; // Let outer catch block process and output the clean console link message
+          }
           const newAttempts = loginAttempts + 1;
           setLoginAttempts(newAttempts);
           
@@ -109,6 +112,8 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
         errMsg = 'This email is already registered.';
       } else if (err.code === 'auth/invalid-email') {
         errMsg = 'Invalid email address format.';
+      } else if (err.code === 'auth/operation-not-allowed') {
+        errMsg = 'Email/Password sign-in is disabled in your Firebase console. Please go to Firebase Console -> Authentication -> Sign-in method, click "Add new provider", select "Email/Password", and click Enable.';
       }
       setError(errMsg);
     } finally {
@@ -301,20 +306,6 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 Back to Sign In
               </button>
             )}
-          </div>
-
-          <div className="pt-3 mt-3 border-t border-slate-800/40 text-center text-[11px] font-mono">
-            <button 
-              type="button"
-              onClick={() => {
-                localStorage.setItem('prism_guest_mode', 'true');
-                onClose();
-                window.location.reload();
-              }}
-              className="text-amber-400 hover:underline hover:text-amber-300 font-bold"
-            >
-              ⚡ Explore with Local Guest Mode
-            </button>
           </div>
         </form>
 

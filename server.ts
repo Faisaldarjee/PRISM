@@ -10,7 +10,7 @@ import { createProxyMiddleware } from 'http-proxy-middleware';
 import { spawn } from 'child_process';
 import cron from 'node-cron';
 import { getAuth } from 'firebase-admin/auth';
-import { initializeFirebaseAdmin } from './src/services/firebaseAdminHelper';
+import { initializeFirebaseAdmin, getFirestoreAdmin } from './src/services/firebaseAdminHelper';
 import rateLimit from 'express-rate-limit';
 import compression from 'compression';
 
@@ -22,6 +22,7 @@ import {
   getAssetsList, 
   getPricesHistory, 
   compileMacroReport, 
+  db,
   getSentimentAnalysis, 
   getSipAnalysis, 
   getCorrelationAnalysis, 
@@ -66,8 +67,9 @@ async function checkAuth(req: any, res: any, next: any) {
     const decoded = await getAuth().verifyIdToken(token);
     req.user = decoded;
     next();
-  } catch {
-    return res.status(403).json({ error: 'Invalid or expired token.' });
+  } catch (err: any) {
+    console.error('[checkAuth] Token validation error:', err?.message || err);
+    return res.status(403).json({ error: 'Invalid or expired token.', details: err?.message });
   }
 }
 
@@ -166,7 +168,7 @@ async function startServer() {
   // Rate Limiting (FIX 2)
   const apiLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 100,
+    max: 2000,
     standardHeaders: true,
     legacyHeaders: false,
     message: { error: 'Too many requests, please try again later.' }
@@ -310,6 +312,40 @@ async function startServer() {
     } catch (error: any) {
       console.error('Error in /api/assets:', error);
       res.status(500).json({ detail: error.message });
+    }
+  });
+
+  app.post('/api/user/sync', checkAuth, async (req: any, res: any) => {
+    try {
+      const { uid, email, displayName, interestedSymbols, notificationPrefs } = req.body;
+      
+      // Enforce security check: prevent syncing cross-user data (prevent ID spoofing)
+      if (req.user.uid !== uid) {
+        return res.status(403).json({ error: 'Forbidden. You are not authorized to sync this user profile.' });
+      }
+
+      const stmt = db.prepare(`
+        INSERT INTO user_profiles_cache (uid, email, displayName, interested_symbols, notification_prefs)
+        VALUES (?, ?, ?, ?, ?)
+        ON CONFLICT(uid) DO UPDATE SET
+          email = excluded.email,
+          displayName = excluded.displayName,
+          interested_symbols = excluded.interested_symbols,
+          notification_prefs = excluded.notification_prefs
+      `);
+      
+      stmt.run(
+        uid,
+        email || null,
+        displayName || null,
+        interestedSymbols ? JSON.stringify(interestedSymbols) : null,
+        notificationPrefs ? JSON.stringify(notificationPrefs) : null
+      );
+      
+      res.json({ status: 'success', message: 'User profile localized successfully.' });
+    } catch (err: any) {
+      console.error('[Sync API] Profile sync error:', err.message);
+      res.status(500).json({ error: err.message });
     }
   });
 
@@ -1055,6 +1091,16 @@ async function startServer() {
     }
   });
 
+  // Early access users migration endpoint
+  app.get('/api/admin/migrate-early-access', async (req, res) => {
+    try {
+      const result = await runEarlyAccessMigration();
+      res.json(result);
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
   // Vite integration
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
@@ -1072,7 +1118,99 @@ async function startServer() {
 
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 PRISM server fully integrated. Root accessible on http://localhost:${PORT}`);
+    // Run early access premium migration on boot
+    runEarlyAccessMigration().then((res) => {
+      console.log('[Migration System Boot] Early Access Migration run results:', res);
+    }).catch((err) => {
+      console.error('[Migration System Boot] Early Access Migration exploded:', err);
+    });
   });
+}
+
+async function runEarlyAccessMigration() {
+  try {
+    console.log('[Migration] Starting early access premium users migration...');
+    const dbAdmin = getFirestoreAdmin();
+    const usersColl = dbAdmin.collection('users');
+    const snapshot = await usersColl.get();
+    
+    console.log(`[Migration] Scanning ${snapshot.size} user documents...`);
+    
+    const targets = [
+      {
+        prefix: 'faisaldarjee998',
+        email: 'faisaldarjee998@gmail.com',
+        updates: {
+          plan: 'pro_early',
+          isPro: true,
+          earlyAccessNumber: 1,
+          earlyAccessGrantedAt: '2026-06-10T00:00:00.000Z',
+          earlyAccessExpiresAt: '2026-07-10T00:00:00.000Z',
+        }
+      },
+      {
+        prefix: 'faisaldarjee9',
+        email: 'faisaldarjee9@gmail.com',
+        updates: {
+          plan: 'pro_early',
+          isPro: true,
+          earlyAccessNumber: 2,
+          earlyAccessGrantedAt: '2026-06-10T00:00:00.000Z',
+          earlyAccessExpiresAt: '2026-07-10T00:00:00.000Z',
+        }
+      },
+      {
+        prefix: 'cpppatel2026',
+        email: 'cpppatel2026@gmail.com',
+        updates: {
+          plan: 'pro_early',
+          isPro: true,
+          earlyAccessNumber: 3,
+          earlyAccessGrantedAt: '2026-06-13T00:00:00.000Z',
+          earlyAccessExpiresAt: '2026-07-13T00:00:00.000Z',
+        }
+      },
+      {
+        prefix: 'aditiuike04',
+        email: 'aditiuike04@gmail.com',
+        updates: {
+          plan: 'pro_early',
+          isPro: true,
+          earlyAccessNumber: 4,
+          earlyAccessGrantedAt: '2026-06-15T00:00:00.000Z',
+          earlyAccessExpiresAt: '2026-07-15T00:00:00.000Z',
+        }
+      }
+    ];
+
+    let updatedCount = 0;
+    const details: string[] = [];
+    
+    snapshot.forEach((doc) => {
+      const userData = doc.data();
+      const email = (userData.email || '').toLowerCase().trim();
+      
+      const matchedTarget = targets.find(t => 
+        email === t.email || 
+        email.startsWith(t.prefix + '@') || 
+        email === t.prefix
+      );
+      
+      if (matchedTarget) {
+        doc.ref.set(matchedTarget.updates, { merge: true });
+        const entry = `Updated ${email} -> Pro Early Access #${matchedTarget.updates.earlyAccessNumber}`;
+        console.log(`[Migration] ${entry}`);
+        details.push(entry);
+        updatedCount++;
+      }
+    });
+    
+    console.log(`[Migration] Completed scanning users. Matched and updated ${updatedCount} profiles.`);
+    return { success: true, updatedCount, details };
+  } catch (err: any) {
+    console.error('[Migration] Failed to run premium migration:', err.message);
+    return { success: false, error: err.message };
+  }
 }
 
 startServer().catch((err) => {

@@ -205,40 +205,96 @@ async function dispatchCustomAlert(
  * Sweep prediction setups and alert profiles.
  * Runs on backend crons regularly during Indian market hours.
  */
+export interface CacheableUserProfile {
+  id: string;
+  email?: string;
+  interestedSymbols: string[];
+  notificationPrefs: any;
+  fcmToken?: string;
+}
+
+export async function getUsersFromCacheOrFirestore(): Promise<CacheableUserProfile[]> {
+  initializeFirebaseAdmin();
+  const firestore = getFirestoreAdmin();
+  
+  try {
+    const snap = await firestore.collection('users').get();
+    const list: CacheableUserProfile[] = [];
+    snap.forEach(doc => {
+      const data = doc.data();
+      list.push({
+        id: doc.id,
+        email: data.email,
+        interestedSymbols: data.interestedSymbols || [],
+        fcmToken: data.fcmToken,
+        notificationPrefs: data.notificationPrefs || {
+          notifyHighConfidence: true,
+          notifyEarnings: true,
+          notifySector: true,
+          notifySip: true,
+          notifyAllSignals: false,
+          channelInApp: true,
+          channelEmail: true,
+          channelPush: false,
+          minConfidence: 80
+        }
+      });
+    });
+    return list;
+  } catch (err: any) {
+    console.warn('[NotificationEngine] Firestore users collection query failed (likely Permission Denied). Falling back to SQLite User Profiles Cache:', err.message);
+    try {
+      const rows = db.prepare('SELECT uid, email, displayName, interested_symbols, notification_prefs FROM user_profiles_cache').all() as any[];
+      return rows.map(r => {
+        let interestedSymbols: string[] = [];
+        try {
+          interestedSymbols = r.interested_symbols ? JSON.parse(r.interested_symbols) : [];
+        } catch {
+          interestedSymbols = [];
+        }
+        
+        let notificationPrefs = null;
+        try {
+          notificationPrefs = r.notification_prefs ? JSON.parse(r.notification_prefs) : null;
+        } catch {}
+        
+        return {
+          id: r.uid,
+          email: r.email,
+          interestedSymbols,
+          notificationPrefs: notificationPrefs || {
+            notifyHighConfidence: true,
+            notifyEarnings: true,
+            notifySector: true,
+            notifySip: true,
+            notifyAllSignals: false,
+            channelInApp: true,
+            channelEmail: true,
+            channelPush: false,
+            minConfidence: 80
+          }
+        };
+      });
+    } catch (sqlErr: any) {
+      console.error('[NotificationEngine] SQLite fallback database query failed:', sqlErr.message);
+      return [];
+    }
+  }
+}
+
 export async function checkAndSendNotifications() {
   console.log('[NotificationEngine] Starting active signal sweep across assets...');
   
-  initializeFirebaseAdmin();
-
+  const users = await getUsersFromCacheOrFirestore();
   const firestore = getFirestoreAdmin();
+  console.log(`[NotificationEngine] Sweeping ${users.length} user settings...`);
   
-  let usersSnap;
-  try {
-    usersSnap = await firestore.collection('users').get();
-  } catch (err: any) {
-    console.error('[NotificationEngine] Failed to query user indices:', err.message);
-    return;
-  }
-
-  console.log(`[NotificationEngine] Sweeping ${usersSnap.size} user settings...`);
-  
-  for (const userDoc of usersSnap.docs) {
-    const userId = userDoc.id;
-    const profile = userDoc.data();
-    const email = profile.email;
-    const interestedSymbols = profile.interestedSymbols || [];
-    
-    const prefs = profile.notificationPrefs || {
-      notifyHighConfidence: true,
-      notifyEarnings: true,
-      notifySector: true,
-      notifySip: true,
-      notifyAllSignals: false,
-      channelInApp: true,
-      channelEmail: true,
-      channelPush: false,
-      minConfidence: 80
-    };
+  for (const user of users) {
+    const userId = user.id;
+    const email = user.email;
+    const interestedSymbols = user.interestedSymbols;
+    const prefs = user.notificationPrefs;
+    const fcmToken = user.fcmToken;
 
     const minConfidence = prefs.minConfidence ?? 80;
 
@@ -256,14 +312,14 @@ export async function checkAndSendNotifications() {
         if (signal === 'BUY' && confidence >= minConfidence && conviction === 'HIGH') {
           const description = `🟢 ${symbol} — Strong BUY Signal\nConfidence: ${confidence}% | Entry: ₹${price}\nADX ${prediction.technicals?.adx || '28.6'} + BB Squeeze confirmed\nCheck PRISMX for full trade plan`;
           
-          await dispatchNotifications(userId, email, symbol, 'BUY', description, price, prefs, profile.fcmToken, prediction);
+          await dispatchNotifications(userId, email, symbol, 'BUY', description, price, prefs, fcmToken, prediction);
         }
         
         // Trigger 2: High confidence SELL/BOOK parameters met
         else if (signal === 'SELL' && confidence >= minConfidence) {
           const description = `🔴 ${symbol} — SELL Signal\nConfidence: ${confidence}% | Consider booking profits`;
           
-          await dispatchNotifications(userId, email, symbol, 'SELL', description, price, prefs, profile.fcmToken, prediction);
+          await dispatchNotifications(userId, email, symbol, 'SELL', description, price, prefs, fcmToken, prediction);
         }
       } catch (err: any) {
         console.warn(`[NotificationEngine] Skipping profile symbol ${symbol}:`, err.message);
@@ -276,8 +332,14 @@ export async function checkAndSendNotifications() {
         const { fetchUpcomingEvents } = await import('./earningsTracker');
         const upcomingEvents = await fetchUpcomingEvents();
         
-        const wlDoc = await firestore.collection('users').doc(userId).collection('watchlist').doc('default').get();
-        const watchlistSymbols = wlDoc.exists ? (wlDoc.data()?.symbols || []) : [];
+        let watchlistSymbols: string[] = [];
+        try {
+          const wlDoc = await firestore.collection('users').doc(userId).collection('watchlist').doc('default').get();
+          watchlistSymbols = wlDoc.exists ? (wlDoc.data()?.symbols || []) : interestedSymbols;
+        } catch (wlErr) {
+          // If firestore read fails because of auth / permission issues, fallback to interestedSymbols
+          watchlistSymbols = interestedSymbols;
+        }
         
         for (const event of upcomingEvents) {
           if (watchlistSymbols.some((s: string) => s.toUpperCase().includes(event.symbol.toUpperCase())) && event.daysAway <= 3) {
@@ -285,7 +347,7 @@ export async function checkAndSendNotifications() {
             const description = `⚠️ ${event.symbol} results in ${event.daysAway} days\nHigh volatility expected — review your positions`;
             
             if (shouldSendNotification(userId, event.symbol, signalKey)) {
-              await dispatchCustomAlert(userId, email, event.symbol, signalKey, description, prefs, profile.fcmToken, 'earnings', event);
+              await dispatchCustomAlert(userId, email, event.symbol, signalKey, description, prefs, fcmToken, 'earnings', event);
             }
           }
         }
@@ -305,7 +367,7 @@ export async function checkAndSendNotifications() {
             const description = `🔥 ${sec.name} Sector HOT today\n${sec.topStocks?.join(', ') || ''} showing strong setups\nCheck Smart Swing scanner`;
             
             if (shouldSendNotification(userId, sec.sector, signalKey)) {
-              await dispatchCustomAlert(userId, email, sec.sector, signalKey, description, prefs, profile.fcmToken, 'sector', sec);
+              await dispatchCustomAlert(userId, email, sec.sector, signalKey, description, prefs, fcmToken, 'sector', sec);
             }
           }
         }
@@ -328,7 +390,7 @@ export async function checkAndSendNotifications() {
               const description = `💰 ${etf.replace('.NS', '')} RSI ${rsi} — Oversold\nGood time to deploy extra SIP this month`;
               
               if (shouldSendNotification(userId, etf, signalKey)) {
-                await dispatchCustomAlert(userId, email, etf, signalKey, description, prefs, profile.fcmToken, 'sip', { rsi });
+                await dispatchCustomAlert(userId, email, etf, signalKey, description, prefs, fcmToken, 'sip', { rsi });
               }
             }
           }
@@ -347,17 +409,7 @@ export async function checkAndSendNotifications() {
 export async function sendDailySummary() {
   console.log('[NotificationEngine] Assembling daily digest files for dispatch...');
   
-  initializeFirebaseAdmin();
-
-  const firestore = getFirestoreAdmin();
-  
-  let usersSnap;
-  try {
-    usersSnap = await firestore.collection('users').get();
-  } catch (err: any) {
-    console.error('[NotificationEngine] Summary sweeps database retrieve error:', err.message);
-    return;
-  }
+  const users = await getUsersFromCacheOrFirestore();
 
   // Get current setups list
   let setups: any[] = [];
@@ -374,11 +426,10 @@ export async function sendDailySummary() {
     description: `Setup RSI: ${Math.round(s.rsi)} | ADX: ${Math.round(s.adx)} | Volume Ratio: ${s.volumeRatio?.toFixed(1) || '1.5'}`
   }));
 
-  for (const userDoc of usersSnap.docs) {
-    const profile = userDoc.data();
-    const email = profile.email;
-    const prefs = profile.notificationPrefs || { channelEmail: true };
-    const userId = userDoc.id;
+  for (const user of users) {
+    const email = user.email;
+    const prefs = user.notificationPrefs;
+    const userId = user.id;
 
     if (email && prefs.channelEmail) {
       const signalKey = `SUMMARY_DIGEST_${new Date().toISOString().substring(0, 10)}`;

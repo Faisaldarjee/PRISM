@@ -187,6 +187,14 @@ db.exec(`
     data TEXT,
     fetched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   );
+
+  CREATE TABLE IF NOT EXISTS user_profiles_cache (
+    uid TEXT PRIMARY KEY,
+    email TEXT,
+    displayName TEXT,
+    interested_symbols TEXT,
+    notification_prefs TEXT
+  );
 `);
 
 // Self-healing migration to add 'is_preset' column if it does not exist

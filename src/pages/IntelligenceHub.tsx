@@ -216,18 +216,6 @@ export function IntelligenceHub() {
 
   return (
     <div className="space-y-8 select-none animate-fadeIn">
-      {congestionNotice && (
-        <div className="p-4 rounded-xl border border-amber-500/20 bg-amber-500/5 text-amber-400 flex items-start gap-3 text-xs font-body backdrop-blur-sm animate-fade-in mb-4">
-          <AlertTriangle className="shrink-0 text-[#D4A843] w-4 h-4 mt-0.5" />
-          <div className="space-y-1 text-left">
-            <p className="font-semibold uppercase tracking-wider text-[10px] font-data text-[#D4A843]">Workspace Feed Congested</p>
-            <p className="text-zinc-400 font-body text-xs leading-relaxed">
-              We are currently experiencing transient rate limits on our market intelligence agents. PRISMX has gracefully transitioned your desk to local fallback snapshots and stable cached rulesets. Core charts and indices remain fully operational.
-            </p>
-          </div>
-        </div>
-      )}
-
       {/* TITLE INTRO */}
       <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-white/[0.04] pb-5">
         <div>

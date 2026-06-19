@@ -27,7 +27,7 @@ export const ai = apiKey
 const geminiUsage = {
   count: 0,
   date: new Date().toDateString(),
-  limit: 40  // Stay well under standard free tier limit
+  limit: 250  // Generous daily limit tracking for active syncing and scans
 };
 
 export function canCallGemini(): boolean {
@@ -156,16 +156,16 @@ export async function callGeneratedContentWithRetry(params: {
           logErrorMsg = logErrorMsg.substring(0, 150) + '... (truncated Error)';
         }
 
-        console.warn(`[Gemini API] Attempt ${attempt} failed for model "${model}". Error: ${logErrorMsg}. Transient? ${isTransient}`);
-
         if (isQuotaExceeded) {
-          // Immediately suspend Gemini globally and abort to avoid spamming the rate-limited API key
-          handleGeminiError(error, `Generate-Quick-Suspend-${model}`);
-          break; // Break current model's attempt loop
+          console.log(`[Gemini API] Model "${model}" hit quota limits or 429 rate limit. Global cooling safety suspension activated.`);
+          handleGeminiError(error, `Auto-Quota-${model}`);
+          break; // Break loop for current model, and since isGeminiSuspended() is now true, the outer loop will break as well
         }
 
+        console.log(`[Gemini API] Attempt ${attempt} failed for model "${model}". Error: ${logErrorMsg}.`);
+
         if (is503) {
-          console.warn(`[Gemini API] Model "${model}" is experiencing high temporary demand (503). Switching to fallback models immediately.`);
+          console.log(`[Gemini API] Model "${model}" is experiencing high temporary demand (503). Switching to fallback models.`);
           break; // Break the attempt loop for this model, fallback to the next model in the list
         }
 

@@ -23,6 +23,8 @@ import { SMCPanel } from '../components/SMCPanel';
 import { NiftyDerivativeDashboard } from '../components/NiftyDerivativeDashboard';
 import AdUnit from '../components/AdUnit';
 import { useProStatus } from '../hooks/useProStatus';
+import ProGate from '../components/ProGate';
+import { fetchWithRetry } from '../utils/apiHelpers';
 import { 
   ArrowLeft, 
   RefreshCw, 
@@ -78,43 +80,6 @@ const getSentimentColorStyle = (label: string | undefined | null) => {
 };
 
 const API_BASE = window.location.port === '5173' ? 'http://localhost:3000' : '';
-
-async function authFetch(url: string, signal?: AbortSignal) {
-  const token = await getAuth().currentUser?.getIdToken();
-  return fetch(url, {
-    signal,
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    }
-  }).then(r => r.json());
-}
-
-async function fetchWithRetry(
-  url: string, 
-  signal: AbortSignal, 
-  retries = 2
-): Promise<any> {
-  for (let i = 0; i <= retries; i++) {
-    try {
-      const isProtected = url.includes('/api/predict') || url.includes('/api/gemini');
-      const token = isProtected ? await getAuth().currentUser?.getIdToken() : null;
-      const headers: HeadersInit = {
-        'Content-Type': 'application/json'
-      };
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-      const res = await fetch(url, { signal, headers });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return await res.json();
-    } catch (err: any) {
-      if (err.name === 'AbortError') throw err;
-      if (i === retries) throw err;
-      await new Promise(r => setTimeout(r, 1000 * (i + 1))); // 1s, 2s backoff
-    }
-  }
-}
 
 export function AssetDetail() {
   const { isPro } = useProStatus();
@@ -533,178 +498,180 @@ export function AssetDetail() {
         <NiftyDerivativeDashboard prediction={prediction} />
       ) : (
         <>
+        <ProGate feature="morning_macro_summary" isPro={isPro}>
         {/* INTELLIGENCE BREAKDOWN SECTION */}
-      <section className="glass-card p-6 md:p-8 space-y-6">
-        <div id="intelligence-breakdown-panel" className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/[0.04] pb-4">
-          <div>
-            <h3 className="text-lg font-display font-semibold text-white tracking-tight flex items-center gap-2">
-              <Sparkles size={18} className="text-[#E8C070]" /> Intelligence Breakdown
-            </h3>
-            <p className="text-xs text-[#8892A4] mt-1 font-body">Why this prediction considers multi-source signals:</p>
-          </div>
-          {ctx.intelligenceAdjustment && (
-            <span className="text-[10px] font-mono px-3 py-1 bg-[#D4A843]/10 border border-[#D4A843]/20 rounded-full text-[#E8C070] font-semibold text-left">
-              {ctx.intelligenceAdjustment}
-            </span>
-          )}
-        </div>
-
-        <div className="space-y-3">
-          {/* GLOBAL MACRO ROW */}
-          <div className="border border-white/[0.03] rounded-xl bg-black/20 overflow-hidden">
-            <div 
-              onClick={() => toggleIntel('global')}
-              className="flex items-center justify-between p-4 cursor-pointer hover:bg-white/[0.02] transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <Globe className="text-[#34A77A]" size={18} />
-                <div>
-                  <span className="text-[9px] text-[#8892A4] tracking-wider uppercase block">🌐 Global Macro Impact</span>
-                  <span className="text-xs text-white font-medium block mt-0.5">{ctx.globalMacro}</span>
-                </div>
-              </div>
-              {expandedIntel.global ? <ChevronUp size={16} className="text-[#8892A4]" /> : <ChevronDown size={16} className="text-[#8892A4]" />}
+        <section className="glass-card p-6 md:p-8 space-y-6">
+          <div id="intelligence-breakdown-panel" className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/[0.04] pb-4">
+            <div>
+              <h3 className="text-lg font-display font-semibold text-white tracking-tight flex items-center gap-2">
+                <Sparkles size={18} className="text-[#E8C070]" /> Intelligence Breakdown
+              </h3>
+              <p className="text-xs text-[#8892A4] mt-1 font-body">Why this prediction considers multi-source signals:</p>
             </div>
-            {expandedIntel.global && (
-              <div className="p-4 bg-white/[0.01] border-t border-white/[0.02] text-xs text-[#8892A4] leading-relaxed space-y-2 font-mono">
-                <p>Our macro correlation analysis models international indexes (S&P500), interest yields (US 10-Yr), and the volatility fear index (VIX).</p>
-                <p className="text-white">&rarr; S&P500 Performance: {ctx.globalMacro}</p>
-              </div>
+            {ctx.intelligenceAdjustment && (
+              <span className="text-[10px] font-mono px-3 py-1 bg-[#D4A843]/10 border border-[#D4A843]/20 rounded-full text-[#E8C070] font-semibold text-left">
+                {ctx.intelligenceAdjustment}
+              </span>
             )}
           </div>
 
-          {/* FII FLOW ROW */}
-          <div className="border border-white/[0.03] rounded-xl bg-black/20 overflow-hidden">
-            <div 
-              onClick={() => toggleIntel('fii')}
-              className="flex items-center justify-between p-4 cursor-pointer hover:bg-white/[0.02] transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <Building2 className="text-[#E8C070]" size={18} />
-                <div>
-                  <span className="text-[9px] text-[#8892A4] tracking-wider uppercase block">🏦 FII/DII Flows</span>
-                  <span className="text-xs text-white font-medium block mt-0.5">{ctx.fiiActivity}</span>
+          <div className="space-y-3">
+            {/* GLOBAL MACRO ROW */}
+            <div className="border border-white/[0.03] rounded-xl bg-black/20 overflow-hidden">
+              <div 
+                onClick={() => toggleIntel('global')}
+                className="flex items-center justify-between p-4 cursor-pointer hover:bg-white/[0.02] transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <Globe className="text-[#34A77A]" size={18} />
+                  <div>
+                    <span className="text-[9px] text-[#8892A4] tracking-wider uppercase block">🌐 Global Macro Impact</span>
+                    <span className="text-xs text-white font-medium block mt-0.5">{ctx.globalMacro}</span>
+                  </div>
                 </div>
+                {expandedIntel.global ? <ChevronUp size={16} className="text-[#8892A4]" /> : <ChevronDown size={16} className="text-[#8892A4]" />}
               </div>
-              {expandedIntel.fii ? <ChevronUp size={16} className="text-[#8892A4]" /> : <ChevronDown size={16} className="text-[#8892A4]" />}
-            </div>
-            {expandedIntel.fii && (
-              <div className="p-4 bg-white/[0.01] border-t border-white/[0.02] text-xs text-[#8892A4] leading-relaxed space-y-2 font-mono">
-                <p>Institutional tracking measures cash flows of Foreign Institutional Investors (FII) and Domestic Investors (DII) to gauge volume support.</p>
-                <p className="text-white">&rarr; Institutional Stance: {ctx.fiiActivity}</p>
-              </div>
-            )}
-          </div>
-
-          {/* EVENTS ROW */}
-          <div className="border border-white/[0.03] rounded-xl bg-black/20 overflow-hidden">
-            <div 
-              onClick={() => toggleIntel('events')}
-              className="flex items-center justify-between p-4 cursor-pointer hover:bg-white/[0.02] transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <Calendar className={ctx.earningsAlert ? "text-[#E05252]" : "text-[#34A77A]"} size={18} />
-                <div>
-                  <span className="text-[9px] text-[#8892A4] tracking-wider uppercase block">📅 Corporate Events & Earnings</span>
-                  <span className="text-xs text-white font-medium block mt-0.5">
-                    {ctx.earningsAlert ? ctx.earningsAlert : "No results in next 7 days — clear"}
-                  </span>
+              {expandedIntel.global && (
+                <div className="p-4 bg-white/[0.01] border-t border-white/[0.02] text-xs text-[#8892A4] leading-relaxed space-y-2 font-mono">
+                  <p>Our macro correlation analysis models international indexes (S&P500), interest yields (US 10-Yr), and the volatility fear index (VIX).</p>
+                  <p className="text-white">&rarr; S&P500 Performance: {ctx.globalMacro}</p>
                 </div>
-              </div>
-              {expandedIntel.events ? <ChevronUp size={16} className="text-[#8892A4]" /> : <ChevronDown size={16} className="text-[#8892A4]" />}
+              )}
             </div>
-            {expandedIntel.events && (
-              <div className="p-4 bg-white/[0.01] border-t border-white/[0.02] text-xs text-[#8892A4] leading-relaxed space-y-2 font-mono">
-                <p>Corporate calendars monitor forthcoming earnings declarations, dividend announcements, board meetings, and shareholder AGMs.</p>
-                {ctx.earningsAlert ? (
-                  <p className="text-[#E05252] font-bold">&rarr; Alert: {ctx.earningsAlert}</p>
-                ) : (
-                  <p className="text-[#34A77A]">&rarr; Event Timeline status is clear.</p>
-                )}
-              </div>
-            )}
-          </div>
 
-          {/* DEALS ROW */}
-          <div className="border border-white/[0.03] rounded-xl bg-black/20 overflow-hidden">
-            <div 
-              onClick={() => toggleIntel('deals')}
-              className="flex items-center justify-between p-4 cursor-pointer hover:bg-white/[0.02] transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <TrendingUp className="text-[#34A77A]" size={18} />
-                <div>
-                  <span className="text-[9px] text-[#8892A4] tracking-wider uppercase block">📊 Insider & Bulk Deals</span>
-                  <span className="text-xs text-white font-medium block mt-0.5">{ctx.bulkDealAlert}</span>
+            {/* FII FLOW ROW */}
+            <div className="border border-white/[0.03] rounded-xl bg-black/20 overflow-hidden">
+              <div 
+                onClick={() => toggleIntel('fii')}
+                className="flex items-center justify-between p-4 cursor-pointer hover:bg-white/[0.02] transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <Building2 className="text-[#E8C070]" size={18} />
+                  <div>
+                    <span className="text-[9px] text-[#8892A4] tracking-wider uppercase block">🏦 FII/DII Flows</span>
+                    <span className="text-xs text-white font-medium block mt-0.5">{ctx.fiiActivity}</span>
+                  </div>
                 </div>
+                {expandedIntel.fii ? <ChevronUp size={16} className="text-[#8892A4]" /> : <ChevronDown size={16} className="text-[#8892A4]" />}
               </div>
-              {expandedIntel.deals ? <ChevronUp size={16} className="text-[#8892A4]" /> : <ChevronDown size={16} className="text-[#8892A4]" />}
-            </div>
-            {expandedIntel.deals && (
-              <div className="p-4 bg-white/[0.01] border-t border-white/[0.02] text-xs text-[#8892A4] leading-relaxed space-y-2 font-mono">
-                <p>Bulk, Block, and Insider transaction logs analyze purchases/sales completed by directors, promoters, and capital funds.</p>
-                <p className="text-white">&rarr; Insiders: {ctx.bulkDealAlert}</p>
-              </div>
-            )}
-          </div>
-
-          {/* NEWS ROW */}
-          <div className="border border-white/[0.03] rounded-xl bg-black/20 overflow-hidden">
-            <div 
-              onClick={() => toggleIntel('news')}
-              className="flex items-center justify-between p-4 cursor-pointer hover:bg-white/[0.02] transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <Newspaper className="text-[#34A77A]" size={18} />
-                <div>
-                  <span className="text-[9px] text-[#8892A4] tracking-wider uppercase block">📰 News Intelligence</span>
-                  <span className="text-xs text-white font-medium block mt-0.5">{ctx.newsSentiment}</span>
+              {expandedIntel.fii && (
+                <div className="p-4 bg-white/[0.01] border-t border-white/[0.02] text-xs text-[#8892A4] leading-relaxed space-y-2 font-mono">
+                  <p>Institutional tracking measures cash flows of Foreign Institutional Investors (FII) and Domestic Investors (DII) to gauge volume support.</p>
+                  <p className="text-white">&rarr; Institutional Stance: {ctx.fiiActivity}</p>
                 </div>
-              </div>
-              {expandedIntel.news ? <ChevronUp size={16} className="text-[#8892A4]" /> : <ChevronDown size={16} className="text-[#8892A4]" />}
+              )}
             </div>
-            {expandedIntel.news && (
-              <div className="p-4 bg-white/[0.01] border-t border-white/[0.02] text-xs text-[#8892A4] leading-relaxed space-y-2 font-mono">
-                <p>NLP (FinBERT model) scans global digital papers, news updates, and tickers dynamically for sentiment flags.</p>
-                <p className="text-white">&rarr; Sentiment Analysis: {ctx.newsSentiment}</p>
+
+            {/* EVENTS ROW */}
+            <div className="border border-white/[0.03] rounded-xl bg-black/20 overflow-hidden">
+              <div 
+                onClick={() => toggleIntel('events')}
+                className="flex items-center justify-between p-4 cursor-pointer hover:bg-white/[0.02] transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <Calendar className={ctx.earningsAlert ? "text-[#E05252]" : "text-[#34A77A]"} size={18} />
+                  <div>
+                    <span className="text-[9px] text-[#8892A4] tracking-wider uppercase block">📅 Corporate Events & Earnings</span>
+                    <span className="text-xs text-white font-medium block mt-0.5">
+                      {ctx.earningsAlert ? ctx.earningsAlert : "No results in next 7 days — clear"}
+                    </span>
+                  </div>
+                </div>
+                {expandedIntel.events ? <ChevronUp size={16} className="text-[#8892A4]" /> : <ChevronDown size={16} className="text-[#8892A4]" />}
               </div>
-            )}
-          </div>
-        </div>
+              {expandedIntel.events && (
+                <div className="p-4 bg-white/[0.01] border-t border-white/[0.02] text-xs text-[#8892A4] leading-relaxed space-y-2 font-mono">
+                  <p>Corporate calendars monitor forthcoming earnings declarations, dividend announcements, board meetings, and shareholder AGMs.</p>
+                  {ctx.earningsAlert ? (
+                    <p className="text-[#E05252] font-bold">&rarr; Alert: {ctx.earningsAlert}</p>
+                  ) : (
+                    <p className="text-[#34A77A]">&rarr; Event Timeline status is clear.</p>
+                  )}
+                </div>
+              )}
+            </div>
 
-        {/* Key Risks and Supports Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-4 border-t border-white/[0.04]">
-          {/* Risks */}
-          <div className="p-4 bg-[#E05252]/[0.02] border border-[#E05252]/10 rounded-xl space-y-2.5">
-            <h4 className="text-[10px] uppercase tracking-wider text-[#E05252] font-semibold flex items-center gap-1.5">
-              <AlertCircle size={12} /> Key Intelligence Risks
-            </h4>
-            <ul className="space-y-1.5 text-xs text-[#8892A4] leading-relaxed font-body">
-              {ctx.keyRisks.map((risk, i) => (
-                <li key={i} className="flex gap-2 items-start">
-                  <span className="text-[#E05252] font-bold mt-0.5 font-mono">•</span>
-                  <span>{risk}</span>
-                </li>
-              ))}
-            </ul>
+            {/* DEALS ROW */}
+            <div className="border border-white/[0.03] rounded-xl bg-black/20 overflow-hidden">
+              <div 
+                onClick={() => toggleIntel('deals')}
+                className="flex items-center justify-between p-4 cursor-pointer hover:bg-white/[0.02] transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <TrendingUp className="text-[#34A77A]" size={18} />
+                  <div>
+                    <span className="text-[9px] text-[#8892A4] tracking-wider uppercase block">📊 Insider & Bulk Deals</span>
+                    <span className="text-xs text-white font-medium block mt-0.5">{ctx.bulkDealAlert}</span>
+                  </div>
+                </div>
+                {expandedIntel.deals ? <ChevronUp size={16} className="text-[#8892A4]" /> : <ChevronDown size={16} className="text-[#8892A4]" />}
+              </div>
+              {expandedIntel.deals && (
+                <div className="p-4 bg-white/[0.01] border-t border-white/[0.02] text-xs text-[#8892A4] leading-relaxed space-y-2 font-mono">
+                  <p>Bulk, Block, and Insider transaction logs analyze purchases/sales completed by directors, promoters, and capital funds.</p>
+                  <p className="text-white">&rarr; Insiders: {ctx.bulkDealAlert}</p>
+                </div>
+              )}
+            </div>
+
+            {/* NEWS ROW */}
+            <div className="border border-white/[0.03] rounded-xl bg-black/20 overflow-hidden">
+              <div 
+                onClick={() => toggleIntel('news')}
+                className="flex items-center justify-between p-4 cursor-pointer hover:bg-white/[0.02] transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <Newspaper className="text-[#34A77A]" size={18} />
+                  <div>
+                    <span className="text-[9px] text-[#8892A4] tracking-wider uppercase block">📰 News Intelligence</span>
+                    <span className="text-xs text-white font-medium block mt-0.5">{ctx.newsSentiment}</span>
+                  </div>
+                </div>
+                {expandedIntel.news ? <ChevronUp size={16} className="text-[#8892A4]" /> : <ChevronDown size={16} className="text-[#8892A4]" />}
+              </div>
+              {expandedIntel.news && (
+                <div className="p-4 bg-white/[0.01] border-t border-white/[0.02] text-xs text-[#8892A4] leading-relaxed space-y-2 font-mono">
+                  <p>NLP (FinBERT model) scans global digital papers, news updates, and tickers dynamically for sentiment flags.</p>
+                  <p className="text-white">&rarr; Sentiment Analysis: {ctx.newsSentiment}</p>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Supports */}
-          <div className="p-4 bg-[#34A77A]/[0.02] border border-[#34A77A]/15 rounded-xl space-y-2.5">
-            <h4 className="text-[10px] uppercase tracking-wider text-[#34A77A] font-semibold flex items-center gap-1.5">
-              <CheckCircle2 size={12} /> Key Support Factors
-            </h4>
-            <ul className="space-y-1.5 text-xs text-[#8892A4] leading-relaxed font-body">
-              {ctx.keySupportFactors.map((sup, i) => (
-                <li key={i} className="flex gap-2 items-start">
-                  <span className="text-[#34A77A] font-bold mt-0.5 font-mono">•</span>
-                  <span>{sup}</span>
-                </li>
-              ))}
-            </ul>
+          {/* Key Risks and Supports Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-4 border-t border-white/[0.04]">
+            {/* Risks */}
+            <div className="p-4 bg-[#E05252]/[0.02] border border-[#E05252]/10 rounded-xl space-y-2.5">
+              <h4 className="text-[10px] uppercase tracking-wider text-[#E05252] font-semibold flex items-center gap-1.5">
+                <AlertCircle size={12} /> Key Intelligence Risks
+              </h4>
+              <ul className="space-y-1.5 text-xs text-[#8892A4] leading-relaxed font-body">
+                {ctx.keyRisks.map((risk, i) => (
+                  <li key={i} className="flex gap-2 items-start">
+                    <span className="text-[#E05252] font-bold mt-0.5 font-mono">•</span>
+                    <span>{risk}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Supports */}
+            <div className="p-4 bg-[#34A77A]/[0.02] border border-[#34A77A]/15 rounded-xl space-y-2.5">
+              <h4 className="text-[10px] uppercase tracking-wider text-[#34A77A] font-semibold flex items-center gap-1.5">
+                <CheckCircle2 size={12} /> Key Support Factors
+              </h4>
+              <ul className="space-y-1.5 text-xs text-[#8892A4] leading-relaxed font-body">
+                {ctx.keySupportFactors.map((sup, i) => (
+                  <li key={i} className="flex gap-2 items-start">
+                    <span className="text-[#34A77A] font-bold mt-0.5 font-mono">•</span>
+                    <span>{sup}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+        </ProGate>
 
       {/* COGNITIVE ACTIONABLE TARGETS BLOCK */}
       <section className="grid grid-cols-1 md:grid-cols-3 gap-5 font-data">
@@ -784,11 +751,13 @@ export function AssetDetail() {
 
       {/* SMART MONEY CONCEPTS (SMC) INSTANT REPORT */}
       <section className="pb-6">
-        <SMCPanel 
-          symbol={resolvedSymbol} 
-          smcData={(prediction as any).smcData} 
-          loading={loading} 
-        />
+        <ProGate feature="smart_money_concepts" isPro={isPro}>
+          <SMCPanel 
+            symbol={resolvedSymbol} 
+            smcData={(prediction as any).smcData} 
+            loading={loading} 
+          />
+        </ProGate>
       </section>
 
       {/* SWING TRADING INTELLIGENCE BENTO PANEL */}
@@ -941,90 +910,92 @@ export function AssetDetail() {
       </section>
 
       {/* AI NEWS & SWING INTELLIGENCE PANEL */}
-      {prediction?.newsIntelligence && (
-        <section className="glass-card p-6 font-data relative overflow-hidden my-6">
-          {/* Decorative background glow */}
-          <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-emerald-500/10 rounded-full blur-[100px] pointer-events-none -mr-40 -mt-40" />
-          
-          <div className="flex flex-col md:flex-row gap-6 items-start relative z-10">
-            {/* Left Column: Sentiment Gauge & Action */}
-            <div className="w-full md:w-1/3 bg-[#0d0e12]/60 border border-white/[0.04] p-5 rounded-xl flex flex-col justify-between self-stretch">
-              <div>
-                <div className="flex items-center gap-2 border-b border-white/[0.04] pb-3 mb-4 font-sans">
-                  <Sparkles className="text-[#34A77A]" size={15} />
-                  <div>
-                    <h4 className="font-display font-semibold text-xs text-white">Sentiment Status</h4>
-                    <p className="text-[8.5px] text-[#8892A4] font-mono uppercase mt-0.5 tracking-wider">AI Weighted News Score</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-center py-6 flex-col relative bg-black/30 rounded-xl">
-                  <div className="text-4xl font-extrabold font-mono tracking-tight text-[#34A77A]">
-                    {prediction.newsIntelligence.sentimentScore > 0 ? `+${prediction.newsIntelligence.sentimentScore}` : prediction.newsIntelligence.sentimentScore}
-                  </div>
-                  <span className="text-[8px] text-gray-400 font-mono tracking-widest block mt-2 text-center uppercase">WEIGHED INDEX (-100 to +100)</span>
-                  
-                  <div className={`mt-4 px-3 py-1 rounded-full text-[10px] font-bold tracking-wide font-sans text-center border ${getSentimentColorStyle(prediction.newsIntelligence.tradeSentiment)}`}>
-                    {formatSentimentLabel(prediction.newsIntelligence.tradeSentiment).toUpperCase()} NEWS BIAS
-                  </div>
-                </div>
-              </div>
-
-              {/* Swing Strategy Zone Levels */}
-              <div className="mt-4 border-t border-white/[0.04] pt-4 space-y-2 font-mono text-xs">
-                <div className="flex justify-between items-center text-[10.5px] py-1 border-b border-white/[0.02]">
-                  <span className="text-gray-400 uppercase">ACTION RECOMMENDED:</span>
-                  <span className="text-emerald-400 font-extrabold">{prediction.newsIntelligence.swingStrategy.recommendedAction}</span>
-                </div>
-                <div className="flex justify-between items-center text-[10.5px] py-1 border-b border-white/[0.02]">
-                  <span className="text-gray-400 uppercase">ENTRY RANGE:</span>
-                  <span className="text-white font-semibold">{prediction.newsIntelligence.swingStrategy.entryZone}</span>
-                </div>
-                <div className="flex justify-between items-center text-[10.5px] py-1 border-b border-white/[0.02]">
-                  <span className="text-gray-400 uppercase">TARGET RANGE:</span>
-                  <span className="text-[#34A77A] font-bold">{prediction.newsIntelligence.swingStrategy.targetZone}</span>
-                </div>
-                <div className="flex justify-between items-center text-[10.5px] pt-1">
-                  <span className="text-gray-400 uppercase">PROTECTIVE STOP:</span>
-                  <span className="text-rose-400 font-medium">{prediction.newsIntelligence.swingStrategy.stopLoss}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column: Narrative & Catalysts */}
-            <div className="w-full md:w-2/3 flex flex-col justify-between self-stretch">
-              <div>
-                <div className="flex items-center gap-2 border-b border-white/[0.04] pb-3 mb-4 font-sans">
-                  <div className="bg-[#34A77A]/10 text-[#34A77A] p-1.5 rounded-lg border border-[#34A77A]/15">
-                    <Sparkles size={13} />
-                  </div>
-                  <div>
-                    <h4 className="font-display font-semibold text-xs text-white">Five-Day AI Swing Narrative</h4>
-                    <p className="text-[8.5px] text-[#8892A4] font-mono uppercase mt-0.5 tracking-wider">Automated Event Projections & News Summary</p>
-                  </div>
-                </div>
-
-                <p className="text-zinc-300 text-xs font-body leading-relaxed bg-[#111317]/50 border border-white/[0.02] p-4.5 rounded-xl italic">
-                  "{prediction.newsIntelligence.fiveDayNarrative}"
-                </p>
-              </div>
-
-              {/* Catalyst Bullets */}
-              <div className="mt-5 bg-black/25 border border-white/[0.01] p-4 rounded-xl">
-                <h5 className="text-[9px] text-zinc-400 font-mono tracking-widest uppercase mb-3">Primary Catalyst Events:</h5>
-                <div className="space-y-2.5">
-                  {prediction.newsIntelligence.keyCatalysts.map((cat: string, idx: number) => (
-                    <div key={idx} className="flex gap-2.5 items-start text-[11px] font-mono text-zinc-300 leading-normal">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#34A77A] mt-1.5 flex-shrink-0" />
-                      <span className="leading-tight">{cat}</span>
+      <ProGate feature="ai_news_intelligence" isPro={isPro}>
+        {prediction?.newsIntelligence && (
+          <section className="glass-card p-6 font-data relative overflow-hidden my-6">
+            {/* Decorative background glow */}
+            <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-emerald-500/10 rounded-full blur-[100px] pointer-events-none -mr-40 -mt-40" />
+            
+            <div className="flex flex-col md:flex-row gap-6 items-start relative z-10">
+              {/* Left Column: Sentiment Gauge & Action */}
+              <div className="w-full md:w-1/3 bg-[#0d0e12]/60 border border-white/[0.04] p-5 rounded-xl flex flex-col justify-between self-stretch">
+                <div>
+                  <div className="flex items-center gap-2 border-b border-white/[0.04] pb-3 mb-4 font-sans">
+                    <Sparkles className="text-[#34A77A]" size={15} />
+                    <div>
+                      <h4 className="font-display font-semibold text-xs text-white">Sentiment Status</h4>
+                      <p className="text-[8.5px] text-[#8892A4] font-mono uppercase mt-0.5 tracking-wider">AI Weighted News Score</p>
                     </div>
-                  ))}
+                  </div>
+
+                  <div className="flex items-center justify-center py-6 flex-col relative bg-black/30 rounded-xl">
+                    <div className="text-4xl font-extrabold font-mono tracking-tight text-[#34A77A]">
+                      {prediction.newsIntelligence.sentimentScore > 0 ? `+${prediction.newsIntelligence.sentimentScore}` : prediction.newsIntelligence.sentimentScore}
+                    </div>
+                    <span className="text-[8px] text-gray-400 font-mono tracking-widest block mt-2 text-center uppercase">WEIGHED INDEX (-100 to +100)</span>
+                    
+                    <div className={`mt-4 px-3 py-1 rounded-full text-[10px] font-bold tracking-wide font-sans text-center border ${getSentimentColorStyle(prediction.newsIntelligence.tradeSentiment)}`}>
+                      {formatSentimentLabel(prediction.newsIntelligence.tradeSentiment).toUpperCase()} NEWS BIAS
+                    </div>
+                  </div>
+                </div>
+
+                {/* Swing Strategy Zone Levels */}
+                <div className="mt-4 border-t border-white/[0.04] pt-4 space-y-2 font-mono text-xs">
+                  <div className="flex justify-between items-center text-[10.5px] py-1 border-b border-white/[0.02]">
+                    <span className="text-gray-400 uppercase">ACTION RECOMMENDED:</span>
+                    <span className="text-emerald-400 font-extrabold">{prediction.newsIntelligence.swingStrategy.recommendedAction}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-[10.5px] py-1 border-b border-white/[0.02]">
+                    <span className="text-gray-400 uppercase">ENTRY RANGE:</span>
+                    <span className="text-white font-semibold">{prediction.newsIntelligence.swingStrategy.entryZone}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-[10.5px] py-1 border-b border-white/[0.02]">
+                    <span className="text-gray-400 uppercase">TARGET RANGE:</span>
+                    <span className="text-[#34A77A] font-bold">{prediction.newsIntelligence.swingStrategy.targetZone}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-[10.5px] pt-1">
+                    <span className="text-gray-400 uppercase">PROTECTIVE STOP:</span>
+                    <span className="text-rose-400 font-medium">{prediction.newsIntelligence.swingStrategy.stopLoss}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column: Narrative & Catalysts */}
+              <div className="w-full md:w-2/3 flex flex-col justify-between self-stretch">
+                <div>
+                  <div className="flex items-center gap-2 border-b border-white/[0.04] pb-3 mb-4 font-sans">
+                    <div className="bg-[#34A77A]/10 text-[#34A77A] p-1.5 rounded-lg border border-[#34A77A]/15">
+                      <Sparkles size={13} />
+                    </div>
+                    <div>
+                      <h4 className="font-display font-semibold text-xs text-white">Five-Day AI Swing Narrative</h4>
+                      <p className="text-[8.5px] text-[#8892A4] font-mono uppercase mt-0.5 tracking-wider">Automated Event Projections & News Summary</p>
+                    </div>
+                  </div>
+
+                  <p className="text-zinc-300 text-xs font-body leading-relaxed bg-[#111317]/50 border border-white/[0.02] p-4.5 rounded-xl italic">
+                    "{prediction.newsIntelligence.fiveDayNarrative}"
+                  </p>
+                </div>
+
+                {/* Catalyst Bullets */}
+                <div className="mt-5 bg-black/25 border border-white/[0.01] p-4 rounded-xl">
+                  <h5 className="text-[9px] text-zinc-400 font-mono tracking-widest uppercase mb-3">Primary Catalyst Events:</h5>
+                  <div className="space-y-2.5">
+                    {prediction.newsIntelligence.keyCatalysts.map((cat: string, idx: number) => (
+                      <div key={idx} className="flex gap-2.5 items-start text-[11px] font-mono text-zinc-300 leading-normal">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#34A77A] mt-1.5 flex-shrink-0" />
+                        <span className="leading-tight">{cat}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </section>
-      )}
+          </section>
+        )}
+      </ProGate>
 
       {/* MULTI_TIMEFRAME CONCORDANCE & ACTIVE SGD FEATURE VALUES */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-6 font-data text-xs">
