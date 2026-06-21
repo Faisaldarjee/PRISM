@@ -496,6 +496,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Register custom imported asset in profile
   const addCustomAsset = async (symbol: string) => {
+    if (!symbol || typeof symbol !== 'string') return;
     const symUpper = symbol.toUpperCase().trim();
     if (!symUpper) return;
 

@@ -163,13 +163,18 @@ export function AssetsList() {
     setImporting(true);
     setImportMessage(null);
     try {
-      const outcome = await fetch('/api/assets/import', {
+      const res = await fetch('/api/assets/import', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ symbol })
-      }).then(r => r.json());
+      });
+      const outcome = await res.json();
 
+      if (!res.ok) {
+        throw new Error(outcome.detail || outcome.error || `HTTP error ${res.status}`);
+      }
       if (outcome.error) throw new Error(outcome.error);
+      if (!outcome.symbol) throw new Error("No symbol returned from import.");
 
       await addCustomAsset(outcome.symbol);
       setImportMessage({
@@ -198,13 +203,18 @@ export function AssetsList() {
     setImporting(true);
     setImportMessage(null);
     try {
-      const outcome = await fetch('/api/assets/import', {
+      const res = await fetch('/api/assets/import', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ symbol: query })
-      }).then(r => r.json());
+      });
+      const outcome = await res.json();
 
+      if (!res.ok) {
+        throw new Error(outcome.detail || outcome.error || `HTTP error ${res.status}`);
+      }
       if (outcome.error) throw new Error(outcome.error);
+      if (!outcome.symbol) throw new Error("No symbol returned from import.");
 
       await addCustomAsset(outcome.symbol);
       if (outcome.alreadyExists) {
@@ -291,13 +301,18 @@ export function AssetsList() {
       const sym = symbols[i];
       setBulkProgress(`Importing ${i + 1}/${symbols.length}: ${sym}...`);
       try {
-        const outcome = await fetch('/api/assets/import', {
+        const res = await fetch('/api/assets/import', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ symbol: sym })
-        }).then(r => r.json());
+        });
+        const outcome = await res.json();
 
+        if (!res.ok) {
+          throw new Error(outcome.detail || outcome.error || `HTTP error ${res.status}`);
+        }
         if (outcome.error) throw new Error(outcome.error);
+        if (!outcome.symbol) throw new Error("No symbol returned from import.");
 
         await addCustomAsset(outcome.symbol);
         successCount++;

@@ -1,8 +1,6 @@
-import Database from 'better-sqlite3';
-import path from 'path';
-import fs from 'fs';
-import axios from 'axios';
 import YahooFinanceClass from 'yahoo-finance2';
+import axios from 'axios';
+import { db } from './database';
 
 const YahooFinance = (typeof YahooFinanceClass === 'function'
   ? YahooFinanceClass
@@ -14,41 +12,6 @@ const yahooFinance = new YahooFinance({
     logOptionsErrors: false,
   }
 });
-
-// Clean workspace relative path
-let dbDir = path.join(process.cwd(), 'data');
-let dbPath = path.join(dbDir, 'predictions.db');
-
-try {
-  if (!fs.existsSync(dbDir)) {
-    fs.mkdirSync(dbDir, { recursive: true });
-  }
-  // Try writing a small test file to verify write access
-  const testFile = path.join(dbDir, '.write_test');
-  fs.writeFileSync(testFile, 'test');
-  fs.unlinkSync(testFile);
-} catch (writeErr: any) {
-  console.warn(`[nseQuotes] Database directory ${dbDir} is not writable:`, writeErr.message, ". Falling back to /tmp/predictions.db for write support.");
-  dbDir = '/tmp';
-  dbPath = path.join(dbDir, 'predictions.db');
-}
-
-try {
-  if (fs.existsSync(dbPath)) {
-    const testDb = new Database(dbPath);
-    testDb.pragma('journal_mode = WAL');
-    testDb.close();
-  }
-} catch (e: any) {
-  console.warn("[nseQuotes] SQLite DB format mismatch or corruption detected. Clearing corrupt database and starting fresh...", e.message);
-  try {
-    fs.unlinkSync(dbPath);
-  } catch (unlinkErr: any) {
-    console.error("[nseQuotes] Failed to unlink corrupt DB file:", unlinkErr.message);
-  }
-}
-
-const db = new Database(dbPath);
 
 // Ensure quotes_cache table exists
 db.exec(`

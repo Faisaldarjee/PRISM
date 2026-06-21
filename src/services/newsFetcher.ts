@@ -1,43 +1,6 @@
 import Parser from 'rss-parser';
-import Database from 'better-sqlite3';
-import path from 'path';
-import fs from 'fs';
 import axios from 'axios';
-
-// Initialize predictions.db with self-healing to handle corrupt or old formats
-let dbDir = path.join(process.cwd(), 'data');
-let dbPath = path.join(dbDir, 'predictions.db');
-
-try {
-  if (!fs.existsSync(dbDir)) {
-    fs.mkdirSync(dbDir, { recursive: true });
-  }
-  // Try writing a small test file to verify write access
-  const testFile = path.join(dbDir, '.write_test');
-  fs.writeFileSync(testFile, 'test');
-  fs.unlinkSync(testFile);
-} catch (writeErr: any) {
-  console.warn(`[newsFetcher] Database directory ${dbDir} is not writable:`, writeErr.message, ". Falling back to /tmp/predictions.db for write support.");
-  dbDir = '/tmp';
-  dbPath = path.join(dbDir, 'predictions.db');
-}
-
-try {
-  if (fs.existsSync(dbPath)) {
-    const testDb = new Database(dbPath);
-    testDb.pragma('journal_mode = WAL');
-    testDb.close();
-  }
-} catch (e: any) {
-  console.warn("[newsFetcher] SQLite DB format mismatch or corruption detected. Clearing corrupt database and starting fresh...", e.message);
-  try {
-    fs.unlinkSync(dbPath);
-  } catch (unlinkErr: any) {
-    console.error("[newsFetcher] Failed to unlink corrupt DB file:", unlinkErr.message);
-  }
-}
-
-const db = new Database(dbPath);
+import { db } from './database';
 
 // Drop the legacy unused news_cache table if it has the old schema
 try {
