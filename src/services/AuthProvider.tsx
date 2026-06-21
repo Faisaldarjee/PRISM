@@ -216,11 +216,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               {
                 prefix: 'faisaldarjee9',
                 updates: {
-                  plan: 'pro_early' as const,
+                  plan: 'pro_paid' as const,
                   isPro: true,
                   earlyAccessNumber: 2,
-                  earlyAccessGrantedAt: '2026-06-10T00:00:00.000Z',
-                  earlyAccessExpiresAt: '2026-07-10T00:00:00.000Z',
+                  proStartDate: '2026-06-21T00:00:00.000Z',
+                  proEndDate: '2099-12-31T00:00:00.000Z',
+                  razorpaySubscriptionId: 'founder_lifetime_access',
                 }
               },
               {
