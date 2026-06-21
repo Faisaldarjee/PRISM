@@ -168,7 +168,14 @@ export function AssetsList() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ symbol })
       });
-      const outcome = await res.json();
+      
+      const text = await res.text();
+      let outcome: any = {};
+      try {
+        outcome = text ? JSON.parse(text) : {};
+      } catch (e) {
+        throw new Error(text.substring(0, 100) || `HTTP error ${res.status}`);
+      }
 
       if (!res.ok) {
         throw new Error(outcome.detail || outcome.error || `HTTP error ${res.status}`);
@@ -208,7 +215,14 @@ export function AssetsList() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ symbol: query })
       });
-      const outcome = await res.json();
+      
+      const text = await res.text();
+      let outcome: any = {};
+      try {
+        outcome = text ? JSON.parse(text) : {};
+      } catch (e) {
+        throw new Error(text.substring(0, 100) || `HTTP error ${res.status}`);
+      }
 
       if (!res.ok) {
         throw new Error(outcome.detail || outcome.error || `HTTP error ${res.status}`);
@@ -306,7 +320,14 @@ export function AssetsList() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ symbol: sym })
         });
-        const outcome = await res.json();
+        
+        const text = await res.text();
+        let outcome: any = {};
+        try {
+          outcome = text ? JSON.parse(text) : {};
+        } catch (e) {
+          throw new Error(text.substring(0, 100) || `HTTP error ${res.status}`);
+        }
 
         if (!res.ok) {
           throw new Error(outcome.detail || outcome.error || `HTTP error ${res.status}`);
