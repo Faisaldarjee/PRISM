@@ -5,7 +5,7 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 const cleanEnv = (val?: string) => val?.replace(/^["']|["']$/g, '') || '';
-const supabaseUrl = cleanEnv(process.env.SUPABASE_URL);
+const supabaseUrl = cleanEnv(process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL);
 const supabaseServiceKey = cleanEnv(process.env.SUPABASE_SERVICE_ROLE_KEY);
 
 if (!supabaseUrl || !supabaseServiceKey) {

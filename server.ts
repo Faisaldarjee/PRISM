@@ -354,19 +354,6 @@ async function startServer() {
       res.status(500).json({ success: false, error: e.message });
     }
   });
-
-  // Debug auth config
-  app.get('/api/admin/debug-auth', checkAdminKey, (req, res) => {
-    const supabaseUrl = process.env.SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    res.json({
-      supabaseUrl: supabaseUrl ? supabaseUrl.substring(0, 25) + '...' : 'undefined',
-      supabaseServiceKeyLength: supabaseServiceKey ? supabaseServiceKey.length : 0,
-      supabaseServiceKeyStart: supabaseServiceKey ? supabaseServiceKey.substring(0, 15) + '...' : 'undefined',
-      nodeEnv: process.env.NODE_ENV
-    });
-  });
-
   // Gemini API Quota endpoint
   app.get('/api/gemini/quota', (req, res) => {
     res.json({
