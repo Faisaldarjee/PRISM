@@ -251,7 +251,7 @@ export function Accuracy() {
           className="flex items-center gap-1.5 px-3 py-2 bg-white/[0.02] hover:bg-white/[0.05] text-[#8892A4] hover:text-white rounded-lg text-xs font-data border border-[rgba(255,255,255,0.04)] transition-all cursor-pointer hover:border-white/[0.12]"
         >
           <RefreshCw size={11} className={isBuilding ? "animate-spin" : ""} />
-          RELOAD_METRICS
+          Reload Metrics
         </button>
       </div>
 
@@ -288,7 +288,7 @@ export function Accuracy() {
                 className="px-4 py-2 bg-[#D4A843] hover:bg-[#E8C070] text-[#05070C] text-xs font-data font-bold rounded-lg uppercase tracking-wider transition-all disabled:opacity-50 cursor-pointer active:scale-95 flex items-center gap-1.5 shadow-lg shadow-[#D4A843]/15"
               >
                 <Play size={11} fill="currentColor" />
-                {backtesting ? 'SIMULATING...' : 'RUN_TEST'}
+                {backtesting ? 'Running Backtest...' : 'Run Backtest'}
               </button>
             </div>
           </div>

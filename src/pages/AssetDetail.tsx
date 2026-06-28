@@ -415,7 +415,7 @@ export function AssetDetail() {
           className="flex items-center gap-1.5 px-3 py-1.5 bg-white/[0.02] hover:bg-white/[0.05] text-[#8892A4] hover:text-white rounded-lg text-xs font-data border border-[rgba(255,255,255,0.04)]"
         >
           <RefreshCw size={11} />
-          FORCE_RECALIBRATION
+          Recalibrate
         </button>
       </div>
 
@@ -1091,7 +1091,7 @@ export function AssetDetail() {
                 <span className={`font-semibold text-xs ${
                   prediction.multiTimeframe.fourHourTrig === 'ACCUMULATE_NOW' ? 'text-[#34A77A]' : 'text-slate-200'
                 }`}>
-                  {prediction.multiTimeframe.fourHourTrig === 'ACCUMULATE_NOW' ? '⚡ INTERACTIVE ACCUMULATE NOW' : prediction.multiTimeframe.fourHourTrig}
+                  {prediction.multiTimeframe.fourHourTrig === 'ACCUMULATE_NOW' ? '⚡ Accumulate Now' : 'Neutral'}
                 </span>
               </div>
 

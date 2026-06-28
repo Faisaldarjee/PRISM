@@ -951,7 +951,7 @@ export function Dashboard() {
                       to={`/asset/${pred.symbol}`}
                       className="text-[#D4A843] hover:text-[#fbf0d0] text-xs font-data font-bold uppercase tracking-wider flex items-center gap-1"
                     >
-                      DIAGNOSE_ASSET &rarr;
+                      Analyse Asset &rarr;
                     </Link>
                   </div>
                 </div>

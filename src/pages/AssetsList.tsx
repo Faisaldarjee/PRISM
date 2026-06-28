@@ -460,7 +460,7 @@ export function AssetsList() {
           className="flex items-center gap-1.5 px-3 py-1.5 bg-white/[0.02] hover:bg-white/[0.05] text-[#8892A4] hover:text-white rounded-lg text-xs font-data border border-[rgba(255,255,255,0.04)] font-mono"
         >
           <RefreshCw size={11} />
-          REFRESH_REGISTRY
+          Refresh
         </button>
       </div>
 
